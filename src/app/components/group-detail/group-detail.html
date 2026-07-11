@@ -1,0 +1,121 @@
+<div class="flex h-screen" style="background: #FCFCFA;">
+  <!-- Main Content -->
+  <main class="flex-1 flex overflow-hidden">
+    
+    <!-- Left Panel: Group Info -->
+    <div class="w-80 bg-white border-r border-gray-200 p-6 flex flex-col flex-shrink-0">
+      <a routerLink="/grupos" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-800 mb-8 transition-colors">
+        <ng-icon name="lucideArrowLeft" size="16" />
+        Volver a grupos
+      </a>
+
+      @if (group) {
+        <h2 class="text-2xl font-bold mb-2 leading-tight" style="color: #061E24;">{{ group.name }}</h2>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold mb-6 w-fit border border-green-100">
+          {{ group.subjectName || group.subject?.nombre || 'General' }}
+        </div>
+
+        <p class="text-sm text-gray-500 mb-8 leading-relaxed">{{ group.description }}</p>
+
+        <div class="space-y-4 text-sm font-medium text-gray-600 border-t border-b border-gray-100 py-6 mb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <ng-icon name="lucideUsers" size="16" class="text-gray-400" />
+              <span>Miembros</span>
+            </div>
+            <span class="font-bold">{{ group._count?.members || 0 }}/{{ group.maxMembers }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <ng-icon name="lucideCalendar" size="16" class="text-gray-400" />
+              <span>Sesiones</span>
+            </div>
+            <span class="font-bold">{{ group._count?.sessions || 0 }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Right Panel: Chat -->
+    <div class="flex-1 flex flex-col bg-gray-50 relative">
+      <!-- Chat Header -->
+      <div class="h-16 bg-white border-b border-gray-200 flex items-center px-6 shrink-0">
+        <h3 class="font-bold text-gray-800">Chat del Grupo</h3>
+        @if (chatService.connected()) {
+          <span class="ml-3 flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+            <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+            En línea
+          </span>
+        } @else {
+          <span class="ml-3 text-xs font-bold text-gray-400">Conectando...</span>
+        }
+      </div>
+
+      <!-- Messages Area -->
+      <div #chatScroll class="flex-1 overflow-y-auto p-6 space-y-4">
+        @for (msg of chatService.messages(); track msg.id) {
+          @let isMe = msg.userId === myUserId;
+          
+          <div class="flex w-full" [class.justify-end]="isMe">
+            <div class="flex max-w-[70%] gap-3" [class.flex-row-reverse]="isMe">
+              
+              <!-- Avatar -->
+              <div class="w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center text-xs font-bold text-white mt-1"
+                   [style.background]="isMe ? '#F4B960' : '#0C5A60'" [style.color]="isMe ? '#061E24' : 'white'">
+                {{ getInitials(msg.user.nombre, msg.user.apellido) }}
+              </div>
+
+              <!-- Bubble -->
+              <div class="flex flex-col gap-1">
+                <div class="flex items-baseline gap-2" [class.flex-row-reverse]="isMe">
+                  <span class="text-xs font-bold text-gray-700">{{ isMe ? 'Tú' : msg.user.nombre }}</span>
+                  <span class="text-[10px] text-gray-400">{{ msg.createdAt | date:'shortTime' }}</span>
+                </div>
+                
+                <div class="px-4 py-2.5 rounded-2xl text-sm shadow-sm"
+                     [ngClass]="isMe ? 'bg-[#061E24] text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-sm'">
+                  
+                  @if (msg.imageUrl) {
+                    <img [src]="msg.imageUrl" alt="Imagen adjunta" class="max-w-full rounded-lg mb-2 object-cover max-h-60" />
+                  }
+                  @if (msg.content) {
+                    <p class="break-words">{{ msg.content }}</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-4 bg-white border-t border-gray-200">
+        
+        @if (imagePreview) {
+          <div class="mb-3 relative inline-block">
+            <img [src]="imagePreview" class="h-20 rounded-lg border border-gray-200 shadow-sm" />
+            <button (click)="removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600 transition-colors">
+              <ng-icon name="lucideX" size="12" />
+            </button>
+          </div>
+        }
+
+        <div class="flex items-center gap-2">
+          <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)">
+          <button (click)="fileInput.click()" class="p-3 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors" [disabled]="selectedImage !== null">
+            <ng-icon name="lucideImage" size="20" />
+          </button>
+          
+          <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
+                 class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#F4B960] focus:border-transparent transition-all"
+                 placeholder="Escribe un mensaje..."
+                 [disabled]="selectedImage !== null" />
+                 
+          <button (click)="sendMessage()" class="p-3 rounded-xl text-[#061E24] bg-[#F4B960] hover:brightness-105 transition-all shadow-sm font-bold flex items-center justify-center">
+            <ng-icon name="lucideSend" size="18" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

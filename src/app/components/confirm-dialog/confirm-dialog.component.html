@@ -1,0 +1,27 @@
+<dialog class="bg-transparent p-0 m-auto open:flex open:items-center open:justify-center"
+  (click)="onBackdropClick($event)">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-fade-in-up" (click)="$event.stopPropagation()">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center bg-red-100 shrink-0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="w-5 h-5">
+          <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-gray-900">{{ title() }}</h3>
+        <p class="text-sm text-gray-500 mt-0.5">{{ message() }}</p>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button (click)="close(); cancel.emit()"
+        class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+        {{ cancelText() }}
+      </button>
+      <button (click)="close(); confirm.emit()"
+        class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all cursor-pointer"
+        [class]="confirmClass()">
+        {{ confirmText() }}
+      </button>
+    </div>
+  </div>
+</dialog>

@@ -1,0 +1,518 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <!-- Sidebar -->
+  <app-sidebar activeRoute="empleos" />
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto p-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Bolsa de empleo</h1>
+      <p class="text-gray-500 text-sm mt-1">Encuentra prácticas y empleos con match IA basado en tu perfil.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 p-1 rounded-full mb-6" style="background: #f1f5f9; width: fit-content;">
+      <button (click)="switchTab('todos')"
+        class="px-5 py-2 rounded-full text-sm font-medium transition-all"
+        [class]="activeTab() === 'todos' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+        Todos ({{ total() }})
+      </button>
+      <button (click)="switchTab('guardados')"
+        class="px-5 py-2 rounded-full text-sm font-medium transition-all"
+        [class]="activeTab() === 'guardados' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+        Guardados ({{ savedJobsList().length }})
+      </button>
+      <button (click)="switchTab('postulaciones')"
+        class="px-5 py-2 rounded-full text-sm font-medium transition-all"
+        [class]="activeTab() === 'postulaciones' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+        Mis postulaciones ({{ applicationsList().length }})
+      </button>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="flex-1 relative">
+        <ng-icon name="lucideSearch" size="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="search()" placeholder="Buscar título, empresa, skills..."
+          class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0f766e]/20 focus:border-[#0f766e] transition-all">
+      </div>
+
+      <!-- Level Dropdown -->
+      <div class="relative">
+        <button (click)="showLevelDropdown.set(!showLevelDropdown())"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:border-gray-300 transition-all whitespace-nowrap">
+          {{ selectedLevel() ? getSeniorityLabel(selectedLevel()) : 'Todos los niveles' }}
+          <ng-icon name="lucideChevronDown" size="16" class="text-gray-400" />
+        </button>
+        @if (showLevelDropdown()) {
+          <div class="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50 py-1" (click)="showLevelDropdown.set(false)">
+            @for (level of levels; track level) {
+              <button (click)="selectLevel(level)"
+                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                [class.text-[#0f766e]]="selectedLevel() === level">
+                {{ getSeniorityLabel(level) }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Student-friendly toggle -->
+      <button (click)="toggleStudentFriendly()"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
+        [style]="studentFriendly() ? 'background:#fef3c7; color:#92400e; border:1px solid #fbbf24;' : 'background:white; color:#6b7280; border:1px solid #e5e7eb;'">
+        <ng-icon name="lucideClock" size="16" />
+        {{ studentFriendly() ? 'Solo compatible con estudios' : 'Todos los empleos' }}
+      </button>
+
+      <!-- Modality Dropdown -->
+      <div class="relative">
+        <button (click)="showModalityDropdown.set(!showModalityDropdown())"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 hover:border-gray-300 transition-all whitespace-nowrap">
+          {{ selectedModality() ? getModalityLabel(selectedModality()) : 'Cualquier modalidad' }}
+          <ng-icon name="lucideChevronDown" size="16" class="text-gray-400" />
+        </button>
+        @if (showModalityDropdown()) {
+          <div class="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50 py-1" (click)="showModalityDropdown.set(false)">
+            @for (mod of modalities; track mod) {
+              <button (click)="selectModality(mod)"
+                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                [class.text-[#0f766e]]="selectedModality() === mod">
+                {{ getModalityLabel(mod) }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Country / City filters -->
+      <input type="text" [(ngModel)]="selectedCountry" (keyup.enter)="search()" placeholder="País"
+        class="w-28 pl-3 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0f766e]/20 focus:border-[#0f766e] transition-all"
+        style="min-width: 100px;">
+      <input type="text" [(ngModel)]="selectedCity" (keyup.enter)="search()" placeholder="Ciudad"
+        class="w-28 pl-3 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0f766e]/20 focus:border-[#0f766e] transition-all"
+        style="min-width: 100px;">
+
+      <button (click)="search()"
+        class="px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-all hover:brightness-110"
+        style="background: #0f766e;">
+        Filtrar
+      </button>
+
+      <!-- Discover from profile -->
+      <button (click)="discoverFromProfile()" [disabled]="discovering()"
+        class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap"
+        style="background: #fbbf24; color: #0a192f;">
+        @if (discovering()) {
+          <ng-icon name="lucideLoader" size="16" class="animate-spin" />
+        } @else {
+          <ng-icon name="lucideSparkles" size="16" />
+        }
+        Descubrir desde mi perfil
+      </button>
+    </div>
+
+    <!-- Discover message -->
+    @if (discoverMsg()) {
+      <div class="mb-4 p-3 rounded-lg text-sm" style="background: #fef3c7; color: #92400e;">
+        {{ discoverMsg() }}
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="flex justify-center py-20">
+        <ng-icon name="lucideLoader" size="32" class="text-gray-400 animate-spin" />
+      </div>
+    } @else if (errorMsg()) {
+      <div class="flex justify-center py-20">
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 max-w-md text-sm">{{ errorMsg() }}</div>
+      </div>
+    } @else if (visibleJobs().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20">
+        <ng-icon name="lucideBriefcase" size="48" class="text-gray-300 mb-4" />
+        <p class="text-gray-500 text-sm font-medium">
+          @if (activeTab() === 'todos') { No hay empleos disponibles }
+          @else if (activeTab() === 'guardados') { No tienes empleos guardados }
+          @else { No tienes postulaciones aún }
+        </p>
+        @if (activeTab() !== 'todos') {
+          <p class="text-gray-400 text-xs mt-1">
+            @if (activeTab() === 'guardados') { Explora empleos y guárdalos para revisarlos después }
+            @else { Postúlate a empleos desde la pestaña "Todos" }
+          </p>
+        }
+      </div>
+    } @else {
+      <!-- Job Cards -->
+      <div class="space-y-4">
+        @for (job of visibleJobs(); track job.id) {
+          <div (click)="openModal(job)"
+            class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-all cursor-pointer">
+            <div class="flex items-start gap-4">
+              <!-- Company Initial -->
+              <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0" style="background: #0f766e;">
+                {{ getInitials(job.company) }}
+              </div>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ job.title }}</h3>
+                    <p class="text-sm text-gray-500 mt-0.5">{{ job.company }}</p>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-2 flex-shrink-0" (click)="$event.stopPropagation()">
+                    @if (activeTab() !== 'postulaciones') {
+                      <button (click)="toggleSave(job.id, $event)"
+                        class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        [class.text-[#0f766e]]="isSaved(job.id)"
+                        [class.text-gray-300]="!isSaved(job.id)">
+                        <ng-icon [name]="isSaved(job.id) ? 'lucideBookmarkCheck' : 'lucideBookmark'" size="20" />
+                      </button>
+                    }
+                    @if (activeTab() === 'postulaciones') {
+                      <div class="relative">
+                        <button (click)="toggleApplicationMenu(job.id, $event)"
+                          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium"
+                          [style]="{ background: '#eff6ff', color: getStatusColor(getApplicationStatus(job.id) || 'APPLIED') }">
+                          <ng-icon name="lucideCheckCircle2" size="16" />
+                          {{ getStatusLabel(getApplicationStatus(job.id) || 'APPLIED') }}
+                          <ng-icon name="lucideChevronDown" size="14" />
+                        </button>
+                        @if (showApplicationMenu() === job.id) {
+                          <div class="absolute top-full right-0 mt-1 w-52 bg-white rounded-lg border border-gray-200 shadow-lg z-50 py-1">
+                            @for (opt of statusOptions; track opt) {
+                              <button (click)="updateStatus(job.id, opt, $event)"
+                                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                [class.font-semibold]="getApplicationStatus(job.id) === opt"
+                                [style]="{ color: getStatusColor(opt) }">
+                                <span class="w-2 h-2 rounded-full" [style.background]="getStatusColor(opt)"></span>
+                                {{ getStatusLabel(opt) }}
+                              </button>
+                            }
+                            <hr class="my-1 border-gray-100">
+                            <button (click)="withdraw(job.id, $event)"
+                              class="w-full text-left px-4 py-2 text-sm hover:bg-red-50 transition-colors flex items-center gap-2 text-red-600">
+                              <ng-icon name="lucideX" size="16" />
+                              Eliminar postulación
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    } @else if (!isApplied(job.id)) {
+                      <button (click)="applyToJob(job, $event)"
+                        class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all hover:brightness-110"
+                        style="background: #0f766e; color: white;">
+                        Postularme
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                  @if (job.location) {
+                    <span class="flex items-center gap-1">
+                      <ng-icon name="lucideMapPin" size="14" />
+                      {{ job.location }}
+                    </span>
+                  }
+                  @if (job.country && !job.location) {
+                    <span class="flex items-center gap-1">
+                      <ng-icon name="lucideMapPin" size="14" />
+                      {{ job.city ? job.city + ', ' : '' }}{{ job.country }}
+                    </span>
+                  }
+                  @if (job.contractType) {
+                    <span class="flex items-center gap-1">
+                      <ng-icon name="lucideClock" size="14" />
+                      {{ job.contractType }}
+                    </span>
+                  }
+                  <span class="flex items-center gap-1">
+                    <ng-icon name="lucideDollarSign" size="14" />
+                    {{ getSalaryLabel(job) }}
+                  </span>
+                </div>
+
+                <!-- Chips -->
+                <div class="flex items-center gap-2 mt-3 flex-wrap">
+                  @for (skill of job.skills.slice(0, 4); track skill) {
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium" style="background: #f0fdfa; color: #0f766e;">
+                      {{ skill }}
+                    </span>
+                  }
+                  @if (job.skills.length > 4) {
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium text-gray-500" style="background: #f3f4f6;">
+                      +{{ job.skills.length - 4 }}
+                    </span>
+                  }
+                  @if (job.isRemote) {
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style="background: #f0fdfa; color: #0f766e;">
+                      <ng-icon name="lucideGlobe" size="12" />
+                      Remoto
+                    </span>
+                  }
+                  @if (job.seniority) {
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium"
+                      [style.background]="getSeniorityColor(job.seniority) + '15'"
+                      [style.color]="getSeniorityColor(job.seniority)">
+                      {{ getSeniorityLabel(job.seniority) }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="flex items-center justify-center gap-3 mt-8 pb-4">
+            <button (click)="prevPage()" [disabled]="page() <= 1"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              [style]="page() <= 1 ? 'background:#f3f4f6; color:#9ca3af; cursor:not-allowed;' : 'background:white; color:#374151; border:1px solid #e5e7eb; hover:border-gray-300;'">
+              Anterior
+            </button>
+            <span class="text-sm text-gray-500">
+              Página {{ page() }} de {{ totalPages() }} ({{ total() }} empleos)
+            </span>
+            <button (click)="nextPage()" [disabled]="page() * limit >= total()"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              [style]="page() * limit >= total() ? 'background:#f3f4f6; color:#9ca3af; cursor:not-allowed;' : 'background:white; color:#374151; border:1px solid #e5e7eb; hover:border-gray-300;'">
+              Siguiente
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Apply Confirmation -->
+@if (pendingApplyJob(); as job) {
+  <div class="fixed inset-0 z-[200] flex items-center justify-center" (click)="pendingApplyJob.set(null)">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6" (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">¿Te postulaste?</h3>
+      <p class="text-sm text-gray-500 mb-1">Se abrió la página oficial del empleo en una nueva pestaña.</p>
+      <p class="text-sm text-gray-500 mb-5">¿Confirmas que te postulaste?</p>
+      <div class="flex items-center gap-3 justify-end">
+        <button (click)="confirmApply(job.id, false)"
+          class="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+          No
+        </button>
+        <button (click)="confirmApply(job.id, true)"
+          class="px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:brightness-110"
+          style="background: #0f766e;">
+          Sí, me postulé
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal -->
+@if (selectedJob(); as job) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center" (click)="closeModal()">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white z-10 flex items-start justify-between p-6 md:p-8 border-b border-gray-100">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">{{ job.title }}</h2>
+          <p class="text-sm text-gray-500 mt-1">{{ job.company }}</p>
+          <p class="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+            <ng-icon name="lucideMapPin" size="12" />
+            {{ job.location || (job.city ? job.city + ', ' : '') + (job.country || 'Ubicación no especificada') }}
+            <span class="mx-1">·</span>
+            <ng-icon name="lucideClock" size="12" />
+            {{ getPublishedDate(job.publishedAt) }}
+          </p>
+        </div>
+        <button (click)="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-400">
+          <ng-icon name="lucideX" size="20" />
+        </button>
+      </div>
+
+      <div class="p-6 md:p-8 space-y-6">
+
+        <!-- Match IA Widget -->
+        <div class="rounded-xl p-6" style="background: #0a192f;">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <ng-icon name="lucideSparkles" size="18" class="text-yellow-400" />
+              <span class="text-white font-semibold text-sm">Match IA</span>
+            </div>
+            <span class="text-[10px] text-white/40 font-medium">Basado en perfil académico + CV</span>
+          </div>
+
+          @if (matchLoading()) {
+            <div class="flex justify-center py-6">
+              <ng-icon name="lucideLoader" size="24" class="text-white/70 animate-spin" />
+            </div>
+          } @else if (jobMatch(); as match) {
+            <div class="flex items-center gap-6">
+              <div class="text-center">
+                <div class="text-4xl font-bold" style="color: #fbbf24;">{{ match.matchScore }}%</div>
+                <div class="text-xs text-white/70 mt-1">Match</div>
+              </div>
+              <div class="flex-1">
+                <div class="w-full h-3 rounded-full bg-white/20 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500" style="width: {{ match.matchScore }}%; background: #0f766e;"></div>
+                </div>
+                @if (match.summary) {
+                  <p class="text-white/70 text-xs mt-2">{{ match.summary }}</p>
+                }
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <p class="text-xs text-white/70 font-medium mb-2">Skills que tienes</p>
+                <div class="flex flex-wrap gap-1.5">
+                  @if (match.strengths.length === 0) {
+                    <span class="px-2.5 py-1 rounded text-xs" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">Sin skills registrados</span>
+                  }
+                  @for (s of match.strengths; track s) {
+                    <span class="px-2.5 py-1 rounded-full text-xs flex items-center gap-1" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">
+                      <ng-icon name="lucideCheckCircle2" size="12" />
+                      {{ s }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <div>
+                <p class="text-xs text-white/70 font-medium mb-2">Skills faltantes</p>
+                <div class="flex flex-wrap gap-1.5">
+                  @if (match.missingSkills.length === 0) {
+                    <span class="px-2.5 py-1 rounded text-xs" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">¡Completas!</span>
+                  }
+                  @for (s of match.missingSkills; track s) {
+                    <span class="px-2.5 py-1 rounded-full text-xs flex items-center gap-1" style="background: rgba(220, 38, 38, 0.15); color: #f87171;">
+                      <ng-icon name="lucideX" size="12" />
+                      {{ s }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            @if (match.recommendations.length > 0) {
+              <div class="mt-4 pt-4 border-t border-white/10">
+                <p class="text-xs text-white/70 font-medium mb-2">Recomendaciones</p>
+                <ul class="space-y-1">
+                  @for (r of match.recommendations; track r) {
+                    <li class="text-white/60 text-xs flex items-start gap-1.5">
+                      <span style="color: #fbbf24;" class="mt-0.5">•</span>
+                      {{ r }}
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Description -->
+        <div>
+          <h3 class="text-sm font-semibold text-gray-900 mb-2">Descripción</h3>
+          <p class="text-sm text-gray-600 leading-relaxed">{{ job.description }}</p>
+        </div>
+
+        <!-- Requirements -->
+        @if (job.requirements.length > 0) {
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 mb-2">Requisitos</h3>
+            <ul class="space-y-1.5">
+              @for (req of job.requirements; track req) {
+                <li class="flex items-start gap-2 text-sm text-gray-600">
+                  <ng-icon name="lucideCheckCircle2" size="16" style="color: #0f766e;" class="flex-shrink-0 mt-0.5" />
+                  {{ req }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Benefits -->
+        @if (job.benefits && job.benefits.length > 0) {
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 mb-2">Beneficios</h3>
+            <ul class="space-y-1.5">
+              @for (benefit of job.benefits; track benefit) {
+                <li class="flex items-start gap-2 text-sm text-gray-600">
+                  <ng-icon name="lucideSparkles" size="16" style="color: #fbbf24;" class="flex-shrink-0 mt-0.5" />
+                  {{ benefit }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Meta info card -->
+        <div class="flex flex-wrap gap-4 p-4 rounded-lg" style="background: #f9fafb;">
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <ng-icon name="lucideBriefcase" size="16" class="text-gray-400" />
+            {{ getModalityLabel(job.modality) }}
+          </div>
+          @if (job.contractType) {
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <ng-icon name="lucideClock" size="16" class="text-gray-400" />
+              {{ job.contractType }}
+            </div>
+          }
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <ng-icon name="lucideDollarSign" size="16" class="text-gray-400" />
+            {{ getSalaryLabel(job) }}
+          </div>
+          @if (job.seniority) {
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <ng-icon name="lucideBriefcase" size="16" class="text-gray-400" />
+              {{ getSeniorityLabel(job.seniority) }}
+            </div>
+          }
+        </div>
+
+        <!-- Skills chips -->
+        @if (job.skills.length > 0) {
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 mb-2">Tecnologías</h3>
+            <div class="flex flex-wrap gap-2">
+              @for (skill of job.skills; track skill) {
+                <span class="px-3 py-1 rounded-full text-xs font-medium" style="background: #f0fdfa; color: #0f766e;">
+                  {{ skill }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="sticky bottom-0 bg-white border-t border-gray-100 p-6 md:p-8 flex items-center justify-end gap-3">
+        <button (click)="closeModal()"
+          class="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+          Cerrar
+        </button>
+        @if (!isApplied(job.id)) {
+          <button (click)="applyFromModal()"
+            class="px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:brightness-110"
+            style="background: #0f766e;">
+            Postularme ahora
+          </button>
+        } @else {
+          <span class="px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2"
+            style="background: #eff6ff; color: #2563eb;">
+            <ng-icon name="lucideCheckCircle2" size="16" />
+            Postulado
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+}
