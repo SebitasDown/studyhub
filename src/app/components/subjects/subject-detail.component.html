@@ -1,0 +1,78 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <!-- Sidebar -->
+  <app-sidebar activeRoute="subjects" />
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden p-8" style="background: #fcfcfc;">
+    @if (loading()) {
+      <div class="flex justify-center items-center mt-20">
+        <ng-icon name="lucideLoader" size="24" class="animate-spin text-[#0f766e]" />
+      </div>
+    } @else if (errorMsg()) {
+      <div class="flex justify-center mt-20">
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 max-w-md text-sm">{{ errorMsg() }}</div>
+      </div>
+    } @else {
+      @let subj = subject()!;
+
+      <!-- Header -->
+      <div class="flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-4">
+          <a routerLink="/subjects" class="text-[#94a3b8] hover:text-[#0f172a] transition-colors">
+            <ng-icon name="lucideArrowLeft" size="22" />
+          </a>
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 class="text-3xl font-bold text-[#0f172a] tracking-tight">{{ subj.nombre }}</h1>
+              @if (subj.codigo) {
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: {{ subj.color }}22; color: {{ subj.color }};">
+                  {{ subj.codigo }}
+                </span>
+              }
+            </div>
+            <p class="text-[#64748b] text-sm mt-1">
+              @if (subj.profesor) { {{ subj.profesor }} · }
+              @if (subj.creditos) { {{ subj.creditos }} créditos }
+            </p>
+          </div>
+        </div>
+
+        <button (click)="deleteSubject()" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+          <ng-icon name="lucideTrash2" size="16" />
+          Eliminar
+        </button>
+      </div>
+
+      @if (subj.descripcion) {
+        <p class="text-sm text-[#64748b] mt-3 flex-shrink-0">{{ subj.descripcion }}</p>
+      }
+
+      <!-- Tabs -->
+      <div class="flex gap-1 mt-6 p-1 rounded-full flex-shrink-0" style="background: #f1f5f9; width: fit-content;">
+        <button (click)="switchTab('tareas')" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'tareas' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+          <ng-icon name="lucideCheckCircle" size="16" />
+          Tareas
+        </button>
+        <button (click)="switchTab('notas')" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'notas' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+          <ng-icon name="lucideFileText" size="16" />
+          Notas
+        </button>
+        <button (click)="switchTab('horarios')" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'horarios' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+          <ng-icon name="lucideCalendar" size="16" />
+          Horarios
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="flex-1 overflow-y-auto mt-6">
+        @if (activeTab() === 'tareas') {
+          <app-subject-tasks [subjectId]="subj.id" />
+        } @else if (activeTab() === 'notas') {
+          <app-subject-notes [subjectId]="subj.id" />
+        } @else if (activeTab() === 'horarios') {
+          <app-subject-schedules [subjectId]="subj.id" />
+        }
+      </div>
+    }
+  </main>
+</div>

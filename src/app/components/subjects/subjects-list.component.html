@@ -1,0 +1,131 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <!-- Sidebar -->
+  <app-sidebar activeRoute="subjects" />
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden p-8" style="background: #fcfcfc;">
+    <div class="flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-3xl font-bold text-[#0f172a] tracking-tight">Mis Materias</h1>
+        <p class="text-[#64748b] text-sm mt-1">Gestiona tus materias, tareas, notas y horarios.</p>
+      </div>
+      <button (click)="showNewForm.set(true)" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">
+        <ng-icon name="lucidePlus" size="16" />
+        Nueva materia
+      </button>
+    </div>
+
+    <!-- New subject form modal -->
+    @if (showNewForm()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" (click)="showNewForm.set(false)">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-[#0f172a]">Nueva materia</h3>
+            <button (click)="showNewForm.set(false)" class="text-[#94a3b8] hover:text-[#0f172a] transition-colors bg-transparent border-none cursor-pointer p-1">
+              <ng-icon name="lucideX" size="18" />
+            </button>
+          </div>
+          <input [(ngModel)]="newNombre" type="text" placeholder="Nombre de la materia *" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+          <div class="grid grid-cols-2 gap-3">
+            <input [(ngModel)]="newCodigo" type="text" placeholder="Código (ej: MAT-101)" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+            <input [(ngModel)]="newProfesor" type="text" placeholder="Profesor" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <input [(ngModel)]="newSalon" type="text" placeholder="Salón" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+            <input [(ngModel)]="newCreditos" type="number" min="0" placeholder="Créditos" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+          </div>
+          <textarea [(ngModel)]="newDescripcion" placeholder="Descripción (opcional)" rows="2" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e] resize-none"></textarea>
+          <div>
+            <label class="text-xs text-[#64748b] font-medium mb-1.5 block">Color</label>
+            <div class="flex gap-2">
+              @for (opt of colorOptions; track opt.value) {
+                <button (click)="newColor = opt.value"
+                  class="w-8 h-8 rounded-full border-2 transition-all"
+                  [style.background]="opt.value"
+                  [style.borderColor]="newColor === opt.value ? '#0f172a' : 'transparent'"
+                  [title]="opt.label">
+                </button>
+              }
+            </div>
+          </div>
+          <div class="flex gap-2 justify-end mt-1">
+            <button (click)="showNewForm.set(false)" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
+            <button (click)="createSubject()" [disabled]="!newNombre.trim() || creating()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style="background: #0f766e;">
+              @if (creating()) {
+                <ng-icon name="lucideLoader" size="14" class="animate-spin" />
+              }
+              Guardar materia
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="flex justify-center items-center mt-20">
+        <div class="animate-pulse text-gray-400">Cargando materias…</div>
+      </div>
+    } @else if (errorMsg()) {
+      <div class="flex justify-center mt-20">
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 max-w-md text-sm">{{ errorMsg() }}</div>
+      </div>
+    } @else {
+      <div class="flex-1 overflow-y-auto mt-8">
+        <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+          @for (subject of subjects(); track subject.id) {
+            <a [routerLink]="['/subjects', subject.id]"
+               class="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+               style="border-top: 4px solid {{ subject.color }};">
+              <div class="p-5 flex flex-col gap-3">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-base font-semibold text-[#0f172a] truncate">{{ subject.nombre }}</h3>
+                    @if (subject.codigo) {
+                      <span class="text-xs text-[#94a3b8]">{{ subject.codigo }}</span>
+                    }
+                  </div>
+                  <span class="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap" style="background: {{ subject.color }}22; color: {{ subject.color }};">
+                    {{ subject._count.tasks }} tarea(s)
+                  </span>
+                </div>
+
+                @if (subject.profesor) {
+                  <p class="text-xs text-[#64748b] flex items-center gap-1.5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 flex-shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    {{ subject.profesor }}
+                  </p>
+                }
+
+                @if (subject.descripcion) {
+                  <p class="text-xs text-[#94a3b8] line-clamp-2 leading-relaxed">{{ subject.descripcion }}</p>
+                }
+
+                <div class="flex items-center gap-4 pt-1">
+                  @if (subject._count.schedules > 0) {
+                    <span class="text-xs text-[#64748b] flex items-center gap-1">
+                      <ng-icon name="lucideClock" size="13" />
+                      {{ subject._count.schedules }} horario(s)
+                    </span>
+                  }
+                  @if (subject._count.notes > 0) {
+                    <span class="text-xs text-[#64748b] flex items-center gap-1">
+                      <ng-icon name="lucideBookOpen" size="13" />
+                      {{ subject._count.notes }} nota(s)
+                    </span>
+                  }
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+
+        @if (subjects().length === 0) {
+          <div class="flex flex-col items-center justify-center mt-20 text-center">
+            <ng-icon name="lucideBookOpen" size="48" class="text-[#cbd5e1] mb-4" />
+            <p class="text-sm text-[#94a3b8]">No tienes materias registradas. ¡Añade tu primera materia!</p>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>

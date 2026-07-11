@@ -1,0 +1,592 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <!-- Sidebar -->
+  <app-sidebar activeRoute="mi-cv" />
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto p-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8 max-w-7xl mx-auto">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Mi Currículum</h1>
+        <p class="text-gray-500 text-sm mt-1">Construye tu CV profesional y descárgalo como PDF.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button (click)="downloadPdf()"
+          [disabled]="downloading() || !resumeService.resume()"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
+          style="background: #004d40;">
+          @if (downloading()) {
+            <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" stroke-dashoffset="10" stroke-linecap="round"/>
+            </svg>
+            Generando PDF...
+          } @else {
+            <ng-icon name="lucideDownload" size="16" />
+            Descargar PDF
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Side-by-side Layout -->
+    <div class="grid gap-8 items-start max-w-7xl mx-auto" style="grid-template-columns: 1fr 1.2fr;">
+      
+      <!-- Editor Column (Left) -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+        <h2 class="text-lg font-bold text-gray-900">Información principal</h2>
+        
+        <div class="space-y-4">
+          <!-- Título profesional -->
+          <div>
+            <label class="text-sm font-semibold text-gray-700 mb-1.5 block">Título profesional</label>
+            <input type="text" [(ngModel)]="form().titulo" (blur)="save()" placeholder="Ej: Desarrolladora Backend Junior"
+              class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40] transition-all">
+          </div>
+          
+          <!-- Resumen -->
+          <div>
+            <label class="text-sm font-semibold text-gray-700 mb-1.5 block">Resumen</label>
+            <textarea [(ngModel)]="form().resumen" (blur)="save()" rows="4" placeholder="Breve descripción de tu perfil profesional..."
+              class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40] transition-all"></textarea>
+          </div>
+        </div>
+
+        <!-- Custom tabs bar -->
+        <div class="flex items-center justify-between p-1.5 rounded-xl bg-gray-100/80">
+          <button (click)="selectTab('contact')" 
+            class="flex-1 py-2.5 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+            [class.bg-white]="activeTab() === 'contact'" [class.text-gray-900]="activeTab() === 'contact'" [class.shadow-sm]="activeTab() === 'contact'">
+            <ng-icon name="lucidePhone" size="18" />
+          </button>
+          <button (click)="selectTab('experience')" 
+            class="flex-1 py-2.5 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+            [class.bg-white]="activeTab() === 'experience'" [class.text-gray-900]="activeTab() === 'experience'" [class.shadow-sm]="activeTab() === 'experience'">
+            <ng-icon name="lucideBriefcase" size="18" />
+          </button>
+          <button (click)="selectTab('education')" 
+            class="flex-1 py-2.5 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+            [class.bg-white]="activeTab() === 'education'" [class.text-gray-900]="activeTab() === 'education'" [class.shadow-sm]="activeTab() === 'education'">
+            <ng-icon name="lucideGraduationCap" size="18" />
+          </button>
+          <button (click)="selectTab('projects')" 
+            class="flex-1 py-2.5 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+            [class.bg-white]="activeTab() === 'projects'" [class.text-gray-900]="activeTab() === 'projects'" [class.shadow-sm]="activeTab() === 'projects'">
+            <ng-icon name="lucideFolderGit2" size="18" />
+          </button>
+          <button (click)="selectTab('certificates')" 
+            class="flex-1 py-2.5 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+            [class.bg-white]="activeTab() === 'certificates'" [class.text-gray-900]="activeTab() === 'certificates'" [class.shadow-sm]="activeTab() === 'certificates'">
+            <ng-icon name="lucideAward" size="18" />
+          </button>
+          <button (click)="selectTab('languages')" 
+            class="flex-1 py-2.5 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer"
+            [class.bg-white]="activeTab() === 'languages'" [class.text-gray-900]="activeTab() === 'languages'" [class.shadow-sm]="activeTab() === 'languages'">
+            <ng-icon name="lucideLanguages" size="18" />
+          </button>
+        </div>
+
+        <!-- Add Button for selected tab -->
+        <div>
+          @if (activeTab() === 'experience') {
+            <button (click)="addExperience()" 
+              class="flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm cursor-pointer">
+              <ng-icon name="lucidePlus" size="16" /> Agregar
+            </button>
+          } @else if (activeTab() === 'education') {
+            <button (click)="addEducation()" 
+              class="flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm cursor-pointer">
+              <ng-icon name="lucidePlus" size="16" /> Agregar
+            </button>
+          } @else if (activeTab() === 'projects') {
+            <button (click)="addProject()" 
+              class="flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm cursor-pointer">
+              <ng-icon name="lucidePlus" size="16" /> Agregar
+            </button>
+          } @else if (activeTab() === 'certificates') {
+            <button (click)="addCertificate()" 
+              class="flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm cursor-pointer">
+              <ng-icon name="lucidePlus" size="16" /> Agregar
+            </button>
+          } @else if (activeTab() === 'languages') {
+            <button (click)="addLanguage()" 
+              class="flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm cursor-pointer">
+              <ng-icon name="lucidePlus" size="16" /> Agregar
+            </button>
+          }
+        </div>
+
+        <!-- List items for selected tab -->
+        <div class="space-y-4">
+          
+          <!-- Contact Links Panel -->
+          @if (activeTab() === 'contact') {
+            <div class="space-y-4 p-1">
+              <p class="text-xs text-gray-400 mb-3">Estos datos aparecerán en tu CV descargado como PDF. Los cambios se guardan en tu perfil.</p>
+              
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5 block">
+                  <ng-icon name="lucidePhone" size="13" /> Teléfono / Celular
+                </label>
+                <input type="tel" [ngModel]="profileService.personalInfo()?.telefono || ''"
+                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.telefono = $event)"
+                  (blur)="saveContactInfo()" placeholder="+57 300 000 0000"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5 block">
+                  <ng-icon name="lucideLink" size="13" /> LinkedIn
+                </label>
+                <input type="text" [ngModel]="profileService.personalInfo()?.linkedin || ''"
+                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.linkedin = $event)"
+                  (blur)="saveContactInfo()" placeholder="linkedin.com/in/tu-perfil"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5 block">
+                  <ng-icon name="lucideGithub" size="13" /> GitHub
+                </label>
+                <input type="text" [ngModel]="profileService.personalInfo()?.github || ''"
+                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.github = $event)"
+                  (blur)="saveContactInfo()" placeholder="github.com/tu-usuario"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5 block">
+                  <ng-icon name="lucideGlobe" size="13" /> Portafolio
+                </label>
+                <input type="text" [ngModel]="profileService.personalInfo()?.portafolio || ''"
+                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.portafolio = $event)"
+                  (blur)="saveContactInfo()" placeholder="mi-portafolio.dev"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5 block">
+                  <ng-icon name="lucideExternalLink" size="13" /> Página personal / Blog
+                </label>
+                <input type="text" [ngModel]="profileService.personalInfo()?.paginaPersonal || ''"
+                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.paginaPersonal = $event)"
+                  (blur)="saveContactInfo()" placeholder="miblog.com"
+                  class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
+              </div>
+
+              <p class="text-xs text-teal-600 font-medium flex items-center gap-1.5 mt-1">
+                <ng-icon name="lucideCheckCircle2" size="12" /> Los links del CV aparecerán clicables en el PDF
+              </p>
+            </div>
+          }
+
+          <!-- Experience List -->
+          @if (activeTab() === 'experience') {
+            @for (exp of form().experiences; track trackIndex($index, exp); let i = $index) {
+              <div class="p-4 rounded-xl border border-gray-100 bg-white relative hover:shadow-sm transition-all group cursor-pointer"
+                (click)="toggleEditItem(i)">
+                
+                <button (click)="removeExperience(i, $event)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-1">
+                  <ng-icon name="lucideTrash2" size="16" />
+                </button>
+
+                @if (editingIndex() === i) {
+                  <!-- Inline Form -->
+                  <div class="space-y-3 pt-2" (click)="$event.stopPropagation()">
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Cargo</label>
+                        <input type="text" [(ngModel)]="exp.position" placeholder="Cargo" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#004d40]">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Empresa</label>
+                        <input type="text" [(ngModel)]="exp.company" placeholder="Empresa" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#004d40]">
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Fecha Inicio</label>
+                        <input type="date" [(ngModel)]="exp.startDate" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Fecha Fin</label>
+                        <input type="date" [(ngModel)]="exp.endDate" [disabled]="exp.isCurrent === true" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input type="checkbox" [(ngModel)]="exp.isCurrent" class="rounded border-gray-300">
+                      Trabajo actual
+                    </label>
+                    <div>
+                      <label class="text-xs text-gray-500 block mb-1">Descripción</label>
+                      <textarea [(ngModel)]="exp.description" placeholder="Descripción de logros..." rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end gap-2 pt-1">
+                      <button (click)="closeEdit()" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#004d40] hover:brightness-110 transition-all cursor-pointer">Listo</button>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Text Display -->
+                  <div class="pr-8">
+                    <h4 class="font-bold text-gray-900 text-sm">{{ exp.position || 'Cargo' }}</h4>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">{{ exp.company || 'Empresa' }} · {{ exp.startDate ? formatDate(exp.startDate) : '' }} &rarr; {{ exp.isCurrent ? 'actual' : (exp.endDate ? formatDate(exp.endDate) : '') }}</p>
+                    <p class="text-xs text-gray-500 mt-2 leading-relaxed line-clamp-2">{{ exp.description || 'Sin descripción' }}</p>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <p class="text-sm text-gray-400 text-center py-4">No hay experiencias registradas.</p>
+            }
+          }
+
+          <!-- Education List -->
+          @if (activeTab() === 'education') {
+            @for (edu of form().educations; track trackIndex($index, edu); let i = $index) {
+              <div class="p-4 rounded-xl border border-gray-100 bg-white relative hover:shadow-sm transition-all group cursor-pointer"
+                (click)="toggleEditItem(i)">
+                
+                <button (click)="removeEducation(i, $event)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-1">
+                  <ng-icon name="lucideTrash2" size="16" />
+                </button>
+
+                @if (editingIndex() === i) {
+                  <!-- Inline Form -->
+                  <div class="space-y-3 pt-2" (click)="$event.stopPropagation()">
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Título</label>
+                        <input type="text" [(ngModel)]="edu.degree" placeholder="Título" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#004d40]">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Institución</label>
+                        <input type="text" [(ngModel)]="edu.institution" placeholder="Institución" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#004d40]">
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Fecha Inicio</label>
+                        <input type="date" [(ngModel)]="edu.startDate" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Fecha Fin</label>
+                        <input type="date" [(ngModel)]="edu.endDate" [disabled]="edu.isCurrent === true" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                      <input type="checkbox" [(ngModel)]="edu.isCurrent" class="rounded border-gray-300">
+                      En curso
+                    </label>
+                    <div class="flex justify-end gap-2 pt-1">
+                      <button (click)="closeEdit()" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#004d40] hover:brightness-110 transition-all cursor-pointer">Listo</button>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Text Display -->
+                  <div class="pr-8">
+                    <h4 class="font-bold text-gray-900 text-sm">{{ edu.degree || 'Título o carrera' }}</h4>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">{{ edu.institution || 'Institución' }} · {{ edu.startDate ? formatDate(edu.startDate) : '' }} &rarr; {{ edu.isCurrent ? 'actual' : (edu.endDate ? formatDate(edu.endDate) : '') }}</p>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <p class="text-sm text-gray-400 text-center py-4">No hay formación académica registrada.</p>
+            }
+          }
+
+          <!-- Projects List -->
+          @if (activeTab() === 'projects') {
+            @for (proj of form().projects; track trackIndex($index, proj); let i = $index) {
+              <div class="p-4 rounded-xl border border-gray-100 bg-white relative hover:shadow-sm transition-all group cursor-pointer"
+                (click)="toggleEditItem(i)">
+                
+                <button (click)="removeProject(i, $event)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-1">
+                  <ng-icon name="lucideTrash2" size="16" />
+                </button>
+
+                @if (editingIndex() === i) {
+                  <!-- Inline Form -->
+                  <div class="space-y-3 pt-2" (click)="$event.stopPropagation()">
+                    <div>
+                      <label class="text-xs text-gray-500 block mb-1">Título del proyecto</label>
+                      <input type="text" [(ngModel)]="proj.title" placeholder="Título del proyecto" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#004d40]">
+                    </div>
+                    <div>
+                      <label class="text-xs text-gray-500 block mb-1">Descripción</label>
+                      <textarea [(ngModel)]="proj.description" placeholder="Descripción del proyecto..." rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none"></textarea>
+                    </div>
+                    
+                    <!-- Technologies tags -->
+                    <div class="space-y-2">
+                      <label class="text-xs text-gray-500 block">Tecnologías (Enter para agregar)</label>
+                      <div class="flex flex-wrap gap-1.5 mb-1.5">
+                        @for (tech of proj.technologies; track trackIndex($index, tech); let t = $index) {
+                          <span class="px-2 py-0.5 rounded text-xs flex items-center gap-1 bg-teal-50 text-teal-700">
+                            {{ tech }}
+                            <button (click)="removeTechFromProject(i, t)" class="hover:text-red-500 font-bold ml-1">✕</button>
+                          </span>
+                        }
+                      </div>
+                      <div class="flex gap-2">
+                        <input #techInput type="text" placeholder="Agregar tecnología..." (keyup.enter)="addTechToProject(i, techInput.value); techInput.value = ''"
+                          class="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#004d40]">
+                        <button (click)="addTechToProject(i, techInput.value); techInput.value = ''"
+                          class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#004d40] cursor-pointer">+</button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">URL GitHub</label>
+                        <input type="text" [(ngModel)]="proj.githubUrl" placeholder="URL GitHub" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">URL Demo</label>
+                        <input type="text" [(ngModel)]="proj.liveUrl" placeholder="URL demo" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-1">
+                      <button (click)="closeEdit()" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#004d40] hover:brightness-110 transition-all cursor-pointer">Listo</button>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Text Display -->
+                  <div class="pr-8">
+                    <h4 class="font-bold text-gray-900 text-sm">{{ proj.title || 'Título del proyecto' }}</h4>
+                    <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">{{ proj.description || 'Sin descripción' }}</p>
+                    @if (proj.technologies.length) {
+                      <p class="text-xs text-gray-400 mt-2 font-semibold">{{ proj.technologies.join(' · ') }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            } @empty {
+              <p class="text-sm text-gray-400 text-center py-4">No hay proyectos registrados.</p>
+            }
+          }
+
+          <!-- Certificates List -->
+          @if (activeTab() === 'certificates') {
+            @for (cert of form().certificates; track trackIndex($index, cert); let i = $index) {
+              <div class="p-4 rounded-xl border border-gray-100 bg-white relative hover:shadow-sm transition-all group cursor-pointer"
+                (click)="toggleEditItem(i)">
+                
+                <button (click)="removeCertificate(i, $event)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors p-1">
+                  <ng-icon name="lucideTrash2" size="16" />
+                </button>
+
+                @if (editingIndex() === i) {
+                  <!-- Inline Form -->
+                  <div class="space-y-3 pt-2" (click)="$event.stopPropagation()">
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Nombre</label>
+                        <input type="text" [(ngModel)]="cert.title" placeholder="Certificación" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Emisor</label>
+                        <input type="text" [(ngModel)]="cert.issuer" placeholder="Emisor (Ej: Amazon)" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">Fecha Emisión</label>
+                        <input type="date" [(ngModel)]="cert.issueDate" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                      <div>
+                        <label class="text-xs text-gray-500 block mb-1">URL Credencial</label>
+                        <input type="text" [(ngModel)]="cert.credentialUrl" placeholder="URL credencial" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none">
+                      </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                      <button (click)="closeEdit()" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#004d40] hover:brightness-110 transition-all cursor-pointer">Listo</button>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Text Display -->
+                  <div class="pr-8">
+                    <h4 class="font-bold text-gray-900 text-sm">{{ cert.title || 'Certificación' }}</h4>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">{{ cert.issuer || 'Emisor' }} · {{ cert.issueDate ? formatDate(cert.issueDate) : '' }}</p>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <p class="text-sm text-gray-400 text-center py-4">No hay certificaciones registradas.</p>
+            }
+          }
+
+          <!-- Languages List (Always inline inputs) -->
+          @if (activeTab() === 'languages') {
+            @for (lang of form().languages; track trackIndex($index, lang); let i = $index) {
+              <div class="p-3.5 rounded-xl border border-gray-100 bg-white relative flex items-center gap-3">
+                <input type="text" [(ngModel)]="lang.name" (blur)="save()" placeholder="Idioma" 
+                  class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#004d40]">
+                <select [(ngModel)]="lang.level" (change)="save()" 
+                  class="w-36 px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:border-[#004d40]">
+                  <option value="BASIC">Básico</option>
+                  <option value="INTERMEDIATE">Intermedio</option>
+                  <option value="ADVANCED">Avanzado</option>
+                  <option value="NATIVE">Nativo</option>
+                </select>
+                <button (click)="removeLanguage(i, $event)" class="text-gray-400 hover:text-red-500 transition-colors p-1 cursor-pointer">
+                  <ng-icon name="lucideTrash2" size="16" />
+                </button>
+              </div>
+            } @empty {
+              <p class="text-sm text-gray-400 text-center py-4">No hay idiomas registrados.</p>
+            }
+          }
+
+        </div>
+      </div>
+      
+      <!-- Live Preview Column (Right) -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-md p-10 self-start sticky top-8 min-h-[800px] text-gray-800" style="font-family: 'Inter', sans-serif;">
+        <!-- Header -->
+        <div class="pb-5 mb-5 border-b border-gray-100">
+          <h2 class="text-3xl font-bold tracking-tight text-gray-900">{{ fullName }}</h2>
+          <p class="text-lg font-semibold mt-1 text-[#0f766e]">{{ form().titulo || 'Título profesional' }}</p>
+          <div class="flex flex-wrap gap-x-2 gap-y-1 text-xs text-gray-500 mt-4 font-medium items-center">
+            <span>{{ userEmail }}</span>
+            @if (userLocation) {
+              <span>·</span>
+              <span>{{ userLocation }}</span>
+            }
+            @if (userPhone) {
+              <span>·</span>
+              <span>{{ userPhone }}</span>
+            }
+            @if (userLinkedin) {
+              <span>·</span>
+              <span class="text-[#0f766e]">LinkedIn</span>
+            }
+            @if (userGithub) {
+              <span>·</span>
+              <span class="text-[#0f766e]">GitHub</span>
+            }
+            @if (userPortfolio) {
+              <span>·</span>
+              <span class="text-[#0f766e]">Portafolio</span>
+            }
+            @if (userWebsite) {
+              <span>·</span>
+              <span class="text-[#0f766e]">Web personal</span>
+            }
+          </div>
+        </div>
+
+        <!-- Sections -->
+        <div class="space-y-6">
+          
+          <!-- Perfil -->
+          @if (form().resumen) {
+            <div>
+              <h3 class="text-xs font-bold text-[#0f766e] uppercase tracking-wider mb-2">Perfil</h3>
+              <p class="text-xs leading-relaxed text-gray-600 whitespace-pre-line">{{ form().resumen }}</p>
+            </div>
+          }
+
+          <!-- Experiencia -->
+          @if (form().experiences?.length) {
+            <div>
+              <h3 class="text-xs font-bold text-[#0f766e] uppercase tracking-wider mb-3">Experiencia</h3>
+              <div class="space-y-4">
+                @for (exp of form().experiences; track exp.id) {
+                  @if (exp.company || exp.position) {
+                    <div class="space-y-0.5">
+                      <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-gray-800 text-xs">{{ exp.position }}</h4>
+                        <span class="text-[10px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded font-semibold">
+                          {{ exp.startDate ? formatDate(exp.startDate) : '' }} - {{ exp.isCurrent ? 'presente' : (exp.endDate ? formatDate(exp.endDate) : '') }}
+                        </span>
+                      </div>
+                      <p class="text-[10px] text-gray-400 font-medium">{{ exp.company }}</p>
+                      <p class="text-[11px] leading-relaxed text-gray-500 whitespace-pre-line pt-1">{{ exp.description }}</p>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Educación -->
+          @if (form().educations?.length) {
+            <div>
+              <h3 class="text-xs font-bold text-[#0f766e] uppercase tracking-wider mb-3">Educación</h3>
+              <div class="space-y-3">
+                @for (edu of form().educations; track edu.id) {
+                  @if (edu.institution || edu.degree) {
+                    <div class="space-y-0.5">
+                      <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-gray-800 text-xs">{{ edu.degree }}</h4>
+                        <span class="text-[10px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded font-semibold">
+                          {{ edu.startDate ? formatDate(edu.startDate) : '' }} - {{ edu.isCurrent ? 'presente' : (edu.endDate ? formatDate(edu.endDate) : '') }}
+                        </span>
+                      </div>
+                      <p class="text-[10px] text-gray-400 font-medium">{{ edu.institution }}</p>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Proyectos -->
+          @if (form().projects?.length) {
+            <div>
+              <h3 class="text-xs font-bold text-[#0f766e] uppercase tracking-wider mb-3">Proyectos</h3>
+              <div class="space-y-3">
+                @for (proj of form().projects; track proj.id) {
+                  @if (proj.title) {
+                    <div class="space-y-0.5">
+                      <h4 class="font-bold text-gray-800 text-xs">{{ proj.title }}</h4>
+                      <p class="text-[11px] leading-relaxed text-gray-500">{{ proj.description }}</p>
+                      @if (proj.technologies.length) {
+                        <p class="text-[10px] text-gray-400 font-medium">
+                          Stack: {{ proj.technologies.join(', ') }}
+                        </p>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Certificados -->
+          @if (form().certificates?.length) {
+            <div>
+              <h3 class="text-xs font-bold text-[#0f766e] uppercase tracking-wider mb-2">Certificados</h3>
+              <div class="space-y-1">
+                @for (cert of form().certificates; track cert.id) {
+                  @if (cert.title) {
+                    <div class="text-[11px] text-gray-600">
+                      <span class="font-bold text-gray-800">{{ cert.title }}</span> — {{ cert.issuer }} 
+                      @if (cert.issueDate) {
+                        <span class="text-gray-400">({{ formatDate(cert.issueDate) }})</span>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Idiomas -->
+          @if (form().languages?.length) {
+            <div>
+              <h3 class="text-xs font-bold text-[#0f766e] uppercase tracking-wider mb-2">Idiomas</h3>
+              <div class="text-[11px] text-gray-600 font-medium flex flex-wrap gap-x-2">
+                @for (lang of form().languages; track lang.id; let last = $last) {
+                  <span>{{ lang.name }} ({{ getLevelLabel(lang.level) }}){{ last ? '' : ' -' }}</span>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      </div>
+      
+    </div>
+  </main>
+</div>

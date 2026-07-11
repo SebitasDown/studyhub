@@ -1,0 +1,187 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <!-- Sidebar -->
+  <app-sidebar activeRoute="dashboard" />
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto p-8">
+    @if (loading) {
+      <div class="flex justify-center py-20">
+        <div class="animate-pulse text-gray-400">Cargando tu panel…</div>
+      </div>
+    } @else if (errorMsg) {
+      <div class="flex justify-center py-20">
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 max-w-md text-sm">{{ errorMsg }}</div>
+      </div>
+    } @else {
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Hola, {{ data.user?.nombre || user?.nombre || 'Estudiante' }} 👋</h1>
+          <p class="text-gray-500 text-sm mt-1">Hoy es {{ today | date:'EEEE, d \'de\' MMMM' }}</p>
+        </div>
+        <a routerLink="/profesor-ia" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-all hover:brightness-110 cursor-pointer" style="background: #0f766e;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Hablar con tu Profesor IA
+        </a>
+      </div>
+
+      <!-- Row 1: Summary Cards -->
+      <div class="grid grid-cols-4 gap-5 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #f0fdfa;">
+            <ng-icon name="lucideBookOpen" size="20" color="#0f766e" />
+          </div>
+          <p class="text-3xl font-bold text-gray-900">{{ data.stats.subjects || 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Materias activas</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #fff7ed;">
+            <ng-icon name="lucideClock" size="20" color="#f97316" />
+          </div>
+          <p class="text-3xl font-bold text-gray-900">{{ data.stats.pendingTasks || 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Tareas pendientes</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #f0fdf4;">
+            <ng-icon name="lucideCheckCircle" size="20" color="#22c55e" />
+          </div>
+          <p class="text-3xl font-bold text-gray-900">{{ data.stats.completedTasks || 0 }}</p>
+          <p class="text-sm text-gray-400 mt-1">Tareas completadas</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #fff1f2;">
+            <ng-icon name="lucideFlame" size="20" color="#f43f5e" />
+          </div>
+          <p class="text-3xl font-bold text-gray-900">{{ data.gamification.streak || 0 }} días</p>
+          <p class="text-sm text-gray-400 mt-1">Racha actual</p>
+        </div>
+      </div>
+
+      <!-- Row 2: Classes Today (65%) + Academic Risk (35%) -->
+      <div class="grid grid-cols-[65%_35%] gap-5 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" class="w-5 h-5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Clases de hoy
+            </h3>
+            <a routerLink="/subjects" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver todas</a>
+          </div>
+          <div class="space-y-3">
+            @if (data.upcomingClasses.length) {
+              @for (cls of data!.upcomingClasses; track $index) {
+                <div class="flex items-center gap-3 p-3 rounded-lg" style="background: #f8fafa;">
+                  <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="cls.color || '#0f766e'"></div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900">{{ cls.subject }}</p>
+                    <p class="text-xs text-gray-400 truncate">{{ cls.classroom || 'Salón por definir' }} @if (cls.profesor) { · {{ cls.profesor }} }</p>
+                  </div>
+                  <span class="text-xs font-medium text-gray-500 whitespace-nowrap">{{ cls.startTime }} - {{ cls.endTime }}</span>
+                </div>
+              }
+            } @else {
+              <p class="text-sm text-gray-400 py-4 text-center">No hay clases programadas para hoy 🎉</p>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
+          <div class="flex items-center gap-2 mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h3 class="font-semibold text-gray-900">Riesgo académico</h3>
+          </div>
+          @if (data.academicRisk) {
+            <div class="flex items-baseline gap-1 mb-2">
+              <span class="text-5xl font-bold text-gray-900">{{ data!.academicRisk!.score }}</span>
+              <span class="text-sm font-semibold uppercase" [class.text-green-600]="data!.academicRisk!.score < 40" [class.text-yellow-600]="data!.academicRisk!.score >= 40 && data!.academicRisk!.score < 70" [class.text-red-600]="data!.academicRisk!.score >= 70">{{ data!.academicRisk!.level }}</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-gray-100 mb-3">
+              <div class="h-2 rounded-full transition-all" [style.width.%]="data!.academicRisk!.score" [class]="riskBarClass"></div>
+            </div>
+            <p class="text-xs text-gray-400 flex-1">Mantén tu progreso. Trabaja en tus gaps más importantes para reducirlo.</p>
+            <button class="w-full mt-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" style="background: #f3f4f6;">Ver detalle →</button>
+          } @else {
+            <div class="flex-1 flex items-center justify-center">
+              <p class="text-sm text-gray-400">Sin datos de riesgo aún</p>
+            </div>
+            <button class="w-full mt-3 py-2 rounded-lg text-sm font-medium text-gray-600" style="background: #f3f4f6;">Calcular riesgo</button>
+          }
+        </div>
+      </div>
+
+      <!-- Row 3: Upcoming Tasks (65%) + Active Goals (35%) -->
+      <div class="grid grid-cols-[65%_35%] gap-5 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-900">Tareas próximas</h3>
+            <a routerLink="/subjects" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver todas</a>
+          </div>
+          <div class="space-y-2">
+            @if (tasks.length) {
+              @for (task of tasks; track task.id) {
+                <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="task.subjectColor || '#0f766e'"></div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900">{{ task.title }}</p>
+                    <p class="text-xs text-gray-400">{{ task.subject }}</p>
+                  </div>
+                  <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap" [class]="task.badgeClass">{{ task.label }}</span>
+                </div>
+              }
+            } @else {
+              <p class="text-sm text-gray-400 py-4 text-center">No hay tareas pendientes 🎉</p>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
+          <h3 class="font-semibold text-gray-900 mb-4">Metas activas</h3>
+          @if (data.activeGoals.length) {
+            <div class="space-y-4 flex-1">
+              @for (goal of data!.activeGoals; track $index) {
+                <div>
+                  <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-800 font-medium truncate">{{ goal.title }}</span>
+                    <span class="text-gray-500">{{ goal.progress }}%</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-gray-100">
+                    <div class="h-2 rounded-full transition-all" style="background: #0f766e;" [style.width.%]="goal.progress"></div>
+                  </div>
+                </div>
+              }
+            </div>
+            <button class="w-full mt-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" style="background: #f3f4f6;">Gestionar metas</button>
+          } @else {
+            <div class="flex-1 flex items-center justify-center">
+              <p class="text-sm text-gray-400">Sin metas activas</p>
+            </div>
+            <button class="w-full mt-4 py-2 rounded-lg text-sm font-medium text-gray-600" style="background: #f3f4f6;">Crear meta</button>
+          }
+        </div>
+      </div>
+
+      <!-- Row 4: Recent Notes -->
+      <div>
+        <h3 class="font-semibold text-gray-900 mb-4">Notas recientes</h3>
+        <div class="grid grid-cols-3 gap-5">
+          @if (data.recentNotes.length) {
+            @for (note of data!.recentNotes; track note.id) {
+              <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-2 h-2 rounded-full" [style.background]="note.subjectColor || '#0f766e'"></div>
+                  <span class="text-xs text-gray-400">{{ note.subject }}</span>
+                </div>
+                <h4 class="font-semibold text-gray-900 text-sm mb-1">{{ note.title }}</h4>
+                <p class="text-xs text-gray-500 line-clamp-3">{{ note.content }}</p>
+              </div>
+            }
+          } @else {
+            <div class="col-span-3">
+              <p class="text-sm text-gray-400 py-4 text-center">No hay notas aún</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </main>
+</div>

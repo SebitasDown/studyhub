@@ -2,6 +2,18 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
   {
+    path: 'subjects/:id',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'roadmaps/:id',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'grupos/:id',
+    renderMode: RenderMode.Client
+  },
+  {
     path: '**',
     renderMode: RenderMode.Prerender
   }

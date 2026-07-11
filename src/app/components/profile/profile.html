@@ -1,0 +1,218 @@
+<div class="flex h-screen" style="background: #FCFCFA;">
+  <app-sidebar activeRoute="perfil" />
+
+  <main class="flex-1 overflow-y-auto p-10">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-1" style="color: #061E24;">Mi perfil</h1>
+      <p class="text-sm text-gray-500 mb-8">Gestiona tu información personal, académica y profesional.</p>
+
+      <!-- Banner -->
+      <div class="rounded-2xl p-8 mb-8 relative overflow-hidden" style="background: linear-gradient(135deg, #061E24 0%, #0C5A60 100%);">
+        <div class="flex items-center gap-6">
+          <!-- Avatar -->
+          <div class="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black shrink-0"
+               style="background: #F4B960; color: #061E24;">
+            {{ getInitial() }}
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1">
+            <h2 class="text-2xl font-bold text-white">{{ user?.nombre }} {{ user?.apellido }}</h2>
+            <p class="text-white/60 text-sm mb-1">{{ user?.email }}</p>
+            <p class="text-white/80 text-sm">{{ personal?.biografia || 'Sin biografía aún.' }}</p>
+          </div>
+
+          <!-- Stats -->
+          <div class="flex gap-3 shrink-0">
+            <div class="bg-white/10 rounded-xl p-3 text-center min-w-[60px]">
+              <p class="text-white/60 text-xs mb-0.5">🏆</p>
+              <p class="text-white font-black text-lg leading-none">{{ getLevel() }}</p>
+              <p class="text-white/50 text-[10px] font-medium">Nivel</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3 text-center min-w-[60px]">
+              <p class="text-white/60 text-xs mb-0.5">⚡</p>
+              <p class="text-white font-black text-lg leading-none">{{ getXP() }}</p>
+              <p class="text-white/50 text-[10px] font-medium">XP</p>
+            </div>
+            <div class="bg-white/10 rounded-xl p-3 text-center min-w-[60px]">
+              <p class="text-white/60 text-xs mb-0.5">🔥</p>
+              <p class="text-white font-black text-lg leading-none">{{ getStreak() }}</p>
+              <p class="text-white/50 text-[10px] font-medium">Racha</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- XP Progress -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-white/60 text-xs">Progreso al nivel {{ getLevel() + 1 }}</span>
+            <span class="text-white/60 text-xs">{{ getXP() % 500 }}/500 XP</span>
+          </div>
+          <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-700" style="background: #F4B960;"
+                 [style.width.%]="getXPProgress()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved toast -->
+      @if (saved) {
+        <div class="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm flex items-center gap-2 animate-bounce">
+          ✓ Cambios guardados
+        </div>
+      }
+
+      <!-- Tabs -->
+      <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+        @for (tab of [['personal','👤 Personal'],['academico','🎓 Académico'],['profesional','💼 Profesional'],['ajustes','⚙️ Ajustes']] ; track tab[0]) {
+          <button (click)="setTab(tab[0])"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+            [class]="activeTab === tab[0] ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'">
+            {{ tab[1] }}
+          </button>
+        }
+      </div>
+
+      <!-- Tab content -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+
+        @if (activeTab === 'personal') {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nombre</label>
+              <input type="text" [(ngModel)]="personal.nombre" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Apellido</label>
+              <input type="text" [(ngModel)]="personal.apellido" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ciudad</label>
+              <input type="text" [(ngModel)]="personal.ciudad" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">País</label>
+              <input type="text" [(ngModel)]="personal.pais" class="input-field" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Biografía</label>
+              <textarea [(ngModel)]="personal.biografia" rows="3" class="input-field resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">GitHub</label>
+              <input type="text" [(ngModel)]="personal.github" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">LinkedIn</label>
+              <input type="text" [(ngModel)]="personal.linkedin" class="input-field" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Portafolio</label>
+              <input type="url" [(ngModel)]="personal.portafolio" class="input-field" />
+            </div>
+          </div>
+          <button (click)="savePersonal()" [disabled]="profileService.saving()" class="btn-primary mt-6">
+            {{ profileService.saving() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        }
+
+        @if (activeTab === 'academico') {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Universidad</label>
+              <input type="text" [(ngModel)]="academic.universidad" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Facultad</label>
+              <input type="text" [(ngModel)]="academic.facultad" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Carrera</label>
+              <input type="text" [(ngModel)]="academic.carrera" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Semestre</label>
+              <input type="number" [(ngModel)]="academic.semestre" min="1" max="20" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Modalidad</label>
+              <select [(ngModel)]="academic.modalidad" class="input-field">
+                @for (m of modalidades; track m) {
+                  <option [value]="m">{{ m.charAt(0) + m.slice(1).toLowerCase() }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Promedio</label>
+              <input type="number" [(ngModel)]="academic.promedio" step="0.1" min="0" max="5" class="input-field" />
+            </div>
+          </div>
+          <button (click)="saveAcademic()" [disabled]="profileService.saving()" class="btn-primary mt-6">
+            {{ profileService.saving() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        }
+
+        @if (activeTab === 'profesional') {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Cargo deseado</label>
+              <input type="text" [(ngModel)]="professional.cargoDeseado" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nivel actual</label>
+              <select [(ngModel)]="professional.nivelActual" class="input-field">
+                @for (n of nivelesProfesionales; track n) {
+                  <option [value]="n">{{ n.charAt(0) + n.slice(1).toLowerCase().replace('_', ' ') }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Disponibilidad</label>
+              <select [(ngModel)]="professional.disponibilidad" class="input-field">
+                @for (d of disponibilidades; track d) {
+                  <option [value]="d">{{ d.replace('_', ' ').charAt(0) + d.replace('_', ' ').slice(1).toLowerCase() }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1.5">Modalidad deseada</label>
+              <select [(ngModel)]="professional.modalidadDeseada" class="input-field">
+                @for (m of modalidadesDeseadas; track m) {
+                  <option [value]="m">{{ m.charAt(0) + m.slice(1).toLowerCase() }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <button (click)="saveProfessional()" [disabled]="profileService.saving()" class="btn-primary mt-6">
+            {{ profileService.saving() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        }
+
+        @if (activeTab === 'ajustes') {
+          <div class="space-y-6">
+            <h3 class="font-bold text-gray-800">Preferencias de la cuenta</h3>
+            <p class="text-sm text-gray-400">Configuración de notificaciones y privacidad disponible próximamente.</p>
+          </div>
+        }
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<style>
+.input-field {
+  width: 100%; background: white; border: 1px solid #E5E7EB; border-radius: 0.75rem;
+  padding: 0.625rem 1rem; font-size: 0.875rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  outline: none;
+}
+.input-field:focus { border-color: #F4B960; box-shadow: 0 0 0 2px rgba(244,185,96,0.2); }
+.btn-primary {
+  padding: 0.625rem 1.5rem; border-radius: 0.75rem; font-size: 0.875rem;
+  font-weight: 700; color: white; background: #0C5A60;
+  transition: filter 0.2s; border: none; cursor: pointer;
+}
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>

@@ -1,0 +1,72 @@
+@let r = rm;
+@if (r) {
+  <div class="max-w-4xl mx-auto">
+    <button (click)="backToList()" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors mb-6 cursor-pointer">
+      <ng-icon name="lucideArrowLeft" size="18" />
+      Volver
+    </button>
+
+    <!-- Header -->
+    <div class="rounded-2xl overflow-hidden mb-10 shadow-lg" style="background: linear-gradient(135deg, #0C5A60 0%, #0a4a4f 40%, #083e42 100%);">
+      <div class="p-8 text-white relative">
+        <div class="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5" style="background: white; transform: translate(30%, -50%);"></div>
+        <p class="text-sm font-semibold opacity-70 tracking-widest uppercase mb-3">Roadmap</p>
+        <h1 class="text-3xl font-bold tracking-tight">{{ r.title }}</h1>
+        <p class="text-base mt-3 opacity-80 max-w-2xl leading-relaxed">{{ r.description }}</p>
+        <div class="flex items-center gap-4 mt-8">
+          <div class="flex-1 h-2.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.15);">
+            <div class="h-full rounded-full transition-all duration-500 ease-out" [style.width.%]="progressPercent(r.steps)" style="background: linear-gradient(90deg, #34d399, #6ee7b7);"></div>
+          </div>
+          <span class="text-sm font-bold whitespace-nowrap px-3 py-1 rounded-lg" style="background: rgba(255,255,255,0.1);">{{ completedCount(r.steps) }}/{{ r.steps.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps list -->
+    @for (step of r.steps; track step.id; let i = $index) {
+      <div (click)="toggleStep(step)"
+        class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex items-start gap-5 transition-all hover:shadow-md cursor-pointer mb-5">
+        <!-- Number circle -->
+        @if (step.completed) {
+          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background: #1E9F68; box-shadow: 0 0 0 3px rgba(30,159,104,0.12);">
+            <ng-icon name="lucideCheck" size="16" class="text-white" />
+          </div>
+        } @else {
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 text-sm font-bold text-gray-500" style="border: 2px solid #d1d5db;">
+            {{ step.order || i + 1 }}
+          </div>
+        }
+
+        <!-- Content -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h3 class="text-base font-bold text-gray-900">{{ step.title }}</h3>
+              @if (step.description) {
+                <p class="text-sm text-gray-500 mt-1 leading-relaxed">{{ step.description }}</p>
+              }
+            </div>
+            @if (step.estimatedHours) {
+              <div class="flex items-center gap-1 text-xs font-semibold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0">
+                <ng-icon name="lucideClock" size="13" />
+                {{ step.estimatedHours }}h
+              </div>
+            }
+          </div>
+
+          @if (step.skill) {
+            <div class="flex items-center gap-2 mt-3">
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-md inline-flex items-center gap-1" style="background: #f0fdfa; color: #0C5A60;">
+                <ng-icon name="lucideExternalLink" size="11" />
+                {{ step.skill }}
+              </span>
+              @if (step.skillCategory) {
+                <span class="text-xs text-gray-400">{{ step.skillCategory }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

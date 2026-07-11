@@ -1,0 +1,68 @@
+<div class="flex h-screen" style="background: #FCFCFA;">
+  <app-sidebar activeRoute="notificaciones" />
+
+  <main class="flex-1 overflow-y-auto p-10">
+    <div class="max-w-3xl mx-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-3xl font-bold mb-1" style="color: #061E24;">Notificaciones</h1>
+          @if (notifService.unreadCount() > 0) {
+            <p class="text-sm text-gray-500">{{ notifService.unreadCount() }} sin leer</p>
+          } @else {
+            <p class="text-sm text-gray-400">Todo al día ✓</p>
+          }
+        </div>
+        @if (notifService.unreadCount() > 0) {
+          <button (click)="markAll()"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 transition-colors shadow-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Marcar todas como leídas
+          </button>
+        }
+      </div>
+
+      <!-- Notifications list -->
+      @if (notifService.notifications().length === 0) {
+        <div class="py-20 text-center">
+          <p class="text-4xl mb-3">🔔</p>
+          <p class="text-gray-400 font-medium">No tienes notificaciones aún.</p>
+        </div>
+      } @else {
+        <div class="space-y-3">
+          @for (n of notifService.notifications(); track n.id) {
+            @let iconData = getIcon(n.type);
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden transition-all hover:shadow-md cursor-pointer"
+                 [class]="n.isRead ? 'border-gray-100' : 'border-l-4'"
+                 [style.border-left-color]="n.isRead ? '' : '#0C5A60'"
+                 (click)="!n.isRead && markOne(n.id)">
+              <div class="flex items-start gap-4 p-5">
+                <!-- Icon -->
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                     [style.background]="iconData.bg">
+                  {{ iconData.icon }}
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <p class="font-bold text-sm mb-0.5" [style.color]="n.isRead ? '#374151' : '#061E24'">
+                    {{ n.title }}
+                  </p>
+                  <p class="text-sm text-gray-500 leading-relaxed">{{ n.message }}</p>
+                  <p class="text-xs text-gray-400 mt-1.5">{{ n.createdAt | date:'d/MM/yyyy, h:mm a' }}</p>
+                </div>
+
+                <!-- Unread dot -->
+                @if (!n.isRead) {
+                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 mt-1.5"></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </main>
+</div>

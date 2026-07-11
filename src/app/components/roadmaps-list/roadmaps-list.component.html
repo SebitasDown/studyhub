@@ -1,0 +1,85 @@
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-900">Roadmaps</h1>
+    <p class="text-gray-500 text-sm mt-1">Hojas de ruta personalizadas generadas por IA para alcanzar tu rol soñado.</p>
+  </div>
+  <button (click)="generateRoadmap()" [disabled]="roadmapService.generating()"
+    class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60 cursor-pointer"
+    style="background: #0C5A60;">
+    @if (roadmapService.generating()) {
+      <ng-icon name="lucideLoader" size="18" class="animate-spin" />
+    } @else {
+      <ng-icon name="lucideSparkles" size="18" />
+    }
+    Generar con IA
+  </button>
+</div>
+
+@if (roadmapService.loading()) {
+  <div class="flex justify-center py-20">
+    <ng-icon name="lucideLoader" size="32" class="text-gray-400 animate-spin" />
+  </div>
+} @else if (roadmapService.roadmaps().length === 0) {
+  <div class="flex flex-col items-center justify-center py-20">
+    <ng-icon name="lucideRocket" size="48" class="text-gray-300 mb-4" />
+    <p class="text-gray-500 text-sm font-medium">Aún no tienes roadmaps generados</p>
+    <p class="text-gray-400 text-xs mt-1">Genera tu primer roadmap con IA para empezar a aprender.</p>
+    <button (click)="generateRoadmap()" [disabled]="roadmapService.generating()"
+      class="mt-6 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60 cursor-pointer"
+      style="background: #0C5A60;">
+      @if (roadmapService.generating()) {
+        <ng-icon name="lucideLoader" size="18" class="animate-spin" />
+      } @else {
+        <ng-icon name="lucideSparkles" size="18" />
+      }
+      Generar mi primer roadmap
+    </button>
+  </div>
+} @else {
+  <div class="grid gap-6" style="grid-template-columns: repeat(2, 1fr);">
+    @for (rm of roadmapService.roadmaps(); track rm.id) {
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 transition-all hover:shadow-md hover:-translate-y-0.5 relative group">
+        <button (click)="confirmDelete($event, rm.id)"
+          class="absolute top-3 right-3 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer">
+          <ng-icon name="lucideTrash2" size="16" />
+        </button>
+        <a [routerLink]="['/roadmaps', rm.id]" class="block">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #f0fdfa;">
+            <ng-icon name="lucideFileText" size="24" style="color: #0C5A60;" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-bold text-gray-900">{{ rm.title }}</h3>
+            @if (rm.description) {
+              <p class="text-sm text-gray-500 mt-1.5 leading-relaxed line-clamp-2">{{ rm.description }}</p>
+            }
+          </div>
+        </div>
+
+@if (rm.steps.length) {
+           <div class="mt-5">
+             <div class="flex items-center gap-3">
+               <div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
+                 <div class="h-full rounded-full transition-all" [style.width.%]="progressPercent(rm.steps)" style="background: #0C7C7C;"></div>
+               </div>
+               <span class="text-sm font-semibold text-gray-500 whitespace-nowrap">{{ completedCount(rm.steps) }}/{{ rm.steps.length }} pasos</span>
+             </div>
+             <p class="text-xs font-medium text-gray-400 mt-1.5">{{ progressPercent(rm.steps) }}% completado</p>
+   </div>
+ }
+       </a>
+       @if (showDeleteDialog()) {
+         <app-confirm-dialog
+           title="Eliminar roadmap"
+           message="¿Estás seguro de eliminar este roadmap? Esta acción no se puede deshacer."
+           confirmText="Eliminar"
+           cancelText="Cancelar"
+           confirmClass="bg-red-500 hover:bg-red-600 text-white"
+           (confirm)="onDeleteConfirmed()"
+           (cancel)="onDeleteCancelled()"
+         />
+       }
+       </div>
+    }
+  </div>
+}
