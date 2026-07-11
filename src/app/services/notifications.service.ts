@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, catchError } from 'rxjs';
 
 const API = 'http://localhost:3000';
 
@@ -12,13 +12,18 @@ export class NotificationsService {
 
   getAll(): Observable<any> {
     return this.http.get<any>(`${API}/notifications`).pipe(
-      tap(res => this.notifications.set(res.data ?? res))
+      tap(res => {
+        const list = Array.isArray(res) ? res : (res?.data ?? res?.notifications ?? []);
+        this.notifications.set(Array.isArray(list) ? list : []);
+      }),
+      catchError(() => { this.notifications.set([]); return []; })
     );
   }
 
   getUnreadCount(): Observable<any> {
     return this.http.get<any>(`${API}/notifications/unread-count`).pipe(
-      tap(res => this.unreadCount.set(res.count ?? res))
+      tap(res => this.unreadCount.set(res?.count ?? 0)),
+      catchError(() => { this.unreadCount.set(0); return []; })
     );
   }
 
