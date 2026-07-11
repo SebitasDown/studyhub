@@ -34,7 +34,7 @@ export const routes: Routes = [
   { path: 'subjects', component: SubjectsListComponent, canActivate: [authGuard] },
   { path: 'subjects/:id', component: SubjectDetailComponent, canActivate: [authGuard] },
   { path: 'profesor-ia', component: ProfesorIaComponent, canActivate: [authGuard] },
-  { path: 'empleos', component: JobsComponent, canActivate: [authGuard] },
+  // { path: 'empleos', component: JobsComponent, canActivate: [authGuard] },
   { path: 'mi-cv', component: MiCvComponent, canActivate: [authGuard] },
   {
     path: 'roadmaps',
