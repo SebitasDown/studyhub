@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
 
-const API = 'http://localhost:3000';
+const API = process.env['BASE_URL']!;
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {

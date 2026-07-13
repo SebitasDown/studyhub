@@ -292,7 +292,7 @@ export class MiCvComponent implements OnInit {
     try {
       const token = localStorage.getItem('access_token') ?? '';
       const res = await fetch(
-        `http://localhost:3000/resume/${resume.userId}/pdf`,
+        `${process.env['BASE_URL']}/resume/${resume.userId}/pdf`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -369,7 +369,7 @@ export class MiCvComponent implements OnInit {
   shareProfile(): void {
     const resume = this.resumeService.resume();
     if (resume?.slug) {
-      const url = `http://localhost:3000/resume/public/${resume.slug}`;
+      const url = `${process.env['BASE_URL']}/resume/public/${resume.slug}`;
       navigator.clipboard.writeText(url).then(() => {
         alert('¡Link copiado al portapapeles!');
       });

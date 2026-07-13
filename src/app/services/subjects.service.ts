@@ -67,7 +67,7 @@ export interface Note {
 @Injectable({ providedIn: 'root' })
 export class SubjectsService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:3000/subjects';
+  private baseUrl = `${process.env['BASE_URL']}/subjects`;
 
   getSubjects(): Observable<SubjectSummary[]> {
     return this.http.get<SubjectSummary[]>(this.baseUrl);

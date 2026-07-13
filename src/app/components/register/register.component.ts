@@ -14,6 +14,7 @@ export class RegisterComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  googleUrl = `${process.env['BASE_URL']}/auth/google`;
   nombre = '';
   apellido = '';
   email = '';
