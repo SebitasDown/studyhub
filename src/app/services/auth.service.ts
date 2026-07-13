@@ -32,7 +32,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-  private apiUrl = 'http://localhost:3000/auth';
+  private apiUrl = `${process.env['BASE_URL']}/auth`;
 
   login(data: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(

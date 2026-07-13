@@ -66,6 +66,6 @@ export class DashboardService {
   private http = inject(HttpClient);
 
   getSummary(): Observable<DashboardData> {
-    return this.http.get<DashboardData>('http://localhost:3000/dashboard/summary');
+    return this.http.get<DashboardData>(`${process.env['BASE_URL']}/dashboard/summary`);
   }
 }

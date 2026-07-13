@@ -14,6 +14,7 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  googleUrl = `${process.env['BASE_URL']}/auth/google`;
   email = '';
   password = '';
   error = '';

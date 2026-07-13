@@ -81,7 +81,7 @@ export interface GeneratedResource {
   content?: any;
 }
 
-const API = 'http://localhost:3000';
+const API = process.env['BASE_URL']!;
 
 @Injectable({ providedIn: 'root' })
 export class AiService {

@@ -17,8 +17,8 @@ export interface GroupMessage {
   };
 }
 
-const API = 'http://localhost:3000';
-const WS_URL = 'http://localhost:3000/group-chat';
+const API = process.env['BASE_URL']!;
+const WS_URL = `${process.env['BASE_URL']}/group-chat`;
 
 @Injectable({ providedIn: 'root' })
 export class GroupChatService {
