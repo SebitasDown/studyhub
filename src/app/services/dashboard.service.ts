@@ -1,6 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
+import { AppCache } from '../utils/cache';
+
+const CACHE_KEY = 'dashboard';
 
 export interface DashboardData {
   user: { nombre: string; apellido: string } | null;
@@ -65,7 +68,17 @@ export interface DashboardData {
 export class DashboardService {
   private http = inject(HttpClient);
 
-  getSummary(): Observable<DashboardData> {
-    return this.http.get<DashboardData>(`${process.env['BASE_URL']}/dashboard/summary`);
+  getSummary(forceRefresh = false): Observable<DashboardData> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<DashboardData>(CACHE_KEY);
+      if (cached) return of(cached);
+    }
+    return this.http.get<DashboardData>(`${process.env['BASE_URL']}/dashboard/summary`).pipe(
+      tap(data => AppCache.set(CACHE_KEY, data))
+    );
+  }
+
+  invalidateCache(): void {
+    AppCache.invalidate(CACHE_KEY);
   }
 }

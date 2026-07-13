@@ -33,8 +33,8 @@ import { SubjectsService, Note } from '../../services/subjects.service';
             <input [(ngModel)]="newTitle" type="text" placeholder="Título de la nota *" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
             <textarea [(ngModel)]="newContent" placeholder="Contenido de la nota" rows="4" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e] resize-none"></textarea>
             <div class="flex gap-2 justify-end">
-              <button (click)="showForm.set(false)" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
-              <button (click)="addNote()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">Guardar nota</button>
+              <button (click)="showForm.set(false)" [disabled]="creating()" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
+              <button (click)="addNote()" [disabled]="creating()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style="background: #0f766e;">Guardar nota</button>
             </div>
           </div>
         </div>
@@ -85,6 +85,7 @@ export class SubjectNotesComponent implements OnInit {
   loading = signal(true);
 
   showForm = signal(false);
+  creating = signal(false);
   newTitle = '';
   newContent = '';
 
@@ -110,7 +111,8 @@ export class SubjectNotesComponent implements OnInit {
   }
 
   addNote(): void {
-    if (!this.newTitle.trim()) return;
+    if (!this.newTitle.trim() || this.creating()) return;
+    this.creating.set(true);
     this.subjectsService.addNote(this.subjectId(), {
       title: this.newTitle.trim(),
       content: this.newContent.trim(),
@@ -120,7 +122,9 @@ export class SubjectNotesComponent implements OnInit {
         this.showForm.set(false);
         this.newTitle = '';
         this.newContent = '';
+        this.creating.set(false);
       },
+      error: () => this.creating.set(false),
     });
   }
 

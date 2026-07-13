@@ -44,6 +44,7 @@ export class MiCvComponent implements OnInit {
   editingIndex = signal<number | null>(null);
   saving = signal(false);
   downloading = signal(false);
+  toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
   form = signal<Partial<Resume>>({
     titulo: '',
@@ -267,6 +268,11 @@ export class MiCvComponent implements OnInit {
     return _;
   }
 
+  showToast(message: string, type: 'success' | 'error' = 'success'): void {
+    this.toast.set({ message, type });
+    setTimeout(() => this.toast.set(null), 3000);
+  }
+
   getLevelLabel(level: string): string {
     return { BASIC: 'Básico', INTERMEDIATE: 'Intermedio', ADVANCED: 'Avanzado', NATIVE: 'Nativo' }[level] || level;
   }
@@ -312,7 +318,7 @@ export class MiCvComponent implements OnInit {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Error al descargar PDF:', err);
-      alert('No se pudo generar el PDF. Asegúrate de tener contenido en tu CV.');
+      this.showToast('No se pudo generar el PDF. Asegúrate de tener contenido en tu CV.', 'error');
     } finally {
       this.downloading.set(false);
     }
@@ -357,13 +363,26 @@ export class MiCvComponent implements OnInit {
   saveContactInfo(): void {
     const info = this.profileService.personalInfo();
     if (!info) return;
-    this.profileService.updatePersonalInfo({
+    const dto = {
       linkedin: info.linkedin || '',
       github: info.github || '',
       telefono: info.telefono || '',
       portafolio: info.portafolio || '',
       paginaPersonal: info.paginaPersonal || '',
-    }).subscribe();
+    };
+    this.profileService.updatePersonalInfo(dto).subscribe({
+      next: () => {
+        this.showToast('Contacto guardado', 'success');
+      },
+      error: () => {
+        this.showToast('Error al guardar contacto', 'error');
+      },
+    });
+  }
+
+  updateContactField(field: string, value: string): void {
+    const current = this.profileService.personalInfo() || {};
+    this.profileService.personal.set({ ...current, [field]: value });
   }
 
   shareProfile(): void {
@@ -371,7 +390,7 @@ export class MiCvComponent implements OnInit {
     if (resume?.slug) {
       const url = `${process.env['BASE_URL']}/resume/public/${resume.slug}`;
       navigator.clipboard.writeText(url).then(() => {
-        alert('¡Link copiado al portapapeles!');
+        this.showToast('Link copiado al portapapeles');
       });
     }
   }

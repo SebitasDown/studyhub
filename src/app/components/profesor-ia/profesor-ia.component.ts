@@ -1,5 +1,5 @@
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { Component, ElementRef, NgZone, OnInit, ViewChild, inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -38,12 +38,9 @@ import {
   `],
 })
 export class ProfesorIaComponent implements OnInit {
-  protected auth = inject(AuthService);
-  private ai = inject(AiService);
+  @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
+  protected ai = inject(AiService);
   private platformId = inject(PLATFORM_ID);
-  private ngZone = inject(NgZone);
-
-  @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLElement>;
 
   activeTab = signal<'chat' | 'gaps' | 'metas'>('chat');
 
@@ -70,6 +67,7 @@ export class ProfesorIaComponent implements OnInit {
     title: '', description: '', targetDate: '',
   });
   showNewGoalForm = signal(false);
+  creatingGoal = signal(false);
 
   showNewTeacherForm = signal(false);
   newTeacherProfile = signal<{ name: string; description: string; subjects: string; systemPrompt: string; teachingStyle: string; difficultyLevel: string }>({
@@ -194,70 +192,6 @@ export class ProfesorIaComponent implements OnInit {
     this.sending.set(true);
     setTimeout(() => this.scrollToBottom(true), 50);
 
-    const assistantId = 'resp-' + Date.now();
-    const assistantMsg: Message = {
-      _id: assistantId,
-      conversationId: this.selectedConversationId() || '',
-      userId: 0,
-      role: 'assistant',
-      content: '',
-      createdAt: new Date().toISOString(),
-    };
-    this.messages.update(arr => [...arr, assistantMsg]);
-
-    this.ai.streamChat(
-      text,
-      this.selectedConversationId() || undefined,
-      this.selectedTeacher()?.code || undefined,
-    ).subscribe({
-      next: ({ chunk }) => {
-        this.ngZone.run(() => {
-          this.messages.update(arr =>
-            arr.map(m => m._id === assistantId ? { ...m, content: m.content + chunk } : m)
-          );
-          requestAnimationFrame(() => this.scrollToBottom());
-        });
-      },
-      error: (err) => {
-        console.warn('[streamChat] fallback a chat normal:', err);
-        this.ngZone.run(() => {
-          this.messages.update(arr => arr.filter(m => m._id !== assistantId));
-          this.sendMessageFallback(text);
-        });
-      },
-      complete: () => {
-        this.ngZone.run(() => {
-          const finalMsg = this.messages().find(m => m._id === assistantId);
-          if (finalMsg) {
-            const convId = this.selectedConversationId() || finalMsg.conversationId;
-            this.messages.update(arr =>
-              arr.map(m => m._id === assistantId ? { ...m, conversationId: convId } : m)
-            );
-            if (convId && convId !== this.selectedConversationId()) {
-              this.selectedConversationId.set(convId);
-            }
-          }
-          this.sending.set(false);
-          this.refreshConversations();
-          setTimeout(() => this.scrollToBottom(true), 50);
-        });
-      },
-    });
-  }
-
-  private scrollToBottom(force = false): void {
-    const el = this.messagesContainer?.nativeElement;
-    if (!el) return;
-    if (force) {
-      el.scrollTop = el.scrollHeight;
-    } else {
-      const threshold = 60;
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
-      if (isNearBottom) el.scrollTop = el.scrollHeight;
-    }
-  }
-
-  private sendMessageFallback(text: string): void {
     this.ai.sendMessage(
       text,
       this.selectedConversationId() || undefined,
@@ -284,6 +218,18 @@ export class ProfesorIaComponent implements OnInit {
         this.sending.set(false);
       },
     });
+  }
+
+  private scrollToBottom(force = false): void {
+    const el = this.messagesContainer?.nativeElement;
+    if (!el) return;
+    if (force) {
+      el.scrollTop = el.scrollHeight;
+    } else {
+      const threshold = 60;
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+      if (isNearBottom) el.scrollTop = el.scrollHeight;
+    }
   }
 
   private refreshConversations(): void {
@@ -339,7 +285,8 @@ export class ProfesorIaComponent implements OnInit {
   }
 
   createGoal(): void {
-    if (!this.newGoal().title.trim()) return;
+    if (!this.newGoal().title.trim() || this.creatingGoal()) return;
+    this.creatingGoal.set(true);
     this.ai.createGoal({
       title: this.newGoal().title,
       description: this.newGoal().description || undefined,
@@ -349,6 +296,10 @@ export class ProfesorIaComponent implements OnInit {
         this.goals.update(arr => [res.goal, ...arr]);
         this.newGoal.set({ title: '', description: '', targetDate: '' });
         this.showNewGoalForm.set(false);
+        this.creatingGoal.set(false);
+      },
+      error: () => {
+        this.creatingGoal.set(false);
       },
     });
   }

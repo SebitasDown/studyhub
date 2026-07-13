@@ -1,5 +1,5 @@
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -8,6 +8,7 @@ import {
 } from '@ng-icons/lucide';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardData } from '../../services/dashboard.service';
+import { EventBusService } from '../../services/event-bus.service';
 
 interface TaskItem {
   id: number;
@@ -28,11 +29,13 @@ interface TaskItem {
   styles: [`:host { display: contents; }`],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
   private dashboard = inject(DashboardService);
+  private events = inject(EventBusService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+  private unsubscribers: (() => void)[] = [];
 
   data: DashboardData = {
     user: null, stats: { subjects: 0, pendingTasks: 0, completedTasks: 0, notes: 0 },
@@ -47,7 +50,31 @@ export class DashboardComponent implements OnInit {
   riskBarClass = 'bg-gray-200';
 
   ngOnInit(): void {
-    this.dashboard.getSummary().subscribe({
+    this.loadData();
+
+    // Escuchar eventos de cambios y recargar
+    const eventTypes = [
+      'subject:created', 'subject:deleted',
+      'task:created', 'task:toggled', 'task:deleted',
+      'note:created', 'note:deleted',
+      'gamification:updated',
+      'profile:updated',
+      'goal:created', 'goal:updated', 'goal:deleted',
+    ] as const;
+
+    for (const type of eventTypes) {
+      this.unsubscribers.push(
+        this.events.on(type, () => this.loadData(true))
+      );
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribers.forEach(unsub => unsub());
+  }
+
+  private loadData(forceRefresh = false): void {
+    this.dashboard.getSummary(forceRefresh).subscribe({
       next: (res) => {
         this.data = res;
         this.tasks = this.buildTasks(res);

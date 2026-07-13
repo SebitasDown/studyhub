@@ -99,7 +99,7 @@
               <div class="h-2 rounded-full transition-all" [style.width.%]="data!.academicRisk!.score" [class]="riskBarClass"></div>
             </div>
             <p class="text-xs text-gray-400 flex-1">Mantén tu progreso. Trabaja en tus gaps más importantes para reducirlo.</p>
-            <button class="w-full mt-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" style="background: #f3f4f6;">Ver detalle →</button>
+            <button routerLink="/riesgo" class="w-full mt-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" style="background: #f3f4f6;">Ver detalle →</button>
           } @else {
             <div class="flex-1 flex items-center justify-center">
               <p class="text-sm text-gray-400">Sin datos de riesgo aún</p>
@@ -150,13 +150,15 @@
                 </div>
               }
             </div>
-            <button class="w-full mt-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" style="background: #f3f4f6;">Gestionar metas</button>
           } @else {
             <div class="flex-1 flex items-center justify-center">
               <p class="text-sm text-gray-400">Sin metas activas</p>
             </div>
-            <button class="w-full mt-4 py-2 rounded-lg text-sm font-medium text-gray-600" style="background: #f3f4f6;">Crear meta</button>
           }
+          <a routerLink="/profesor-ia" class="block w-full mt-4 py-2 rounded-lg text-sm font-medium text-center text-gray-600 hover:text-gray-900 transition-colors"
+            style="background: #f3f4f6;">
+            Crear meta
+          </a>
         </div>
       </div>
 
