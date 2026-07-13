@@ -42,8 +42,8 @@ const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Vierne
             </div>
             <input [(ngModel)]="newClassroom" type="text" placeholder="Salón (opcional)" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
             <div class="flex gap-2 justify-end">
-              <button (click)="showForm.set(false)" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
-              <button (click)="addSchedule()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">Guardar horario</button>
+              <button (click)="showForm.set(false)" [disabled]="creating()" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
+              <button (click)="addSchedule()" [disabled]="creating()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style="background: #0f766e;">Guardar horario</button>
             </div>
           </div>
         </div>
@@ -96,6 +96,7 @@ export class SubjectSchedulesComponent implements OnInit {
   loading = signal(true);
 
   showForm = signal(false);
+  creating = signal(false);
   newDayOfWeek = 1;
   newStartTime = '08:00';
   newEndTime = '10:00';
@@ -119,6 +120,8 @@ export class SubjectSchedulesComponent implements OnInit {
   }
 
   addSchedule(): void {
+    if (this.creating()) return;
+    this.creating.set(true);
     this.subjectsService.addSchedule(this.subjectId(), {
       dayOfWeek: this.newDayOfWeek,
       startTime: this.newStartTime,
@@ -129,7 +132,9 @@ export class SubjectSchedulesComponent implements OnInit {
         this.loadSchedules();
         this.showForm.set(false);
         this.newClassroom = '';
+        this.creating.set(false);
       },
+      error: () => this.creating.set(false),
     });
   }
 

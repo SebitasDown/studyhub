@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Observer } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
+import { AppCache } from '../utils/cache';
 
 export interface TeacherProfile {
   code: string;
@@ -87,26 +88,49 @@ const API = process.env['BASE_URL']!;
 export class AiService {
   private http = inject(HttpClient);
 
-  getTeacherProfiles(): Observable<{ profiles: TeacherProfile[] }> {
-    return this.http.get<{ profiles: TeacherProfile[] }>(`${API}/ai/teacher-profiles`);
-  }
-
-  createTeacherProfile(data: Partial<TeacherProfile>): Observable<{ profile: TeacherProfile }> {
-    return this.http.post<{ profile: TeacherProfile }>(`${API}/ai/teacher-profiles`, data);
-  }
-
-  createConversation(): Observable<Conversation> {
-    return this.http.post<Conversation>(`${API}/ai/conversations`, {});
-  }
-
-  getConversations(): Observable<{ conversations: Conversation[]; total: number; page: number; limit: number }> {
-    return this.http.get<{ conversations: Conversation[]; total: number; page: number; limit: number }>(
-      `${API}/ai/conversations`
+  getTeacherProfiles(forceRefresh = false): Observable<{ profiles: TeacherProfile[] }> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<{ profiles: TeacherProfile[] }>('ai_teacher_profiles');
+      if (cached) return of(cached);
+    }
+    return this.http.get<{ profiles: TeacherProfile[] }>(`${API}/ai/teacher-profiles`).pipe(
+      tap(data => AppCache.set('ai_teacher_profiles', data))
     );
   }
 
-  getConversation(id: string): Observable<{ conversation: Conversation; messages: Message[] }> {
-    return this.http.get<{ conversation: Conversation; messages: Message[] }>(`${API}/ai/conversations/${id}`);
+  createTeacherProfile(data: Partial<TeacherProfile>): Observable<{ profile: TeacherProfile }> {
+    return this.http.post<{ profile: TeacherProfile }>(`${API}/ai/teacher-profiles`, data).pipe(
+      tap(() => AppCache.invalidate('ai_teacher_profiles'))
+    );
+  }
+
+  createConversation(): Observable<Conversation> {
+    return this.http.post<Conversation>(`${API}/ai/conversations`, {}).pipe(
+      tap(() => AppCache.invalidate('ai_conversations'))
+    );
+  }
+
+  getConversations(forceRefresh = false): Observable<{ conversations: Conversation[]; total: number; page: number; limit: number }> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<{ conversations: Conversation[]; total: number; page: number; limit: number }>('ai_conversations');
+      if (cached) return of(cached);
+    }
+    return this.http.get<{ conversations: Conversation[]; total: number; page: number; limit: number }>(
+      `${API}/ai/conversations`
+    ).pipe(
+      tap(data => AppCache.set('ai_conversations', data))
+    );
+  }
+
+  getConversation(id: string, forceRefresh = false): Observable<{ conversation: Conversation; messages: Message[] }> {
+    const key = `ai_conversation_${id}`;
+    if (!forceRefresh) {
+      const cached = AppCache.get<{ conversation: Conversation; messages: Message[] }>(key);
+      if (cached) return of(cached);
+    }
+    return this.http.get<{ conversation: Conversation; messages: Message[] }>(`${API}/ai/conversations/${id}`).pipe(
+      tap(data => AppCache.set(key, data))
+    );
   }
 
   getConversationMessages(id: string): Observable<{ messages: Message[] }> {
@@ -114,7 +138,12 @@ export class AiService {
   }
 
   deleteConversation(id: string): Observable<{ ok: boolean }> {
-    return this.http.delete<{ ok: boolean }>(`${API}/ai/conversations/${id}`);
+    return this.http.delete<{ ok: boolean }>(`${API}/ai/conversations/${id}`).pipe(
+      tap(() => {
+        AppCache.invalidate('ai_conversations');
+        AppCache.invalidate(`ai_conversation_${id}`);
+      })
+    );
   }
 
   sendMessage(message: string, conversationId?: string, teacherId?: string): Observable<ChatResponse> {
@@ -122,118 +151,78 @@ export class AiService {
       conversationId: conversationId || undefined,
       teacherId,
       message,
-    });
+    }).pipe(
+      tap(() => {
+        if (conversationId) AppCache.invalidate(`ai_conversation_${conversationId}`);
+        AppCache.invalidate('ai_conversations');
+      })
+    );
   }
 
-  streamChat(
-    message: string,
-    conversationId?: string,
-    teacherId?: string,
-  ): Observable<{ chunk: string }> {
-    return new Observable((observer: Observer<{ chunk: string }>) => {
-      const controller = new AbortController();
-      let cancelled = false;
-
-      (async () => {
-        try {
-          const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
-          const res = await fetch(`${API}/ai/chat/stream`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({
-              conversationId: conversationId || undefined,
-              teacherId,
-              message,
-            }),
-            signal: controller.signal,
-          });
-
-          if (!res.ok) {
-            observer.error(new Error(`HTTP ${res.status}`));
-            return;
-          }
-
-          const reader = res.body?.getReader();
-          if (!reader) {
-            observer.error(new Error('No response body'));
-            return;
-          }
-
-          const decoder = new TextDecoder();
-          let buffer = '';
-
-          while (!cancelled) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                observer.next({ chunk: line.slice(6) });
-              }
-              if (line.startsWith('event: done')) {
-                observer.complete();
-                return;
-              }
-              if (line.startsWith('event: error')) {
-                observer.error(new Error('Stream error'));
-                return;
-              }
-            }
-          }
-
-          observer.complete();
-        } catch (err: any) {
-          if (!cancelled) observer.error(err);
-        }
-      })();
-
-      return () => {
-        cancelled = true;
-        controller.abort();
-      };
-    });
-  }
-
-  getKnowledgeGaps(): Observable<{ gaps: KnowledgeGap[] }> {
-    return this.http.get<{ gaps: KnowledgeGap[] }>(`${API}/ai/knowledge-gaps`);
+  getKnowledgeGaps(forceRefresh = false): Observable<{ gaps: KnowledgeGap[] }> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<{ gaps: KnowledgeGap[] }>('ai_knowledge_gaps');
+      if (cached) return of(cached);
+    }
+    return this.http.get<{ gaps: KnowledgeGap[] }>(`${API}/ai/knowledge-gaps`).pipe(
+      tap(data => AppCache.set('ai_knowledge_gaps', data))
+    );
   }
 
   updateKnowledgeGap(id: string, data: { status?: string; confidence?: number }): Observable<{ gap: KnowledgeGap }> {
-    return this.http.patch<{ gap: KnowledgeGap }>(`${API}/ai/knowledge-gaps/${id}`, data);
+    return this.http.patch<{ gap: KnowledgeGap }>(`${API}/ai/knowledge-gaps/${id}`, data).pipe(
+      tap(() => AppCache.invalidate('ai_knowledge_gaps'))
+    );
   }
 
-  getGoals(): Observable<{ goals: LearningGoal[] }> {
-    return this.http.get<{ goals: LearningGoal[] }>(`${API}/ai/goals`);
+  getGoals(forceRefresh = false): Observable<{ goals: LearningGoal[] }> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<{ goals: LearningGoal[] }>('ai_goals');
+      if (cached) return of(cached);
+    }
+    return this.http.get<{ goals: LearningGoal[] }>(`${API}/ai/goals`).pipe(
+      tap(data => AppCache.set('ai_goals', data))
+    );
   }
 
   createGoal(data: { title: string; description?: string; targetDate?: string }): Observable<{ goal: LearningGoal }> {
-    return this.http.post<{ goal: LearningGoal }>(`${API}/ai/goals`, data);
+    return this.http.post<{ goal: LearningGoal }>(`${API}/ai/goals`, data).pipe(
+      tap(() => AppCache.invalidate('ai_goals'))
+    );
   }
 
   updateGoal(id: string, data: { title?: string; description?: string; progress?: number; status?: string; targetDate?: string }): Observable<{ goal: LearningGoal }> {
-    return this.http.patch<{ goal: LearningGoal }>(`${API}/ai/goals/${id}`, data);
+    return this.http.patch<{ goal: LearningGoal }>(`${API}/ai/goals/${id}`, data).pipe(
+      tap(() => AppCache.invalidate('ai_goals'))
+    );
   }
 
   deleteGoal(id: string): Observable<any> {
-    return this.http.delete(`${API}/ai/goals/${id}`);
+    return this.http.delete(`${API}/ai/goals/${id}`).pipe(
+      tap(() => AppCache.invalidate('ai_goals'))
+    );
   }
 
-  // ---- Dashboard ----
-  getDashboard(): Observable<any> {
-    return this.http.get(`${API}/ai/dashboard`);
+  getDashboard(forceRefresh = false): Observable<any> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<any>('ai_dashboard');
+      if (cached) return of(cached);
+    }
+    return this.http.get(`${API}/ai/dashboard`).pipe(
+      tap(data => AppCache.set('ai_dashboard', data))
+    );
   }
 
-  // ---- Generated Resources ----
-  getResources(type?: string): Observable<{ resources: GeneratedResource[] }> {
+  getResources(type?: string, forceRefresh = false): Observable<{ resources: GeneratedResource[] }> {
+    const key = type ? `ai_resources_${type}` : 'ai_resources';
+    if (!forceRefresh) {
+      const cached = AppCache.get<{ resources: GeneratedResource[] }>(key);
+      if (cached) return of(cached);
+    }
     const params = type ? `?type=${type}` : '';
-    return this.http.get<{ resources: GeneratedResource[] }>(`${API}/ai/resources${params}`);
+    return this.http.get<{ resources: GeneratedResource[] }>(`${API}/ai/resources${params}`).pipe(
+      tap(data => AppCache.set(key, data))
+    );
   }
 
   getResource(id: string): Observable<{ resource: GeneratedResource }> {
@@ -241,10 +230,17 @@ export class AiService {
   }
 
   completeResource(id: string, data: { resultScore?: number; resultCorrect?: number; resultTotal?: number }): Observable<any> {
-    return this.http.patch(`${API}/ai/resources/${id}/complete`, data);
+    return this.http.patch(`${API}/ai/resources/${id}/complete`, data).pipe(
+      tap(() => {
+        AppCache.invalidatePrefix('ai_resources');
+        AppCache.invalidate('ai_dashboard');
+      })
+    );
   }
 
   deleteResource(id: string): Observable<any> {
-    return this.http.delete(`${API}/ai/resources/${id}`);
+    return this.http.delete(`${API}/ai/resources/${id}`).pipe(
+      tap(() => AppCache.invalidatePrefix('ai_resources'))
+    );
   }
 }

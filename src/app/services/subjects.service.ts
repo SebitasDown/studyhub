@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
+import { AppCache } from '../utils/cache';
+import { EventBusService } from './event-bus.service';
 
 export interface SubjectSummary {
   id: number;
@@ -67,14 +69,28 @@ export interface Note {
 @Injectable({ providedIn: 'root' })
 export class SubjectsService {
   private http = inject(HttpClient);
+  private events = inject(EventBusService);
   private baseUrl = `${process.env['BASE_URL']}/subjects`;
 
-  getSubjects(): Observable<SubjectSummary[]> {
-    return this.http.get<SubjectSummary[]>(this.baseUrl);
+  getSubjects(forceRefresh = false): Observable<SubjectSummary[]> {
+    if (!forceRefresh) {
+      const cached = AppCache.get<SubjectSummary[]>('subjects_list');
+      if (cached) return of(cached);
+    }
+    return this.http.get<SubjectSummary[]>(this.baseUrl).pipe(
+      tap(data => AppCache.set('subjects_list', data))
+    );
   }
 
-  getSubject(id: number): Observable<SubjectDetail> {
-    return this.http.get<SubjectDetail>(`${this.baseUrl}/${id}`);
+  getSubject(id: number, forceRefresh = false): Observable<SubjectDetail> {
+    const key = `subject_${id}`;
+    if (!forceRefresh) {
+      const cached = AppCache.get<SubjectDetail>(key);
+      if (cached) return of(cached);
+    }
+    return this.http.get<SubjectDetail>(`${this.baseUrl}/${id}`).pipe(
+      tap(data => AppCache.set(key, data))
+    );
   }
 
   createSubject(dto: {
@@ -86,11 +102,22 @@ export class SubjectsService {
     color: string;
     descripcion?: string;
   }): Observable<SubjectDetail> {
-    return this.http.post<SubjectDetail>(this.baseUrl, dto);
+    return this.http.post<SubjectDetail>(this.baseUrl, dto).pipe(
+      tap(() => {
+        AppCache.invalidate('subjects_list');
+        this.events.emit('subject:created');
+      })
+    );
   }
 
   deleteSubject(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
+      tap(() => {
+        AppCache.invalidate('subjects_list');
+        AppCache.invalidate(`subject_${id}`);
+        this.events.emit('subject:deleted');
+      })
+    );
   }
 
   addTask(subjectId: number, dto: {
@@ -99,27 +126,59 @@ export class SubjectsService {
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     dueDate: string;
   }): Observable<Task> {
-    return this.http.post<Task>(`${this.baseUrl}/${subjectId}/tasks`, dto);
+    return this.http.post<Task>(`${this.baseUrl}/${subjectId}/tasks`, dto).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        AppCache.invalidate('subjects_list');
+        this.events.emit('task:created');
+      })
+    );
   }
 
   toggleTask(subjectId: number, taskId: number): Observable<Task> {
-    return this.http.post<Task>(`${this.baseUrl}/${subjectId}/tasks/${taskId}/toggle`, {});
+    return this.http.post<Task>(`${this.baseUrl}/${subjectId}/tasks/${taskId}/toggle`, {}).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        AppCache.invalidate('subjects_list');
+        this.events.emit('task:toggled');
+      })
+    );
   }
 
   deleteTask(subjectId: number, taskId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${subjectId}/tasks/${taskId}`);
+    return this.http.delete<void>(`${this.baseUrl}/${subjectId}/tasks/${taskId}`).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        AppCache.invalidate('subjects_list');
+        this.events.emit('task:deleted');
+      })
+    );
   }
 
   addNote(subjectId: number, dto: { title: string; content: string }): Observable<Note> {
-    return this.http.post<Note>(`${this.baseUrl}/${subjectId}/notes`, dto);
+    return this.http.post<Note>(`${this.baseUrl}/${subjectId}/notes`, dto).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        AppCache.invalidate('subjects_list');
+        this.events.emit('note:created');
+      })
+    );
   }
 
   togglePinNote(subjectId: number, noteId: number): Observable<Note> {
-    return this.http.post<Note>(`${this.baseUrl}/${subjectId}/notes/${noteId}/pin`, {});
+    return this.http.post<Note>(`${this.baseUrl}/${subjectId}/notes/${noteId}/pin`, {}).pipe(
+      tap(() => AppCache.invalidate(`subject_${subjectId}`))
+    );
   }
 
   deleteNote(subjectId: number, noteId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${subjectId}/notes/${noteId}`);
+    return this.http.delete<void>(`${this.baseUrl}/${subjectId}/notes/${noteId}`).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        AppCache.invalidate('subjects_list');
+        this.events.emit('note:deleted');
+      })
+    );
   }
 
   addSchedule(subjectId: number, dto: {
@@ -128,10 +187,20 @@ export class SubjectsService {
     endTime: string;
     classroom?: string;
   }): Observable<Schedule> {
-    return this.http.post<Schedule>(`${this.baseUrl}/${subjectId}/schedules`, dto);
+    return this.http.post<Schedule>(`${this.baseUrl}/${subjectId}/schedules`, dto).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        this.events.emit('schedule:created');
+      })
+    );
   }
 
   deleteSchedule(subjectId: number, scheduleId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${subjectId}/schedules/${scheduleId}`);
+    return this.http.delete<void>(`${this.baseUrl}/${subjectId}/schedules/${scheduleId}`).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        this.events.emit('schedule:deleted');
+      })
+    );
   }
 }

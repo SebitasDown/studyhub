@@ -43,8 +43,8 @@ import { SubjectsService, Task } from '../../services/subjects.service';
               <input [(ngModel)]="newDueDate" type="date" class="border border-[#e2e8f0] rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
             </div>
             <div class="flex gap-2 justify-end">
-              <button (click)="showForm.set(false)" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
-              <button (click)="addTask()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">Guardar tarea</button>
+              <button (click)="showForm.set(false)" [disabled]="creating()" class="px-4 py-2 rounded-lg text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors">Cancelar</button>
+              <button (click)="addTask()" [disabled]="creating()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style="background: #0f766e;">Guardar tarea</button>
             </div>
           </div>
         </div>
@@ -108,6 +108,7 @@ export class SubjectTasksComponent implements OnInit {
   loading = signal(true);
 
   showForm = signal(false);
+  creating = signal(false);
   newTitle = '';
   newDescription = '';
   newPriority: 'LOW' | 'MEDIUM' | 'HIGH' = 'MEDIUM';
@@ -129,7 +130,8 @@ export class SubjectTasksComponent implements OnInit {
   }
 
   addTask(): void {
-    if (!this.newTitle.trim()) return;
+    if (!this.newTitle.trim() || this.creating()) return;
+    this.creating.set(true);
     this.subjectsService.addTask(this.subjectId(), {
       title: this.newTitle.trim(),
       description: this.newDescription.trim() || undefined,
@@ -143,7 +145,9 @@ export class SubjectTasksComponent implements OnInit {
         this.newDescription = '';
         this.newPriority = 'MEDIUM';
         this.newDueDate = '';
+        this.creating.set(false);
       },
+      error: () => this.creating.set(false),
     });
   }
 

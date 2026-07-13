@@ -128,7 +128,7 @@
                   <ng-icon name="lucidePhone" size="13" /> Teléfono / Celular
                 </label>
                 <input type="tel" [ngModel]="profileService.personalInfo()?.telefono || ''"
-                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.telefono = $event)"
+                  (ngModelChange)="updateContactField('telefono', $event)"
                   (blur)="saveContactInfo()" placeholder="+57 300 000 0000"
                   class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
               </div>
@@ -138,7 +138,7 @@
                   <ng-icon name="lucideLink" size="13" /> LinkedIn
                 </label>
                 <input type="text" [ngModel]="profileService.personalInfo()?.linkedin || ''"
-                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.linkedin = $event)"
+                  (ngModelChange)="updateContactField('linkedin', $event)"
                   (blur)="saveContactInfo()" placeholder="linkedin.com/in/tu-perfil"
                   class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
               </div>
@@ -148,7 +148,7 @@
                   <ng-icon name="lucideGithub" size="13" /> GitHub
                 </label>
                 <input type="text" [ngModel]="profileService.personalInfo()?.github || ''"
-                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.github = $event)"
+                  (ngModelChange)="updateContactField('github', $event)"
                   (blur)="saveContactInfo()" placeholder="github.com/tu-usuario"
                   class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
               </div>
@@ -158,7 +158,7 @@
                   <ng-icon name="lucideGlobe" size="13" /> Portafolio
                 </label>
                 <input type="text" [ngModel]="profileService.personalInfo()?.portafolio || ''"
-                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.portafolio = $event)"
+                  (ngModelChange)="updateContactField('portafolio', $event)"
                   (blur)="saveContactInfo()" placeholder="mi-portafolio.dev"
                   class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
               </div>
@@ -168,7 +168,7 @@
                   <ng-icon name="lucideExternalLink" size="13" /> Página personal / Blog
                 </label>
                 <input type="text" [ngModel]="profileService.personalInfo()?.paginaPersonal || ''"
-                  (ngModelChange)="profileService.personalInfo() && (profileService.personalInfo()!.paginaPersonal = $event)"
+                  (ngModelChange)="updateContactField('paginaPersonal', $event)"
                   (blur)="saveContactInfo()" placeholder="miblog.com"
                   class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#004d40]/20 focus:border-[#004d40]">
               </div>
@@ -589,4 +589,33 @@
       
     </div>
   </main>
+
+  <!-- Toast -->
+  @if (toast()) {
+    <div class="fixed bottom-6 right-6 z-50 animate-fade-in-up">
+      <div class="flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-lg border"
+           [class]="toast()!.type === 'success'
+             ? 'bg-white border-emerald-200 text-emerald-800'
+             : 'bg-white border-red-200 text-red-800'">
+        @if (toast()!.type === 'success') {
+          <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        } @else {
+          <svg class="w-5 h-5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        }
+        <span class="text-sm font-medium">{{ toast()!.message }}</span>
+        <button (click)="toast.set(null)" class="ml-2 text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
 </div>

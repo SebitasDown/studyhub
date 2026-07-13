@@ -1,9 +1,11 @@
-import { Component, Input, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Input, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { NotificationsService } from '../../services/notifications.service';
 import { ProfileService } from '../../services/profile.service';
+import { GamificationService } from '../../services/gamification.service';
+import { EventBusService } from '../../services/event-bus.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,18 +14,48 @@ import { ProfileService } from '../../services/profile.service';
   templateUrl: './sidebar.component.html',
   styles: [`:host { display: contents; }`],
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() activeRoute: string = '';
   protected auth = inject(AuthService);
   protected notifService = inject(NotificationsService);
   protected profileService = inject(ProfileService);
+  protected gamificationService = inject(GamificationService);
+  private events = inject(EventBusService);
   private platformId = inject(PLATFORM_ID);
+  private unsubscribers: (() => void)[] = [];
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.notifService.getUnreadCount().subscribe();
       this.profileService.getPersonal().subscribe();
+      this.gamificationService.getProgress().subscribe();
     }
+
+    // Escuchar cambios de gamificación
+    this.unsubscribers.push(
+      this.events.on('gamification:updated', () => {
+        this.gamificationService.getProgress(true).subscribe();
+      })
+    );
+    this.unsubscribers.push(
+      this.events.on('task:created', () => {
+        this.gamificationService.getProgress(true).subscribe();
+      })
+    );
+    this.unsubscribers.push(
+      this.events.on('task:toggled', () => {
+        this.gamificationService.getProgress(true).subscribe();
+      })
+    );
+    this.unsubscribers.push(
+      this.events.on('note:created', () => {
+        this.gamificationService.getProgress(true).subscribe();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribers.forEach(unsub => unsub());
   }
 
   get user() {
@@ -49,10 +81,10 @@ export class SidebarComponent implements OnInit {
   }
 
   get level(): number {
-    return this.user?.progress?.level ?? 7;
+    return this.gamificationService.progress()?.level ?? 0;
   }
 
   get xp(): number {
-    return this.user?.progress?.totalXp ?? 2840;
+    return this.gamificationService.progress()?.totalXp ?? 0;
   }
 }
