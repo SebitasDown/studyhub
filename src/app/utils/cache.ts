@@ -43,4 +43,10 @@ export class AppCache {
     const keys = Object.keys(localStorage).filter(k => k.startsWith(`cache:${prefix}`));
     keys.forEach(k => localStorage.removeItem(k));
   }
+
+  static clear(): void {
+    if (typeof localStorage === 'undefined') return;
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('cache:'));
+    keys.forEach(k => localStorage.removeItem(k));
+  }
 }

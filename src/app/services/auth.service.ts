@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { AppCache } from '../utils/cache';
 
 export interface LoginRequest {
   email: string;
@@ -35,12 +36,14 @@ export class AuthService {
   private apiUrl = `${process.env['BASE_URL']}/auth`;
 
   login(data: LoginRequest): Observable<AuthResponse> {
+    AppCache.clear();
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
       tap(res => this.setSession(res))
     );
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
+    AppCache.clear();
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       tap(res => this.setSession(res))
     );
@@ -57,6 +60,7 @@ export class AuthService {
       localStorage.removeItem('access_token');
       localStorage.removeItem('user');
     }
+    AppCache.clear();
     this.router.navigate(['/']);
   }
 
@@ -72,6 +76,7 @@ export class AuthService {
   }
 
   setSessionFromGoogle(res: AuthResponse): void {
+    AppCache.clear();
     this.setSession(res);
   }
 
