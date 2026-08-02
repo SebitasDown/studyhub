@@ -33,7 +33,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-  private apiUrl = `${process.env['BASE_URL']}/auth`;
+  private apiUrl = `${'https://study-hub-backend-sigma.vercel.app'}/auth`;
 
   login(data: LoginRequest): Observable<AuthResponse> {
     AppCache.clear();

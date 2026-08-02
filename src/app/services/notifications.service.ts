@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
-const API = process.env['BASE_URL']!;
+const API = 'https://study-hub-backend-sigma.vercel.app'!;
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {

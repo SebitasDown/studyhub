@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
 import { AppCache } from '../utils/cache';
 
-const API = process.env['BASE_URL']!;
+const API = 'https://study-hub-backend-sigma.vercel.app'!;
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
