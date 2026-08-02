@@ -50,7 +50,7 @@ export interface CreateEventPayload {
 export class CalendarService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
-  private apiUrl = 'https://study-hub-backend-gablfori5-sebitasdowns-projects.vercel.app/calendar';
+  private apiUrl = 'https://study-hub-backend-sigma.vercel.app/calendar';
 
   private get headers() {
     return { Authorization: `Bearer ${this.auth.getToken()}` };
