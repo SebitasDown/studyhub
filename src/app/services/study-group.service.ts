@@ -40,7 +40,7 @@ export interface PaginatedGroups {
   limit: number;
 }
 
-const API = process.env['BASE_URL']!;
+const API = 'https://study-hub-backend-sigma.vercel.app'!;
 
 @Injectable({ providedIn: 'root' })
 export class StudyGroupService {

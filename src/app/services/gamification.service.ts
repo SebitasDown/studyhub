@@ -18,7 +18,7 @@ export interface GamificationProgress {
 @Injectable({ providedIn: 'root' })
 export class GamificationService {
   private http = inject(HttpClient);
-  private baseUrl = `${process.env['BASE_URL']}/gamification`;
+  private baseUrl = `${'https://study-hub-backend-sigma.vercel.app'}/gamification`;
 
   progress = signal<GamificationProgress | null>(null);
 

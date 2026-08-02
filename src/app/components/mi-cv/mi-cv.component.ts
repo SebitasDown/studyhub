@@ -298,7 +298,7 @@ export class MiCvComponent implements OnInit {
     try {
       const token = localStorage.getItem('access_token') ?? '';
       const res = await fetch(
-        `${process.env['BASE_URL']}/resume/${resume.userId}/pdf`,
+        `${'https://study-hub-backend-sigma.vercel.app'}/resume/${resume.userId}/pdf`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -388,7 +388,7 @@ export class MiCvComponent implements OnInit {
   shareProfile(): void {
     const resume = this.resumeService.resume();
     if (resume?.slug) {
-      const url = `${process.env['BASE_URL']}/resume/public/${resume.slug}`;
+      const url = `${'https://study-hub-backend-sigma.vercel.app'}/resume/public/${resume.slug}`;
       navigator.clipboard.writeText(url).then(() => {
         this.showToast('Link copiado al portapapeles');
       });

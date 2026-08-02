@@ -70,7 +70,7 @@ export interface Note {
 export class SubjectsService {
   private http = inject(HttpClient);
   private events = inject(EventBusService);
-  private baseUrl = `${process.env['BASE_URL']}/subjects`;
+  private baseUrl = `${'https://study-hub-backend-sigma.vercel.app'}/subjects`;
 
   getSubjects(forceRefresh = false): Observable<SubjectSummary[]> {
     if (!forceRefresh) {

@@ -17,8 +17,8 @@ export interface GroupMessage {
   };
 }
 
-const API = process.env['BASE_URL']!;
-const WS_URL = `${process.env['BASE_URL']}/group-chat`;
+const API = 'https://study-hub-backend-sigma.vercel.app'!;
+const WS_URL = `${'https://study-hub-backend-sigma.vercel.app'}/group-chat`;
 
 @Injectable({ providedIn: 'root' })
 export class GroupChatService {

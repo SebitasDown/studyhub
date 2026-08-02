@@ -73,7 +73,7 @@ export class DashboardService {
       const cached = AppCache.get<DashboardData>(CACHE_KEY);
       if (cached) return of(cached);
     }
-    return this.http.get<DashboardData>(`${process.env['BASE_URL']}/dashboard/summary`).pipe(
+    return this.http.get<DashboardData>(`${'https://study-hub-backend-sigma.vercel.app'}/dashboard/summary`).pipe(
       tap(data => AppCache.set(CACHE_KEY, data))
     );
   }

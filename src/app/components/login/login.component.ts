@@ -14,7 +14,7 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  googleUrl = `${process.env['BASE_URL']}/auth/google`;
+  googleUrl = `${'https://study-hub-backend-sigma.vercel.app'}/auth/google`;
   email = '';
   password = '';
   error = '';

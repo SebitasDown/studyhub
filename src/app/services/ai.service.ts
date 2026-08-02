@@ -82,7 +82,7 @@ export interface GeneratedResource {
   content?: any;
 }
 
-const API = process.env['BASE_URL']!;
+const API = 'https://study-hub-backend-sigma.vercel.app'!;
 
 @Injectable({ providedIn: 'root' })
 export class AiService {
