@@ -1,5 +1,8 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+import katex from 'katex';
 
 @Pipe({ name: 'markdown', standalone: true })
 export class MarkdownPipe implements PipeTransform {
@@ -7,46 +10,35 @@ export class MarkdownPipe implements PipeTransform {
 
   transform(value: string): SafeHtml {
     if (!value) return '';
-    const lines = value.split('\n');
-    const out: string[] = [];
-    let inUl = false, inOl = false;
 
-    for (let line of lines) {
-      const trimmed = line.trim();
-      const ulMatch = trimmed.match(/^[-*]\s+(.+)/);
-      const olMatch = trimmed.match(/^\d+[.)]\s+(.+)/);
-
-      if (ulMatch) {
-        if (inOl) { out.push('</ol>'); inOl = false; }
-        if (!inUl) { out.push('<ul>'); inUl = true; }
-        out.push(`<li>${this.inline(ulMatch[1])}</li>`);
-      } else if (olMatch) {
-        if (inUl) { out.push('</ul>'); inUl = false; }
-        if (!inOl) { out.push('<ol>'); inOl = true; }
-        out.push(`<li>${this.inline(olMatch[1])}</li>`);
-      } else {
-        if (inUl) { out.push('</ul>'); inUl = false; }
-        if (inOl) { out.push('</ol>'); inOl = false; }
-        if (trimmed === '') {
-          out.push('<br>');
-        } else {
-          out.push(`<p>${this.inline(line)}</p>`);
-        }
+    // 1. Pre-process math blocks (katex)
+    // Block math: $$ ... $$ or \[ ... \]
+    let processedValue = value.replace(/\$\$(.*?)\$\$|\\\[(.*?)\\\]/gs, (match, p1, p2) => {
+      try {
+        return katex.renderToString(p1 || p2, { displayMode: true, throwOnError: false });
+      } catch (e) {
+        return match;
       }
-    }
+    });
 
-    if (inUl) out.push('</ul>');
-    if (inOl) out.push('</ol>');
+    // Inline math: $ ... $ or \( ... \)
+    processedValue = processedValue.replace(/\$(.*?)\$|\\\((.*?)\\\)/g, (match, p1, p2) => {
+      try {
+        return katex.renderToString(p1 || p2, { displayMode: false, throwOnError: false });
+      } catch (e) {
+        return match;
+      }
+    });
 
-    return this.sanitizer.bypassSecurityTrustHtml(out.join(''));
-  }
+    // 2. Parse markdown
+    const html = marked.parse(processedValue, { async: false }) as string;
 
-  private inline(text: string): string {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // 3. Purify HTML (allowing katex classes and mathml)
+    const cleanHtml = DOMPurify.sanitize(html, {
+      ADD_TAGS: ['math', 'semantics', 'mrow', 'mi', 'mn', 'mo', 'mspace', 'msqrt', 'mfrac', 'mroot', 'mstyle', 'merror', 'mpadded', 'mphantom', 'mfenced', 'msubsup', 'msup', 'msub', 'mmultiscripts', 'mover', 'munder', 'munderover', 'annotation', 'table', 'tbody', 'thead', 'tr', 'th', 'td'],
+      ADD_ATTR: ['display', 'xmlns', 'class', 'style', 'aria-hidden']
+    });
+
+    return this.sanitizer.bypassSecurityTrustHtml(cleanHtml);
   }
 }
