@@ -1,0 +1,221 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <app-sidebar activeRoute="agenda" />
+
+  <main class="flex-1 overflow-y-auto p-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Agenda</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ monthLabel }}</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Google Calendar Toggle -->
+        <button (click)="toggleGoogle()"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          [class]="googleConnected ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          {{ googleConnected ? 'Google ✓' : 'Conectar Google' }}
+        </button>
+        @if (googleConnected) {
+          <button (click)="syncGoogle()" class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer">
+            Sync
+          </button>
+        }
+        <button (click)="openCreateModal()" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-all hover:brightness-110 cursor-pointer" style="background: #0f766e;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo evento
+        </button>
+      </div>
+    </div>
+
+    <!-- View Switcher + Navigation -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center bg-white rounded-lg border border-gray-200 p-1">
+        <button (click)="setView('day')" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
+          [class]="view === 'day' ? 'bg-[#0f766e] text-white' : 'text-gray-500 hover:text-gray-700'">Día</button>
+        <button (click)="setView('week')" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
+          [class]="view === 'week' ? 'bg-[#0f766e] text-white' : 'text-gray-500 hover:text-gray-700'">Semana</button>
+        <button (click)="setView('month')" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
+          [class]="view === 'month' ? 'bg-[#0f766e] text-white' : 'text-gray-500 hover:text-gray-700'">Mes</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="prev()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button (click)="today()" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer">Hoy</button>
+        <button (click)="next()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    @if (loading) {
+      <div class="flex justify-center py-20">
+        <div class="animate-pulse text-gray-400">Cargando eventos…</div>
+      </div>
+    } @else {
+      <!-- MONTH VIEW -->
+      @if (view === 'month') {
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="grid grid-cols-7 border-b border-gray-200">
+            @for (day of weekDayLabels; track day) {
+              <div class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">{{ day }}</div>
+            }
+          </div>
+          <div class="grid grid-cols-7">
+            @for (day of calendarDays; track $index) {
+              <div class="min-h-[100px] border-b border-r border-gray-100 p-1.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                [class.opacity-40]="!isCurrentMonth(day)"
+                [class.bg-teal-50]="isToday(day)"
+                (click)="selectDay(day)">
+                <div class="flex items-center justify-center mb-1">
+                  <span class="w-7 h-7 rounded-full flex items-center justify-center text-sm"
+                    [class.font-bold]="isToday(day)"
+                    [class.bg-[#0f766e]]="isToday(day)"
+                    [class.text-white]="isToday(day)"
+                    [class.text-gray-900]="!isToday(day)">
+                    {{ day.getDate() }}
+                  </span>
+                </div>
+                <div class="space-y-0.5">
+                  @for (event of eventsForDay(day).slice(0, 3); track event.id) {
+                    <div class="text-xs px-1.5 py-0.5 rounded truncate font-medium"
+                      [style.background]="event.color + '20'"
+                      [style.color]="event.color"
+                      (click)="$event.stopPropagation(); openEditModal(event)">
+                      {{ event.title }}
+                    </div>
+                  }
+                  @if (eventsForDay(day).length > 3) {
+                    <div class="text-xs text-gray-400 text-center">+{{ eventsForDay(day).length - 3 }} más</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- WEEK VIEW -->
+      @if (view === 'week') {
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="grid grid-cols-8 border-b border-gray-200">
+            <div class="px-2 py-2"></div>
+            @for (label of weekDayLabels; track $index) {
+              <div class="px-2 py-2 text-center">
+                <div class="text-xs font-semibold text-gray-500">{{ label }}</div>
+                <div class="text-lg font-bold mt-0.5"
+                  [class.text-[#0f766e]]="isToday(weekDays[$index])"
+                  [class.text-gray-900]="!isToday(weekDays[$index])">
+                  {{ weekDays[$index].getDate() }}
+                </div>
+              </div>
+            }
+          </div>
+          <div class="grid grid-cols-8 max-h-[600px] overflow-y-auto">
+            <!-- Time column -->
+            <div class="border-r border-gray-100">
+              @for (hour of hours; track hour) {
+                <div class="h-16 px-2 flex items-start justify-end">
+                  <span class="text-xs text-gray-400 -mt-2">{{ hour.toString().padStart(2, '0') }}:00</span>
+                </div>
+              }
+            </div>
+            <!-- Day columns -->
+            @for (day of weekDays; track $index) {
+              <div class="border-r border-gray-100 relative">
+                @for (hour of hours; track hour) {
+                  <div class="h-16 border-b border-gray-50"></div>
+                }
+                <!-- Events overlay -->
+                @for (event of eventsForDay(day); track event.id) {
+                  <div class="absolute left-0.5 right-0.5 rounded px-1.5 py-0.5 text-xs font-medium overflow-hidden cursor-pointer"
+                    [style.background]="event.color + '25'"
+                    [style.color]="event.color"
+                    [style.top]="(eventHour(event) * 64) + 'px'"
+                    [style.height]="'30px'"
+                    (click)="openEditModal(event)">
+                    {{ event.title }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- DAY VIEW -->
+      @if (view === 'day') {
+        <div class="grid grid-cols-[65%_35%] gap-5">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-gray-100">
+              <h3 class="font-semibold text-gray-900">{{ dayLabel }}</h3>
+            </div>
+            <div class="max-h-[600px] overflow-y-auto">
+              @for (hour of hours; track hour) {
+                <div class="flex border-b border-gray-50 min-h-[64px]">
+                  <div class="w-16 px-2 flex items-start justify-end shrink-0">
+                    <span class="text-xs text-gray-400 -mt-1">{{ hour.toString().padStart(2, '0') }}:00</span>
+                  </div>
+                  <div class="flex-1 py-1 px-2 relative">
+                    @for (event of eventsForHour(currentDate, hour); track event.id) {
+                      <div class="rounded-lg px-3 py-2 mb-1 text-sm font-medium cursor-pointer hover:brightness-95 transition-all"
+                        [style]="eventStyle(event)"
+                        (click)="openEditModal(event)">
+                        <span class="text-gray-900">{{ event.title }}</span>
+                        <span class="ml-2 text-xs px-2 py-0.5 rounded-full" [class]="typeClass(event.type)">{{ typeLabel(event.type) }}</span>
+                        @if (event.subject) {
+                          <span class="ml-1 text-xs text-gray-400">· {{ event.subject.nombre }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Day sidebar -->
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <h3 class="font-semibold text-gray-900 mb-4">Eventos del día</h3>
+            <div class="space-y-3">
+              @if (selectedDayEvents.length) {
+                @for (event of selectedDayEvents; track event.id) {
+                  <div class="p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" [style]="eventStyle(event)" (click)="openEditModal(event)">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-xs px-2 py-0.5 rounded-full font-medium" [class]="typeClass(event.type)">{{ typeLabel(event.type) }}</span>
+                      @if (event.subject) {
+                        <span class="text-xs text-gray-400">{{ event.subject.nombre }}</span>
+                      }
+                    </div>
+                    <p class="text-sm font-medium text-gray-900">{{ event.title }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                      {{ event.startAt | date:'HH:mm' }} - {{ event.endAt | date:'HH:mm' }}
+                    </p>
+                  </div>
+                }
+              } @else {
+                <p class="text-sm text-gray-400 text-center py-6">Sin eventos este día</p>
+              }
+            </div>
+            <button (click)="openCreateModal(currentDate)" class="w-full mt-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:brightness-110 cursor-pointer" style="background: #0f766e;">
+              + Agregar evento
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </main>
+</div>
+
+@if (showModal) {
+  <app-event-modal
+    [event]="editingEvent"
+    [subjects]="subjectsList"
+    [selectedDate]="currentDate"
+    (close)="closeModal()"
+    (saved)="onEventSaved()">
+  </app-event-modal>
+}

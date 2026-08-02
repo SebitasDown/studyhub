@@ -9,6 +9,7 @@ import {
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardData } from '../../services/dashboard.service';
 import { EventBusService } from '../../services/event-bus.service';
+import { CalendarService, CalendarEvent } from '../../services/calendar.service';
 
 interface TaskItem {
   id: number;
@@ -33,6 +34,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
   private dashboard = inject(DashboardService);
   private events = inject(EventBusService);
+  private calendar = inject(CalendarService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private unsubscribers: (() => void)[] = [];
@@ -48,6 +50,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   today: Date = new Date();
   tasks: TaskItem[] = [];
   riskBarClass = 'bg-gray-200';
+  upcomingExams: CalendarEvent[] = [];
 
   ngOnInit(): void {
     this.loadData();
@@ -88,6 +91,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
     });
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.calendar.getUpcomingExams().subscribe({
+        next: (exams) => {
+          this.upcomingExams = exams;
+          this.cdr.markForCheck();
+        },
+      });
+    }
   }
 
   get user() {
@@ -135,5 +147,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (score < 40) return 'bg-green-500';
     if (score < 70) return 'bg-yellow-500';
     return 'bg-red-500';
+  }
+
+  examDaysUntil(date: string): string {
+    const now = new Date();
+    const d = new Date(date);
+    const diff = Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return 'Hoy';
+    if (diff === 1) return 'Mañana';
+    if (diff < 0) return 'Vencido';
+    return `En ${diff} días`;
+  }
+
+  examBadgeClass(days: string): string {
+    if (days === 'Hoy') return 'bg-red-100 text-red-700';
+    if (days === 'Mañana') return 'bg-pink-100 text-pink-700';
+    if (days === 'Vencido') return 'bg-gray-100 text-gray-500';
+    const num = parseInt(days.replace('En ', '').replace(' días', ''));
+    if (num <= 3) return 'bg-amber-100 text-amber-700';
+    return 'bg-blue-100 text-blue-600';
   }
 }
