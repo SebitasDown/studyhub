@@ -52,3 +52,76 @@
 .animate-delay-350 { animation-delay: 0.35s; }
 .animate-delay-400 { animation-delay: 0.4s; }
 .animate-delay-500 { animation-delay: 0.5s; }
+
+/* Markdown styles for Chat */
+.chat-msg h1, .chat-msg h2, .chat-msg h3 {
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.chat-msg h2 {
+  font-size: 1.25rem;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  padding-bottom: 0.3rem;
+}
+.chat-msg p {
+  margin-bottom: 0.75rem;
+}
+.chat-msg p:last-child {
+  margin-bottom: 0;
+}
+.chat-msg ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.chat-msg ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.chat-msg blockquote {
+  border-left: 4px solid rgba(0,0,0,0.2);
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 1rem 0;
+  color: inherit;
+  opacity: 0.8;
+}
+.chat-msg code {
+  background: rgba(0,0,0,0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.875em;
+}
+.chat-msg pre {
+  background: rgba(0,0,0,0.05);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.chat-msg pre code {
+  background: transparent;
+  padding: 0;
+}
+.chat-msg table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+.chat-msg th, .chat-msg td {
+  border: 1px solid rgba(0,0,0,0.1);
+  padding: 0.5rem;
+  text-align: left;
+}
+.chat-msg th {
+  background: rgba(0,0,0,0.05);
+  font-weight: 600;
+}
+.chat-msg hr {
+  border: 0;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  margin: 1.5rem 0;
+}
