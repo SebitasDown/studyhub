@@ -33,6 +33,16 @@
       Materias
     </a>
 
+    <!-- Estudio (Pomodoro) -->
+    <a routerLink="/estudio"
+      class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
+      [class]="activeRoute === 'estudio' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 shrink-0">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Estudio
+    </a>
+
     <!-- Profesor IA -->
     <a routerLink="/profesor-ia"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"

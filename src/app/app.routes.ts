@@ -21,6 +21,7 @@ import { GroupDetailComponent } from './components/group-detail/group-detail';
 import { AcademicRiskComponent } from './components/academic-risk/academic-risk';
 import { ProfileComponent } from './components/profile/profile';
 import { NotificationsComponent } from './components/notifications/notifications';
+import { StudyTimerComponent } from './components/study-timer/study-timer.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -50,4 +51,5 @@ export const routes: Routes = [
   { path: 'riesgo', component: AcademicRiskComponent, canActivate: [authGuard] },
   { path: 'perfil', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'notificaciones', component: NotificationsComponent, canActivate: [authGuard] },
+  { path: 'estudio', component: StudyTimerComponent, canActivate: [authGuard] },
 ];
