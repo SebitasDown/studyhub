@@ -5,6 +5,7 @@ export type AppEventType =
   | 'task:created' | 'task:toggled' | 'task:deleted'
   | 'note:created' | 'note:updated' | 'note:deleted'
   | 'schedule:created' | 'schedule:deleted'
+  | 'event:created' | 'event:updated' | 'event:deleted'
   | 'gamification:updated'
   | 'profile:updated'
   | 'goal:created' | 'goal:updated' | 'goal:deleted'

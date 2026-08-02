@@ -130,6 +130,7 @@ export class SubjectsService {
       tap(() => {
         AppCache.invalidate(`subject_${subjectId}`);
         AppCache.invalidate('subjects_list');
+        AppCache.invalidate('dashboard');
         this.events.emit('task:created');
       })
     );
@@ -140,6 +141,7 @@ export class SubjectsService {
       tap(() => {
         AppCache.invalidate(`subject_${subjectId}`);
         AppCache.invalidate('subjects_list');
+        AppCache.invalidate('dashboard');
         this.events.emit('task:toggled');
       })
     );
@@ -150,6 +152,7 @@ export class SubjectsService {
       tap(() => {
         AppCache.invalidate(`subject_${subjectId}`);
         AppCache.invalidate('subjects_list');
+        AppCache.invalidate('dashboard');
         this.events.emit('task:deleted');
       })
     );

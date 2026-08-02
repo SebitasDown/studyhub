@@ -109,8 +109,8 @@
         </div>
       </div>
 
-      <!-- Row 3: Upcoming Tasks (65%) + Active Goals (35%) -->
-      <div class="grid grid-cols-[65%_35%] gap-5 mb-6">
+      <!-- Row 3: Upcoming Tasks (40%) + Upcoming Exams/Events (30%) + Active Goals (30%) -->
+      <div class="grid grid-cols-[40%_30%_30%] gap-5 mb-6">
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-900">Tareas próximas</h3>
@@ -130,6 +130,34 @@
               }
             } @else {
               <p class="text-sm text-gray-400 py-4 text-center">No hay tareas pendientes 🎉</p>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Exámenes y eventos
+            </h3>
+            <a routerLink="/agenda" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver agenda</a>
+          </div>
+          <div class="space-y-2">
+            @if (upcomingExams.length) {
+              @for (exam of upcomingExams; track exam.id) {
+                <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <span class="text-xs px-1.5 py-0.5 rounded font-medium bg-red-100 text-red-700 whitespace-nowrap">Examen</span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ exam.title }}</p>
+                    <p class="text-xs text-gray-400">{{ exam.startAt | date:'dd MMM, HH:mm' }}</p>
+                  </div>
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap" [class]="examBadgeClass(examDaysUntil(exam.startAt))">
+                    {{ examDaysUntil(exam.startAt) }}
+                  </span>
+                </div>
+              }
+            } @else {
+              <p class="text-sm text-gray-400 py-4 text-center">No hay exámenes próximos 🎉</p>
             }
           </div>
         </div>
@@ -184,37 +212,6 @@
           }
         </div>
       </div>
-
-      <!-- Row 5: Upcoming Exams -->
-      @if (upcomingExams.length) {
-        <div class="mt-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="w-5 h-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Próximos exámenes
-            </h3>
-            <a routerLink="/agenda" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver agenda</a>
-          </div>
-          <div class="grid grid-cols-3 gap-5">
-            @for (exam of upcomingExams; track exam.id) {
-              <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700">Examen</span>
-                  @if (exam.subject) {
-                    <div class="w-2 h-2 rounded-full" [style.background]="exam.subject.color"></div>
-                    <span class="text-xs text-gray-400">{{ exam.subject.nombre }}</span>
-                  }
-                </div>
-                <h4 class="font-semibold text-gray-900 text-sm mb-1">{{ exam.title }}</h4>
-                <p class="text-xs text-gray-500">{{ exam.startAt | date:'dd MMM, HH:mm' }}</p>
-                <span class="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full" [class]="examBadgeClass(examDaysUntil(exam.startAt))">
-                  {{ examDaysUntil(exam.startAt) }}
-                </span>
-              </div>
-            }
-          </div>
-        </div>
-      }
     }
   </main>
 </div>

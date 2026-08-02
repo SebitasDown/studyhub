@@ -60,6 +60,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'subject:created', 'subject:deleted',
       'task:created', 'task:toggled', 'task:deleted',
       'note:created', 'note:deleted',
+      'event:created', 'event:updated', 'event:deleted',
       'gamification:updated',
       'profile:updated',
       'goal:created', 'goal:updated', 'goal:deleted',

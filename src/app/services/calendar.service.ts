@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
+import { EventBusService } from './event-bus.service';
 
 export interface CalendarEvent {
   id: number;
@@ -50,6 +51,7 @@ export interface CreateEventPayload {
 export class CalendarService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private events = inject(EventBusService);
   private apiUrl = 'https://study-hub-backend-sigma.vercel.app/calendar';
 
   private get headers() {
@@ -72,19 +74,25 @@ export class CalendarService {
   createEvent(payload: CreateEventPayload): Observable<CalendarEvent> {
     return this.http.post<CalendarEvent>(`${this.apiUrl}/events`, payload, {
       headers: this.headers,
-    });
+    }).pipe(
+      tap(() => this.events.emit('event:created'))
+    );
   }
 
   updateEvent(id: number, payload: Partial<CreateEventPayload>): Observable<CalendarEvent> {
     return this.http.patch<CalendarEvent>(`${this.apiUrl}/events/${id}`, payload, {
       headers: this.headers,
-    });
+    }).pipe(
+      tap(() => this.events.emit('event:updated'))
+    );
   }
 
   deleteEvent(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/events/${id}`, {
       headers: this.headers,
-    });
+    }).pipe(
+      tap(() => this.events.emit('event:deleted'))
+    );
   }
 
   getGoogleConnectUrl(): Observable<{ url: string }> {
