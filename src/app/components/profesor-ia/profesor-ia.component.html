@@ -25,7 +25,7 @@
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto mt-6">
+    <div class="flex-1 overflow-hidden mt-6">
     <!-- ════════════ TAB: CHAT ════════════ -->
     @if (activeTab() === 'chat') {
       @if (loadingChat()) {
@@ -41,7 +41,7 @@
               <ng-icon name="lucidePlus" size="16" />
               Nueva conversación
             </button>
-            <div class="flex flex-col gap-1 mt-1">
+            <div class="flex flex-col gap-1 mt-1 overflow-y-auto flex-1">
               @for (conv of conversations(); track conv._id) {
                 <div (click)="selectConversation(conv._id)" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-colors" [class]="selectedConversationId() === conv._id ? 'text-[#0f172a] font-medium' : 'text-[#334155]'" [style.background]="selectedConversationId() === conv._id ? '#f0fdfa' : 'transparent'" style="hover:background: #f8fafc;">
                   <div class="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style="background: #f1f5f9; color: #64748b;">
@@ -168,16 +168,17 @@
 
     <!-- ════════════ TAB: KNOWLEDGE GAPS ════════════ -->
     @if (activeTab() === 'gaps') {
-      <p class="text-sm text-[#64748b] mt-5 mb-5 leading-relaxed">
-        La IA detecta automáticamente los temas que no dominas analizando tus mensajes, tareas y quizzes.
-      </p>
+      <div class="flex-1 overflow-y-auto">
+        <p class="text-sm text-[#64748b] mt-5 mb-5 leading-relaxed">
+          La IA detecta automáticamente los temas que no dominas analizando tus mensajes, tareas y quizzes.
+        </p>
 
-      @if (loadingGaps()) {
-        <div class="flex justify-center py-10">
-          <ng-icon name="lucideLoader" size="20" class="animate-spin text-[#0f766e]" />
-        </div>
-      } @else {
-        <div class="flex flex-col gap-3">
+        @if (loadingGaps()) {
+          <div class="flex justify-center py-10">
+            <ng-icon name="lucideLoader" size="20" class="animate-spin text-[#0f766e]" />
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3">
           @for (gap of knowledgeGaps(); track gap._id) {
             <div class="flex items-center justify-between bg-white border border-[#e2e8f0] rounded-xl px-5 py-4 gap-4 shadow-sm">
               <div class="flex flex-col gap-0.5 min-w-0">
@@ -205,16 +206,18 @@
           }
         </div>
       }
+      </div>
     }
 
     <!-- ════════════ TAB: METAS ════════════ -->
     @if (activeTab() === 'metas') {
-      <div class="flex justify-end mt-5 mb-5">
-        <button (click)="showNewGoalForm.set(!showNewGoalForm())" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">
-          <ng-icon name="lucidePlus" size="16" />
-          Nueva meta
-        </button>
-      </div>
+      <div class="flex-1 overflow-y-auto">
+        <div class="flex justify-end mt-5 mb-5">
+          <button (click)="showNewGoalForm.set(!showNewGoalForm())" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">
+            <ng-icon name="lucidePlus" size="16" />
+            Nueva meta
+          </button>
+        </div>
 
       @if (showNewGoalForm()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" (click)="showNewGoalForm.set(false)">
@@ -276,6 +279,7 @@
           }
         </div>
       }
+      </div>
     }
     </div>
   </main>
