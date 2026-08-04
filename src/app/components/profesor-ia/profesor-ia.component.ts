@@ -27,7 +27,7 @@ import {
     lucideLanguages, lucidePen, lucideBot, lucideLoader,
   })],
   templateUrl: './profesor-ia.component.html',
-  styles: [`:host { display: contents; }
+  styles: [`:host { display: block; height: 100dvh; min-height: 0; overflow: hidden; }
     .chat-msg p { margin: 0 0 0.5em 0; }
     .chat-msg p:last-child { margin-bottom: 0; }
     .chat-msg ul, .chat-msg ol { margin: 0.25em 0; padding-left: 1.5em; }
