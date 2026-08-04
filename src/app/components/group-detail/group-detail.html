@@ -1,9 +1,9 @@
 <div class="flex h-screen" style="background: #FCFCFA;">
   <!-- Main Content -->
-  <main class="flex-1 flex overflow-hidden">
+  <main class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
     
     <!-- Left Panel: Group Info -->
-    <div class="w-80 bg-white border-r border-gray-200 p-6 flex flex-col flex-shrink-0">
+    <div class="w-full md:w-80 max-h-[42%] md:max-h-none bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 sm:p-6 flex flex-col flex-shrink-0 overflow-y-auto">
       <a routerLink="/grupos" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-800 mb-8 transition-colors">
         <ng-icon name="lucideArrowLeft" size="16" />
         Volver a grupos
@@ -37,9 +37,9 @@
     </div>
 
     <!-- Right Panel: Chat -->
-    <div class="flex-1 flex flex-col bg-gray-50 relative">
+    <div class="flex-1 min-h-0 flex flex-col bg-gray-50 relative">
       <!-- Chat Header -->
-      <div class="h-16 bg-white border-b border-gray-200 flex items-center px-6 shrink-0">
+      <div class="h-16 bg-white border-b border-gray-200 flex items-center px-4 sm:px-6 shrink-0">
         <h3 class="font-bold text-gray-800">Chat del Grupo</h3>
         @if (chatService.connected()) {
           <span class="ml-3 flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
@@ -52,12 +52,12 @@
       </div>
 
       <!-- Messages Area -->
-      <div #chatScroll class="flex-1 overflow-y-auto p-6 space-y-4">
+      <div #chatScroll class="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4">
         @for (msg of chatService.messages(); track msg.id) {
           @let isMe = msg.userId === myUserId;
           
           <div class="flex w-full" [class.justify-end]="isMe">
-            <div class="flex max-w-[70%] gap-3" [class.flex-row-reverse]="isMe">
+            <div class="flex max-w-[90%] sm:max-w-[70%] gap-2 sm:gap-3" [class.flex-row-reverse]="isMe">
               
               <!-- Avatar -->
               <div class="w-8 h-8 rounded-full flex flex-shrink-0 items-center justify-center text-xs font-bold text-white mt-1"

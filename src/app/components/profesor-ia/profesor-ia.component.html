@@ -1,31 +1,37 @@
 <div class="flex h-full min-h-0 overflow-hidden" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
   <!-- Sidebar -->
-  <app-sidebar activeRoute="profesor-ia" />
+  <app-sidebar class="profesor-sidebar" activeRoute="profesor-ia" />
 
   <!-- Main Content -->
-  <main class="flex-1 flex flex-col min-h-0 overflow-hidden p-8" style="background: #fcfcfc;">
+  <main class="flex-1 min-w-0 flex flex-col min-h-0 overflow-hidden p-4 sm:p-6 lg:p-8" style="background: #fcfcfc;">
+
+    <a routerLink="/dashboard" class="lg:hidden inline-flex w-fit items-center gap-2 mb-4 text-sm font-medium text-[#0f766e]">
+      ← Volver al panel
+    </a>
 
     <!-- Header -->
-    <h1 class="text-3xl font-bold text-[#0f172a] tracking-tight flex-shrink-0">Profesor IA</h1>
+    <h1 class="text-2xl sm:text-3xl font-bold text-[#0f172a] tracking-tight flex-shrink-0">Profesor IA</h1>
     <p class="text-[#64748b] text-sm mt-1 flex-shrink-0">Chat ilimitado con tutores especializados. Detecta tus gaps y te genera recursos.</p>
 
     <!-- Tabs -->
-    <div class="flex gap-1 mt-6 p-1 rounded-full flex-shrink-0" style="background: #f1f5f9; width: fit-content;">
-      <button (click)="switchTab('chat')" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'chat' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+    <div class="max-w-full overflow-x-auto mt-4 sm:mt-6 flex-shrink-0">
+      <div class="flex w-max gap-1 p-1 rounded-full" style="background: #f1f5f9;">
+      <button (click)="switchTab('chat')" class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'chat' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
         <ng-icon name="lucideMessageCircle" size="16" />
         Chat
       </button>
-      <button (click)="switchTab('gaps')" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'gaps' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+      <button (click)="switchTab('gaps')" class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'gaps' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
         <ng-icon name="lucideBrain" size="16" />
         Knowledge Gaps
       </button>
-      <button (click)="switchTab('metas')" class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'metas' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+      <button (click)="switchTab('metas')" class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'metas' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
         <ng-icon name="lucideCrosshair" size="16" />
         Metas
       </button>
+      </div>
     </div>
 
-    <div class="flex-1 flex flex-col min-h-0 overflow-hidden mt-6">
+    <div class="flex-1 flex flex-col min-h-0 overflow-hidden mt-4 sm:mt-6">
     <!-- ════════════ TAB: CHAT ════════════ -->
     @if (activeTab() === 'chat') {
       @if (loadingChat()) {
@@ -33,10 +39,10 @@
           <ng-icon name="lucideLoader" size="24" class="animate-spin text-[#0f766e]" />
         </div>
       } @else {
-        <div class="flex gap-5 flex-1 min-h-0 overflow-hidden">
+        <div class="flex flex-col lg:flex-row gap-3 lg:gap-5 flex-1 min-h-0 overflow-hidden">
 
           <!-- Chat Sidebar -->
-          <aside class="w-[26%] min-w-[240px] min-h-0 overflow-hidden bg-white border border-[#e2e8f0] rounded-xl p-4 flex flex-col gap-2">
+          <aside class="w-full h-36 flex-shrink-0 lg:w-[26%] lg:min-w-[240px] lg:h-auto lg:min-h-0 overflow-hidden bg-white border border-[#e2e8f0] rounded-xl p-3 sm:p-4 flex flex-col gap-2">
             <button (click)="newConversation()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">
               <ng-icon name="lucidePlus" size="16" />
               Nueva conversación
@@ -60,10 +66,10 @@
           </aside>
 
           <!-- Chat Main -->
-          <div class="flex-1 flex flex-col bg-white border border-[#e2e8f0] rounded-xl overflow-hidden min-h-0">
+          <div class="flex-1 min-w-0 flex flex-col bg-white border border-[#e2e8f0] rounded-xl overflow-hidden min-h-0">
 
             <!-- Role chips -->
-            <div class="flex flex-wrap gap-2 px-5 py-4 border-b border-[#f1f5f9]">
+            <div class="flex flex-nowrap overflow-x-auto gap-2 px-3 sm:px-5 py-3 sm:py-4 border-b border-[#f1f5f9]">
               @for (profile of teacherProfiles(); track profile.code) {
                 <span (click)="selectTeacher(profile)" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer" [style.background]="selectedTeacher()?.code === profile.code ? '#0f766e' : '#fff'" [style.borderColor]="selectedTeacher()?.code === profile.code ? '#0f766e' : '#e2e8f0'" [style.color]="selectedTeacher()?.code === profile.code ? '#fff' : '#64748b'">
                   <ng-icon name="lucideGraduationCap" size="14" />
@@ -78,7 +84,7 @@
 
             @if (showNewTeacherForm()) {
               <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" (click)="showNewTeacherForm.set(false)">
-                <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
+                <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90dvh] overflow-y-auto mx-4 p-4 sm:p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
                   <div class="flex justify-between items-center">
                     <h3 class="text-sm font-bold text-[#0f172a]">Crear profesor personalizado</h3>
                     <button (click)="showNewTeacherForm.set(false)" class="text-[#94a3b8] hover:text-[#0f172a] transition-colors bg-transparent border-none cursor-pointer p-1">
@@ -89,7 +95,7 @@
                   <input [ngModel]="newTeacherProfile().description" (ngModelChange)="newTeacherProfile.set({...newTeacherProfile(), description: $event})" type="text" placeholder="Descripción breve" class="border border-[#e2e8f0] rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
                   <input [ngModel]="newTeacherProfile().subjects" (ngModelChange)="newTeacherProfile.set({...newTeacherProfile(), subjects: $event})" type="text" placeholder="Materias (separadas por coma)" class="border border-[#e2e8f0] rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
                   <input [ngModel]="newTeacherProfile().systemPrompt" (ngModelChange)="newTeacherProfile.set({...newTeacherProfile(), systemPrompt: $event})" type="text" placeholder="Prompt del sistema (opcional)" class="border border-[#e2e8f0] rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
-                  <div class="grid grid-cols-2 gap-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <select [ngModel]="newTeacherProfile().teachingStyle" (ngModelChange)="newTeacherProfile.set({...newTeacherProfile(), teachingStyle: $event})" class="border border-[#e2e8f0] rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e] bg-white">
                       <option value="balanced">Balanceado</option>
                       <option value="socratic">Socrático</option>
@@ -111,7 +117,7 @@
             }
 
             <!-- Messages -->
-            <div #messagesContainer class="flex-1 min-h-0 p-6 overflow-y-auto flex flex-col gap-5" style="background: #fafafa;">
+            <div #messagesContainer class="flex-1 min-h-0 p-3 sm:p-6 overflow-y-auto flex flex-col gap-4 sm:gap-5" style="background: #fafafa;">
               @if (loadingMessages()) {
                 <div class="flex justify-center py-10">
                   <ng-icon name="lucideLoader" size="20" class="animate-spin text-[#0f766e]" />
@@ -119,13 +125,13 @@
               } @else {
                 @for (msg of messages(); track msg._id) {
                   @if (msg.role === 'user') {
-                    <div class="flex max-w-[80%] self-end flex-row-reverse gap-3">
+                    <div class="flex max-w-[90%] sm:max-w-[80%] self-end flex-row-reverse gap-3">
                       <div class="px-4 py-3 rounded-xl text-sm leading-relaxed break-words chat-msg" style="background: #0f766e; color: #fff; border-bottom-right-radius: 4px;">
                         <span [innerHTML]="msg.content | markdown"></span>
                       </div>
                     </div>
                   } @else {
-                    <div class="flex max-w-[80%] self-start gap-3">
+                    <div class="flex max-w-[90%] sm:max-w-[80%] self-start gap-2 sm:gap-3">
                       <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center flex-shrink-0" style="background: #0f766e;">
                         <ng-icon name="lucideBot" size="16" style="color:#fff;" />
                       </div>
@@ -142,7 +148,7 @@
                   </div>
                 }
                 @if (sending()) {
-                  <div class="flex max-w-[80%] self-start gap-3">
+                  <div class="flex max-w-[90%] sm:max-w-[80%] self-start gap-2 sm:gap-3">
                     <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center flex-shrink-0" style="background: #0f766e;">
                       <ng-icon name="lucideBot" size="16" style="color:#fff;" />
                     </div>
@@ -155,7 +161,7 @@
             </div>
 
             <!-- Input -->
-            <div class="flex items-center gap-3 px-5 py-4 border-t border-[#f1f5f9] bg-white">
+            <div class="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3 sm:py-4 border-t border-[#f1f5f9] bg-white">
               <input [ngModel]="messageInput()" (ngModelChange)="messageInput.set($event)" (keyup.enter)="sendMessage()" type="text" placeholder="Escribe tu pregunta..." class="flex-1 border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#0f766e] placeholder-[#94a3b8]" />
               <button (click)="sendMessage()" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors" style="background: #0f766e; color: #fff;">
                 <ng-icon name="lucideSendHorizonal" size="18" />
@@ -168,7 +174,7 @@
 
     <!-- ════════════ TAB: KNOWLEDGE GAPS ════════════ -->
     @if (activeTab() === 'gaps') {
-      <div class="flex-1 overflow-y-auto">
+      <div class="flex-1 min-h-0 overflow-y-auto">
         <p class="text-sm text-[#64748b] mt-5 mb-5 leading-relaxed">
           La IA detecta automáticamente los temas que no dominas analizando tus mensajes, tareas y quizzes.
         </p>
@@ -180,12 +186,12 @@
         } @else {
           <div class="flex flex-col gap-3">
           @for (gap of knowledgeGaps(); track gap._id) {
-            <div class="flex items-center justify-between bg-white border border-[#e2e8f0] rounded-xl px-5 py-4 gap-4 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-[#e2e8f0] rounded-xl px-4 sm:px-5 py-4 gap-3 sm:gap-4 shadow-sm">
               <div class="flex flex-col gap-0.5 min-w-0">
                 <h4 class="text-sm font-semibold text-[#0f172a] truncate">{{ gap.topic }}</h4>
                 <span class="text-xs text-[#94a3b8]">{{ gap.subject }}</span>
               </div>
-              <div class="flex items-center gap-4 flex-shrink-0">
+              <div class="flex flex-wrap items-center gap-3 sm:gap-4">
                 <div class="flex items-center gap-2">
                   <span class="text-xs text-[#94a3b8] whitespace-nowrap">Confianza</span>
                   <div class="w-20 h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
@@ -211,8 +217,8 @@
 
     <!-- ════════════ TAB: METAS ════════════ -->
     @if (activeTab() === 'metas') {
-      <div class="flex-1 overflow-y-auto">
-        <div class="flex justify-end mt-5 mb-5">
+      <div class="flex-1 min-h-0 overflow-y-auto">
+        <div class="flex justify-start sm:justify-end mt-4 sm:mt-5 mb-4 sm:mb-5">
           <button (click)="showNewGoalForm.set(!showNewGoalForm())" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors" style="background: #0f766e;">
             <ng-icon name="lucidePlus" size="16" />
             Nueva meta
@@ -221,7 +227,7 @@
 
       @if (showNewGoalForm()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" (click)="showNewGoalForm.set(false)">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90dvh] overflow-y-auto mx-4 p-4 sm:p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
             <div class="flex justify-between items-center">
               <h3 class="text-sm font-bold text-[#0f172a]">Crear nueva meta</h3>
               <button (click)="showNewGoalForm.set(false)" class="text-[#94a3b8] hover:text-[#0f172a] transition-colors bg-transparent border-none cursor-pointer p-1">
