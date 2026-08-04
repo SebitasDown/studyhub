@@ -12,7 +12,27 @@ import { EventBusService } from '../../services/event-bus.service';
   standalone: true,
   imports: [RouterLink, CommonModule],
   templateUrl: './sidebar.component.html',
-  styles: [`:host { display: contents; }`],
+  styles: [`:host { display: contents; }
+    @media (min-width: 768px) and (max-width: 1023px) {
+      aside { width: 76px !important; }
+      aside > div:first-child { padding-left: 0; padding-right: 0; }
+      aside > div:first-child a { justify-content: center; }
+      aside > div:first-child span, aside nav a { font-size: 0; }
+      aside nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+      aside nav a svg { width: 20px; height: 20px; }
+      aside nav a span { display: none; }
+      aside > div:last-child { padding-left: 0.75rem; padding-right: 0.75rem; }
+      aside > div:last-child .flex-1 { display: none; }
+    }
+    @media (max-width: 767px) {
+      aside { position: fixed; z-index: 50; bottom: 0; left: 0; right: 0; width: 100% !important; height: 4.5rem; flex-direction: row; }
+      aside > div:first-child, aside > div:last-child { display: none; }
+      aside nav { display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; padding: 0.5rem 0.75rem; }
+      aside nav a { flex: 0 0 2.75rem; justify-content: center; padding: 0.65rem; font-size: 0; }
+      aside nav a svg { width: 20px; height: 20px; }
+      aside nav a span { display: none; }
+    }
+  `],
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() activeRoute: string = '';

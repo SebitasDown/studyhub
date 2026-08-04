@@ -3,8 +3,8 @@
   <app-sidebar activeRoute="subjects" />
 
   <!-- Main -->
-  <main class="flex-1 flex flex-col overflow-hidden p-8" style="background: #fcfcfc;">
-    <div class="flex items-center justify-between flex-shrink-0">
+  <main class="flex-1 min-w-0 flex flex-col overflow-hidden p-4 sm:p-6 lg:p-8" style="background: #fcfcfc;">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
       <div>
         <h1 class="text-3xl font-bold text-[#0f172a] tracking-tight">Mis Materias</h1>
         <p class="text-[#64748b] text-sm mt-1">Gestiona tus materias, tareas, notas y horarios.</p>
@@ -18,7 +18,7 @@
     <!-- New subject form modal -->
     @if (showNewForm()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" (click)="showNewForm.set(false)">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90dvh] overflow-y-auto mx-4 p-4 sm:p-6 flex flex-col gap-4" (click)="$event.stopPropagation()">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-[#0f172a]">Nueva materia</h3>
             <button (click)="showNewForm.set(false)" class="text-[#94a3b8] hover:text-[#0f172a] transition-colors bg-transparent border-none cursor-pointer p-1">
@@ -26,11 +26,11 @@
             </button>
           </div>
           <input [(ngModel)]="newNombre" type="text" placeholder="Nombre de la materia *" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input [(ngModel)]="newCodigo" type="text" placeholder="Código (ej: MAT-101)" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
             <input [(ngModel)]="newProfesor" type="text" placeholder="Profesor" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input [(ngModel)]="newSalon" type="text" placeholder="Salón" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
             <input [(ngModel)]="newCreditos" type="number" min="0" placeholder="Créditos" class="border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
           </div>
@@ -71,7 +71,7 @@
       </div>
     } @else {
       <div class="flex-1 overflow-y-auto mt-8">
-        <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        <div class="grid gap-4 sm:gap-6" style="grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));">
           @for (subject of subjects(); track subject.id) {
             <a [routerLink]="['/subjects', subject.id]"
                class="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
