@@ -7,6 +7,35 @@ html, body {
   padding: 0;
 }
 
+/* Visual preferences selected from Perfil > Ajustes. */
+html[data-density='compact'] { font-size: 14px; }
+html[data-density='comfortable'] { font-size: 16px; }
+html[data-density='spacious'] { font-size: 18px; }
+
+html[data-theme='midnight'] { color-scheme: dark; }
+html[data-theme='midnight'] body,
+html[data-theme='midnight'] main { background: #111827 !important; }
+html[data-theme='midnight'] .bg-white,
+html[data-theme='midnight'] [class*='bg-white'] { background-color: #1f2937 !important; }
+html[data-theme='midnight'] .text-gray-900,
+html[data-theme='midnight'] .text-gray-800,
+html[data-theme='midnight'] .text-\[\#0f172a\] { color: #f8fafc !important; }
+html[data-theme='midnight'] .text-gray-500,
+html[data-theme='midnight'] .text-gray-600,
+html[data-theme='midnight'] .text-\[\#64748b\] { color: #cbd5e1 !important; }
+html[data-theme='midnight'] .border-gray-100,
+html[data-theme='midnight'] .border-gray-200,
+html[data-theme='midnight'] .border-\[\#e2e8f0\] { border-color: #334155 !important; }
+html[data-theme='midnight'] input,
+html[data-theme='midnight'] textarea,
+html[data-theme='midnight'] select { background: #111827 !important; color: #f8fafc; }
+
+html[data-theme='lavender'] body,
+html[data-theme='lavender'] main { background: #faf7ff !important; }
+html[data-theme='lavender'] app-sidebar aside { background: #3b245e !important; }
+html[data-theme='lavender'] .btn-primary { background: #7c3aed !important; }
+html[data-theme='lavender'] .bg-\[\#f0fdfa\] { background-color: #f3e8ff !important; }
+
 /* Shared responsive shell for pages that use the application sidebar. */
 @media (max-width: 1023px) {
   app-sidebar + main,

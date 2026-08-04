@@ -5,6 +5,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ProfileService } from '../../services/profile.service';
 import { GamificationService } from '../../services/gamification.service';
 import { EventBusService } from '../../services/event-bus.service';
+import { AppTheme, NavigationMode, UiDensity, UiPreferencesService } from '../../services/ui-preferences.service';
 
 type Tab = 'personal' | 'academico' | 'profesional' | 'ajustes';
 
@@ -18,6 +19,7 @@ type Tab = 'personal' | 'academico' | 'profesional' | 'ajustes';
 export class ProfileComponent implements OnInit {
   profileService = inject(ProfileService);
   gamificationService = inject(GamificationService);
+  uiPreferences = inject(UiPreferencesService);
   private events = inject(EventBusService);
   private platformId = inject(PLATFORM_ID);
   activeTab: Tab = 'personal';
@@ -34,6 +36,11 @@ export class ProfileComponent implements OnInit {
   readonly nivelesProfesionales = ['STUDENT', 'INTERN', 'JUNIOR', 'MID', 'SENIOR'];
   readonly disponibilidades = ['FULL_TIME', 'PART_TIME', 'FREELANCE', 'NOT_AVAILABLE'];
   readonly modalidadesDeseadas = ['ON_SITE', 'REMOTE', 'HYBRID'];
+  readonly themes: { id: AppTheme; name: string; description: string; colors: string[] }[] = [
+    { id: 'classic', name: 'Clásico StudyHub', description: 'Turquesa y dorado, el diseño original.', colors: ['#021C22', '#0C5A60', '#F4B960'] },
+    { id: 'midnight', name: 'Noche', description: 'Menos brillo para estudiar de noche.', colors: ['#111827', '#334155', '#94A3B8'] },
+    { id: 'lavender', name: 'Lavanda', description: 'Un aspecto suave con acentos violeta.', colors: ['#3B245E', '#7C3AED', '#F3E8FF'] },
+  ];
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -62,6 +69,11 @@ export class ProfileComponent implements OnInit {
   }
 
   setTab(t: string): void { this.activeTab = t as Tab; }
+
+  setTheme(theme: AppTheme): void { this.uiPreferences.update({ theme }); }
+  setDensity(density: UiDensity): void { this.uiPreferences.update({ density }); }
+  setNavigation(navigation: NavigationMode): void { this.uiPreferences.update({ navigation }); }
+  resetAppearance(): void { this.uiPreferences.reset(); this.flashSaved(); }
 
   savePersonal(): void {
     this.errorMsg = '';
