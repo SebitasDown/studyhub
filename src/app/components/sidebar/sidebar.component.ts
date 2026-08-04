@@ -32,6 +32,18 @@ import { EventBusService } from '../../services/event-bus.service';
       aside nav a svg { width: 20px; height: 20px; }
       aside nav a span { display: none; }
     }
+    @media (min-width: 768px) {
+    :host-context(html[data-navigation='compact']) aside { width: 76px !important; }
+    :host-context(html[data-navigation='compact']) aside > div:first-child { padding-left: 0; padding-right: 0; }
+    :host-context(html[data-navigation='compact']) aside > div:first-child a { justify-content: center; }
+    :host-context(html[data-navigation='compact']) aside > div:first-child span,
+    :host-context(html[data-navigation='compact']) aside nav a { font-size: 0; }
+    :host-context(html[data-navigation='compact']) aside nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    :host-context(html[data-navigation='compact']) aside nav a svg { width: 20px; height: 20px; }
+    :host-context(html[data-navigation='compact']) aside nav a span,
+    :host-context(html[data-navigation='compact']) aside > div:last-child .flex-1 { display: none; }
+    :host-context(html[data-navigation='compact']) aside > div:last-child { padding-left: 0.75rem; padding-right: 0.75rem; }
+    }
   `],
 })
 export class SidebarComponent implements OnInit, OnDestroy {

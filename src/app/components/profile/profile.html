@@ -68,7 +68,8 @@
       }
 
       <!-- Tabs -->
-      <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+      <div class="max-w-full overflow-x-auto mb-6">
+      <div class="flex w-max gap-1 bg-gray-100 p-1 rounded-xl">
         @for (tab of [['personal','👤 Personal'],['academico','🎓 Académico'],['profesional','💼 Profesional'],['ajustes','⚙️ Ajustes']] ; track tab[0]) {
           <button (click)="setTab(tab[0])"
             class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
@@ -77,9 +78,10 @@
           </button>
         }
       </div>
+      </div>
 
       <!-- Tab content -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-8">
 
         @if (activeTab === 'personal') {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -194,9 +196,70 @@
         }
 
         @if (activeTab === 'ajustes') {
-          <div class="space-y-6">
-            <h3 class="font-bold text-gray-800">Preferencias de la cuenta</h3>
-            <p class="text-sm text-gray-400">Configuración de notificaciones y privacidad disponible próximamente.</p>
+          <div class="space-y-8">
+            <div>
+              <h3 class="font-bold text-gray-800">Diseño y preferencias</h3>
+              <p class="text-sm text-gray-500 mt-1">Tus elecciones se guardan en este navegador y se aplican automáticamente al volver.</p>
+            </div>
+
+            <section>
+              <div class="flex items-baseline justify-between gap-4 mb-3">
+                <div>
+                  <h4 class="text-sm font-bold text-gray-700">Tema de color</h4>
+                  <p class="text-xs text-gray-400 mt-1">Cambia la apariencia de toda la aplicación.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                @for (theme of themes; track theme.id) {
+                  <button (click)="setTheme(theme.id)"
+                    class="appearance-card text-left p-4 rounded-xl border-2 transition-all"
+                    [class.border-[#0C5A60]]="uiPreferences.preferences().theme === theme.id"
+                    [class.bg-teal-50]="uiPreferences.preferences().theme === theme.id"
+                    [class.border-gray-100]="uiPreferences.preferences().theme !== theme.id">
+                    <div class="flex gap-1.5 mb-3">
+                      @for (color of theme.colors; track color) {
+                        <span class="w-6 h-6 rounded-full border border-black/5" [style.background]="color"></span>
+                      }
+                    </div>
+                    <p class="text-sm font-bold text-gray-800">{{ theme.name }}</p>
+                    <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ theme.description }}</p>
+                  </button>
+                }
+              </div>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="text-sm font-bold text-gray-700">Tamaño y espaciado</h4>
+                <p class="text-xs text-gray-400 mt-1 mb-3">Ajusta cuánto contenido ves en pantalla.</p>
+                <div class="flex flex-wrap gap-2">
+                  @for (option of [['compact','Compacto'], ['comfortable','Cómodo'], ['spacious','Amplio']]; track option[0]) {
+                    <button (click)="setDensity($any(option[0]))" class="px-3 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                      [class]="uiPreferences.preferences().density === option[0] ? 'bg-[#0C5A60] border-[#0C5A60] text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'">
+                      {{ option[1] }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div>
+                <h4 class="text-sm font-bold text-gray-700">Navegación</h4>
+                <p class="text-xs text-gray-400 mt-1 mb-3">Elige si prefieres menú completo o solo iconos.</p>
+                <div class="flex flex-wrap gap-2">
+                  @for (option of [['expanded','Completo'], ['compact','Solo iconos']]; track option[0]) {
+                    <button (click)="setNavigation($any(option[0]))" class="px-3 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                      [class]="uiPreferences.preferences().navigation === option[0] ? 'bg-[#0C5A60] border-[#0C5A60] text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'">
+                      {{ option[1] }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </section>
+
+            <div class="pt-5 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <p class="text-xs text-gray-400">Estas preferencias son privadas y solo se guardan localmente en tu dispositivo.</p>
+              <button (click)="resetAppearance()" class="text-sm font-semibold text-gray-500 hover:text-red-600 transition-colors">Restablecer diseño</button>
+            </div>
           </div>
         }
 
