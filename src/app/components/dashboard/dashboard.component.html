@@ -3,7 +3,7 @@
   <app-sidebar activeRoute="dashboard" />
 
   <!-- Main Content -->
-  <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+  <main class="flex-1 min-w-0 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8">
     @if (loading) {
       <div class="flex justify-center py-20">
         <div class="animate-pulse text-gray-400">Cargando tu panel…</div>
@@ -58,8 +58,8 @@
       </div>
 
       <!-- Row 2: Classes Today (65%) + Academic Risk (35%) -->
-      <div class="grid grid-cols-1 xl:grid-cols-[65%_35%] gap-4 sm:gap-5 mb-6">
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)] gap-4 sm:gap-5 mb-6">
+        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-900 flex items-center gap-2">
               <svg viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" class="w-5 h-5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -85,7 +85,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
+        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
           <div class="flex items-center gap-2 mb-4">
             <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <h3 class="font-semibold text-gray-900">Riesgo académico</h3>
@@ -110,8 +110,8 @@
       </div>
 
       <!-- Row 3: Upcoming Tasks (40%) + Upcoming Exams/Events (30%) + Active Goals (30%) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[40%_30%_30%] gap-4 sm:gap-5 mb-6">
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:gap-5 mb-6">
+        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-900">Tareas próximas</h3>
             <a routerLink="/subjects" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver todas</a>
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-900 flex items-center gap-2">
               <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -162,7 +162,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
+        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
           <h3 class="font-semibold text-gray-900 mb-4">Metas activas</h3>
           @if (data.activeGoals.length) {
             <div class="space-y-4 flex-1">
