@@ -1,4 +1,4 @@
-<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+<div class="flex h-screen overflow-hidden" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
   <!-- Sidebar -->
   <app-sidebar activeRoute="profesor-ia" />
 
@@ -25,7 +25,7 @@
       </button>
     </div>
 
-    <div class="flex-1 overflow-hidden mt-6">
+    <div class="flex-1 flex flex-col min-h-0 overflow-hidden mt-6">
     <!-- ════════════ TAB: CHAT ════════════ -->
     @if (activeTab() === 'chat') {
       @if (loadingChat()) {
@@ -33,7 +33,7 @@
           <ng-icon name="lucideLoader" size="24" class="animate-spin text-[#0f766e]" />
         </div>
       } @else {
-        <div class="flex gap-5 h-full">
+        <div class="flex gap-5 flex-1 min-h-0">
 
           <!-- Chat Sidebar -->
           <aside class="w-[26%] min-w-[240px] bg-white border border-[#e2e8f0] rounded-xl p-4 flex flex-col gap-2">
@@ -60,7 +60,7 @@
           </aside>
 
           <!-- Chat Main -->
-          <div class="flex-1 flex flex-col bg-white border border-[#e2e8f0] rounded-xl overflow-hidden">
+          <div class="flex-1 flex flex-col bg-white border border-[#e2e8f0] rounded-xl overflow-hidden min-h-0">
 
             <!-- Role chips -->
             <div class="flex flex-wrap gap-2 px-5 py-4 border-b border-[#f1f5f9]">
@@ -111,7 +111,7 @@
             }
 
             <!-- Messages -->
-            <div #messagesContainer class="flex-1 p-6 overflow-y-auto flex flex-col gap-5" style="background: #fafafa;">
+            <div #messagesContainer class="flex-1 min-h-0 p-6 overflow-y-auto flex flex-col gap-5" style="background: #fafafa;">
               @if (loadingMessages()) {
                 <div class="flex justify-center py-10">
                   <ng-icon name="lucideLoader" size="20" class="animate-spin text-[#0f766e]" />
