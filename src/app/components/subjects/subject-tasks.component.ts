@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideCheckCircle, lucideCircle, lucideTrash2, lucidePlus,
-  lucideCalendar, lucideLoader, lucideX, lucideChevronRight,
+  lucideCalendar, lucideLoader, lucideX, lucideChevronRight, lucidePencil,
 } from '@ng-icons/lucide';
 import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.service';
 
@@ -15,7 +15,7 @@ import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.serv
   imports: [NgIconComponent, FormsModule, DatePipe],
   providers: [provideIcons({
     lucideCheckCircle, lucideCircle, lucideTrash2, lucidePlus,
-    lucideCalendar, lucideLoader, lucideX, lucideChevronRight,
+    lucideCalendar, lucideLoader, lucideX, lucideChevronRight, lucidePencil,
   })],
   template: `
     <div>
@@ -94,7 +94,13 @@ import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.serv
                 {{ priorityLabel(task.priority) }}
               </span>
 
-              <button (click)="deleteTask(task.id)" class="text-[#94a3b8] hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer p-0.5 flex-shrink-0">
+              <button (click)="editTask(task)" title="Editar tarea"
+                class="text-[#94a3b8] hover:text-[#0f766e] transition-colors bg-transparent border-none cursor-pointer p-0.5 flex-shrink-0">
+                <ng-icon name="lucidePencil" size="15" />
+              </button>
+
+              <button (click)="deleteTask(task.id)" title="Eliminar tarea"
+                class="text-[#94a3b8] hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer p-0.5 flex-shrink-0">
                 <ng-icon name="lucideTrash2" size="15" />
               </button>
             </div>
@@ -167,6 +173,12 @@ export class SubjectTasksComponent implements OnInit {
 
   openTask(task: Task): void {
     this.router.navigate(['/subjects', this.subjectId(), 'tareas', task.id]);
+  }
+
+  editTask(task: Task): void {
+    this.router.navigate(['/subjects', this.subjectId(), 'tareas', task.id], {
+      queryParams: { edit: 1 },
+    });
   }
 
   toggleTask(taskId: number): void {

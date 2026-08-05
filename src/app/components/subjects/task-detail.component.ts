@@ -28,6 +28,7 @@ export class TaskDetailComponent implements OnInit {
 
   private subjectId = 0;
   private taskId = 0;
+  private autoEdit = false;
   private savedTimer?: ReturnType<typeof setTimeout>;
 
   readonly priorityLabel = TaskHelpers.priorityLabel;
@@ -58,6 +59,7 @@ export class TaskDetailComponent implements OnInit {
       return;
     }
 
+    this.autoEdit = this.route.snapshot.queryParamMap.get('edit') === '1';
     this.load();
   }
 
@@ -78,6 +80,7 @@ export class TaskDetailComponent implements OnInit {
         this.draftPriority = t.priority;
         this.draftDueDate = t.dueDate ? t.dueDate.slice(0, 10) : '';
         this.loading.set(false);
+        if (this.autoEdit) this.startEdit();
       },
       error: (err) => {
         this.errorMsg.set(err.error?.message || 'Error al cargar la tarea.');
