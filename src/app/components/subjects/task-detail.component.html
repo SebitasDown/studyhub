@@ -1,0 +1,139 @@
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <app-sidebar activeRoute="subjects" />
+
+  <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+    @if (loading()) {
+      <div class="flex justify-center py-24">
+        <ng-icon name="lucideLoader" size="24" class="animate-spin text-[#0f766e]" />
+      </div>
+    } @else if (errorMsg()) {
+      <div class="flex flex-col items-center gap-4 py-20">
+        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 max-w-md text-sm">{{ errorMsg() }}</div>
+        <button (click)="goBack()"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+          <ng-icon name="lucideArrowLeft" size="16" />
+          Volver a la materia
+        </button>
+      </div>
+    } @else {
+      @let subj = subject()!;
+      @let currentTask = task()!;
+
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+          <button (click)="goBack()" class="text-gray-400 hover:text-gray-900 transition-colors cursor-pointer shrink-0" aria-label="Volver a la materia">
+            <ng-icon name="lucideArrowLeft" size="22" />
+          </button>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full shrink-0" [style.background]="subj.color || '#0f766e'"></div>
+              <p class="text-xs font-medium text-gray-400 truncate">{{ subj.nombre }}</p>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight break-words mt-0.5">{{ currentTask.title }}</h1>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          @if (saved()) {
+            <span class="text-xs font-medium text-green-600 flex items-center gap-1">
+              <ng-icon name="lucideCheckCircle" size="14" />
+              Guardado
+            </span>
+          }
+          <button (click)="deleteTask()"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
+            <ng-icon name="lucideTrash2" size="16" />
+            Eliminar
+          </button>
+        </div>
+      </div>
+
+      <!-- Card -->
+      <div class="max-w-3xl bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        @if (!editing()) {
+          <!-- View mode -->
+          <div class="flex flex-wrap items-center gap-2 mb-5">
+            <button (click)="toggleComplete()"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer"
+              [class]="currentTask.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'">
+              @if (currentTask.status === 'COMPLETED') {
+                <ng-icon name="lucideCheckCircle" size="14" />
+                Completada
+              } @else {
+                <ng-icon name="lucideCircle" size="14" />
+                Pendiente
+              }
+            </button>
+            <span class="text-xs font-medium px-3 py-1.5 rounded-full"
+              [style.background]="priorityBg(currentTask.priority)"
+              [style.color]="priorityColor(currentTask.priority)">
+              Prioridad {{ priorityLabel(currentTask.priority) }}
+            </span>
+            <span class="text-xs font-medium text-gray-500 flex items-center gap-1.5 px-3 py-1.5">
+              <ng-icon name="lucideCalendar" size="14" />
+              {{ currentTask.dueDate | date:'EEE, d MMM yyyy' }}
+            </span>
+          </div>
+
+          @if (currentTask.description) {
+            <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap mb-5">{{ currentTask.description }}</p>
+          } @else {
+            <p class="text-sm text-gray-400 mb-5 italic">Sin descripción.</p>
+          }
+
+          <div class="flex justify-end border-t border-gray-50 pt-5">
+            <button (click)="startEdit()"
+              class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:brightness-110 cursor-pointer"
+              style="background: #0f766e;">
+              <ng-icon name="lucidePencil" size="15" />
+              Editar tarea
+            </button>
+          </div>
+        } @else {
+          <!-- Edit mode -->
+          <div class="flex flex-col gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1.5">Título *</label>
+              <input [(ngModel)]="draftTitle" type="text"
+                class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1.5">Descripción</label>
+              <textarea [(ngModel)]="draftDescription" rows="4"
+                class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#0f766e] resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Prioridad</label>
+                <select [(ngModel)]="draftPriority"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e] bg-white">
+                  <option value="HIGH">Alta</option>
+                  <option value="MEDIUM">Media</option>
+                  <option value="LOW">Baja</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Fecha límite</label>
+                <input [(ngModel)]="draftDueDate" type="date"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e]" />
+              </div>
+            </div>
+            <div class="flex gap-2 justify-end mt-2">
+              <button (click)="cancelEdit()" [disabled]="saving()"
+                class="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors cursor-pointer">
+                Cancelar
+              </button>
+              <button (click)="save()" [disabled]="saving() || !draftTitle.trim()"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50 cursor-pointer"
+                style="background: #0f766e;">
+                <ng-icon name="lucideSave" size="15" />
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>

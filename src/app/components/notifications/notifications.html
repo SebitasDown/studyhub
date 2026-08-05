@@ -34,15 +34,15 @@
         <div class="space-y-3">
           @for (n of notifService.notifications(); track n.id) {
             @let iconData = notifService.getIcon(n.type);
-            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden transition-all hover:shadow-md cursor-pointer"
+            <div class="bg-white rounded-2xl border shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-gray-300 cursor-pointer group"
                  [class]="n.isRead ? 'border-gray-100' : 'border-l-4'"
                  [style.border-left-color]="n.isRead ? '' : '#0C5A60'"
-                 (click)="!n.isRead && markOne(n.id)">
+                 (click)="openNotification(n)">
               <div class="flex items-start gap-4 p-5">
                 <!-- Icon -->
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                      [style.background]="iconData.bg">
-                  {{ iconData.icon }}
+                  <ng-icon [name]="iconData.icon" size="20" [color]="iconData.color" />
                 </div>
 
                 <!-- Content -->
@@ -54,10 +54,14 @@
                   <p class="text-xs text-gray-400 mt-1.5">{{ n.createdAt | date:'d/MM/yyyy, h:mm a' }}</p>
                 </div>
 
-                <!-- Unread dot -->
-                @if (!n.isRead) {
-                  <div class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 mt-1.5"></div>
-                }
+                <!-- Unread dot + arrow -->
+                <div class="flex flex-col items-end gap-1.5 shrink-0 mt-1">
+                  @if (!n.isRead) {
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+                  }
+                  <ng-icon name="lucideChevronRight" size="18" color="#9CA3AF"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
             </div>
           }
