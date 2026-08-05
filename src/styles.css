@@ -2,9 +2,15 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
   margin: 0;
   padding: 0;
+}
+
+/* Las páginas con sidebar (app shell) manejan su propio scroll interno
+   (contenedor h-screen + overflow-y-auto). El resto del sitio —landing,
+   login, registro, etc.— usa el scroll natural del documento. */
+body:has(app-sidebar) {
+  overflow: hidden;
 }
 
 /* Visual preferences selected from Perfil > Ajustes. */
