@@ -11,6 +11,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ProfesorIaComponent } from './components/profesor-ia/profesor-ia.component';
 import { SubjectsListComponent } from './components/subjects/subjects-list.component';
 import { SubjectDetailComponent } from './components/subjects/subject-detail.component';
+import { TaskDetailComponent } from './components/subjects/task-detail.component';
 import { JobsComponent } from './components/jobs/jobs.component';
 import { MiCvComponent } from './components/mi-cv/mi-cv.component';
 import { RoadmapsComponent } from './components/roadmaps/roadmaps.component';
@@ -34,6 +35,7 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'subjects', component: SubjectsListComponent, canActivate: [authGuard] },
+  { path: 'subjects/:id/tareas/:taskId', component: TaskDetailComponent, canActivate: [authGuard] },
   { path: 'subjects/:id', component: SubjectDetailComponent, canActivate: [authGuard] },
   { path: 'profesor-ia', component: ProfesorIaComponent, canActivate: [authGuard] },
   // { path: 'empleos', component: JobsComponent, canActivate: [authGuard] },

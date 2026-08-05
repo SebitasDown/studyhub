@@ -56,6 +56,20 @@ export interface Task {
   subjectId: number;
 }
 
+export abstract class TaskHelpers {
+  static priorityLabel(p: string): string {
+    return p === 'HIGH' ? 'Alta' : p === 'MEDIUM' ? 'Media' : 'Baja';
+  }
+
+  static priorityBg(p: string): string {
+    return p === 'HIGH' ? '#fef2f2' : p === 'MEDIUM' ? '#fffbeb' : '#f1f5f9';
+  }
+
+  static priorityColor(p: string): string {
+    return p === 'HIGH' ? '#dc2626' : p === 'MEDIUM' ? '#d97706' : '#64748b';
+  }
+}
+
 export interface Note {
   id: number;
   title: string;
@@ -132,6 +146,22 @@ export class SubjectsService {
         AppCache.invalidate('subjects_list');
         AppCache.invalidate('dashboard');
         this.events.emit('task:created');
+      })
+    );
+  }
+
+  updateTask(subjectId: number, taskId: number, dto: {
+    title?: string;
+    description?: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    dueDate?: string;
+  }): Observable<Task> {
+    return this.http.put<Task>(`${this.baseUrl}/${subjectId}/tasks/${taskId}`, dto).pipe(
+      tap(() => {
+        AppCache.invalidate(`subject_${subjectId}`);
+        AppCache.invalidate('subjects_list');
+        AppCache.invalidate('dashboard');
+        this.events.emit('task:updated');
       })
     );
   }

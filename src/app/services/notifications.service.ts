@@ -10,7 +10,6 @@ export class NotificationsService {
   private http = inject(HttpClient);
   notifications = signal<any[]>([]);
   unreadCount = signal(0);
-  connected = signal(false);
   private socket?: Socket;
 
   getAll(): Observable<any> {
@@ -50,25 +49,66 @@ export class NotificationsService {
 
   getIcon(type: string): { icon: string; bg: string; color: string } {
     const map: Record<string, { icon: string; bg: string; color: string }> = {
-      // Tipos reales del backend (enum NotificationType)
-      TASK_DUE:         { icon: '⏰', bg: '#FEF3C7', color: '#D97706' },
-      CLASS_REMINDER:   { icon: '📅', bg: '#DBEAFE', color: '#2563EB' },
-      ROADMAP_REMINDER: { icon: '🗺️', bg: '#EDE9FE', color: '#7C3AED' },
-      GROUP_SESSION:    { icon: '👥', bg: '#CCFBF1', color: '#0D9488' },
-      JOB_MATCH:        { icon: '💼', bg: '#D1FAE5', color: '#059669' },
-      INTERVIEW:        { icon: '🤝', bg: '#E0E7FF', color: '#4F46E5' },
-      KNOWLEDGE_GAP:    { icon: '⚡', bg: '#F3F4F6', color: '#374151' },
-      EXAM_ALERT:       { icon: '📝', bg: '#FEE2E2', color: '#DC2626' },
-      STREAK_RISK:      { icon: '🔥', bg: '#FEE2E2', color: '#DC2626' },
+      // Tipos reales del backend (enum NotificationType) — íconos lucide SVG
+      TASK_DUE:         { icon: 'lucideAlarmClock', bg: '#FEF3C7', color: '#D97706' },
+      CLASS_REMINDER:   { icon: 'lucideCalendar', bg: '#DBEAFE', color: '#2563EB' },
+      ROADMAP_REMINDER: { icon: 'lucideMap', bg: '#EDE9FE', color: '#7C3AED' },
+      GROUP_SESSION:    { icon: 'lucideUsers', bg: '#CCFBF1', color: '#0D9488' },
+      JOB_MATCH:        { icon: 'lucideBriefcase', bg: '#D1FAE5', color: '#059669' },
+      INTERVIEW:        { icon: 'lucideHandshake', bg: '#E0E7FF', color: '#4F46E5' },
+      KNOWLEDGE_GAP:    { icon: 'lucideZap', bg: '#F3F4F6', color: '#374151' },
+      EXAM_ALERT:       { icon: 'lucideFileText', bg: '#FEE2E2', color: '#DC2626' },
+      STREAK_RISK:      { icon: 'lucideFlame', bg: '#FEE2E2', color: '#DC2626' },
       // Alias por compatibilidad
-      TASK:         { icon: '⏰', bg: '#FEF3C7', color: '#D97706' },
-      CLASS:        { icon: '📅', bg: '#DBEAFE', color: '#2563EB' },
-      JOB:          { icon: '💼', bg: '#D1FAE5', color: '#059669' },
-      GAP:          { icon: '⚡', bg: '#F3F4F6', color: '#374151' },
-      STREAK:       { icon: '🔥', bg: '#FEE2E2', color: '#DC2626' },
-      ACHIEVEMENT:  { icon: '🏆', bg: '#FEF3C7', color: '#D97706' },
+      TASK:         { icon: 'lucideAlarmClock', bg: '#FEF3C7', color: '#D97706' },
+      CLASS:        { icon: 'lucideCalendar', bg: '#DBEAFE', color: '#2563EB' },
+      JOB:          { icon: 'lucideBriefcase', bg: '#D1FAE5', color: '#059669' },
+      GAP:          { icon: 'lucideZap', bg: '#F3F4F6', color: '#374151' },
+      STREAK:       { icon: 'lucideFlame', bg: '#FEE2E2', color: '#DC2626' },
+      ACHIEVEMENT:  { icon: 'lucideTrophy', bg: '#FEF3C7', color: '#D97706' },
     };
-    return map[type] ?? { icon: '🔔', bg: '#EDE9FE', color: '#7C3AED' };
+    return map[type] ?? { icon: 'lucideBell', bg: '#EDE9FE', color: '#7C3AED' };
+  }
+
+  /**
+   * Ruta a la que lleva cada notificación según su tipo y metadata.
+   */
+  getNotificationLink(n: any): { path: string[] } | null {
+    const meta = n?.metadata ?? {};
+    switch (n?.type) {
+      case 'TASK_DUE':
+        if (meta.taskId && meta.subjectId) {
+          return { path: ['/subjects', String(meta.subjectId), 'tareas', String(meta.taskId)] };
+        }
+        return meta.subjectId
+          ? { path: ['/subjects', String(meta.subjectId)] }
+          : { path: ['/subjects'] };
+      case 'CLASS_REMINDER':
+        return meta.subjectId
+          ? { path: ['/subjects', String(meta.subjectId)] }
+          : { path: ['/subjects'] };
+      case 'ROADMAP_REMINDER':
+        return meta.roadmapId
+          ? { path: ['/roadmaps', String(meta.roadmapId)] }
+          : { path: ['/roadmaps'] };
+      case 'GROUP_SESSION':
+        return meta.groupId
+          ? { path: ['/grupos', String(meta.groupId)] }
+          : { path: ['/grupos'] };
+      case 'STREAK_RISK':
+      case 'ACHIEVEMENT':
+        return { path: ['/perfil'] };
+      case 'KNOWLEDGE_GAP':
+        return { path: ['/riesgo'] };
+      case 'EXAM_ALERT':
+        // Intervención IA: plan de recuperación y recursos generados (profesor IA)
+        return { path: ['/profesor-ia'] };
+      case 'JOB_MATCH':
+      case 'INTERVIEW':
+        return { path: ['/mi-cv'] };
+      default:
+        return null;
+    }
   }
 
   // ---------- Actualización en vivo (WebSocket) ----------
@@ -84,12 +124,8 @@ export class NotificationsService {
     });
 
     this.socket.on('connect', () => {
-      this.connected.set(true);
       // Sincronizar estado al (re)conectar
       this.refresh();
-    });
-    this.socket.on('disconnect', () => {
-      this.connected.set(false);
     });
     this.socket.on('notification:created', () => {
       this.refresh();
@@ -99,7 +135,6 @@ export class NotificationsService {
   stopLive(): void {
     this.socket?.disconnect();
     this.socket = undefined;
-    this.connected.set(false);
   }
 
   private refresh(): void {

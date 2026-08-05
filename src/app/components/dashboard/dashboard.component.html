@@ -29,7 +29,7 @@
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
-            @if (notifService.notifications().length > 0) {
+            @if (notifService.unreadCount() > 0) {
               <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
             }
           </button>
@@ -53,12 +53,6 @@
               @if (notifService.unreadCount() > 0) {
                 <span class="text-[10px] font-bold text-white bg-red-500 rounded-full px-1.5 py-0.5 leading-none">{{ notifService.unreadCount() }}</span>
               }
-              @if (notifService.connected()) {
-                <span class="flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded-full px-1.5 py-0.5 leading-none">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  En vivo
-                </span>
-              }
             </div>
             <button (click)="markAllNotifs()"
               class="text-xs font-medium text-gray-400 hover:text-[#0f766e] transition-colors cursor-pointer"
@@ -76,20 +70,24 @@
             } @else {
               @for (n of notifService.notifications(); track n.id) {
                 @let iconData = notifService.getIcon(n.type);
-                <button (click)="markOneNotif(n.id)"
-                  class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0"
+                <button (click)="openNotification(n)"
+                  class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0 group"
                   [class.bg-teal-50]="!n.isRead">
-                  <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 mt-0.5" [style.background]="iconData.bg">
-                    {{ iconData.icon }}
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5" [style.background]="iconData.bg">
+                    <ng-icon [name]="iconData.icon" size="18" [color]="iconData.color" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold truncate" [style.color]="n.isRead ? '#6B7280' : '#111827'">{{ n.title }}</p>
                     <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">{{ n.message }}</p>
                     <p class="text-[11px] text-gray-400 mt-1">{{ n.createdAt | date:'d MMM, HH:mm' }}</p>
                   </div>
-                  @if (!n.isRead) {
-                    <span class="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-2"></span>
-                  }
+                  <div class="flex flex-col items-end gap-1.5 shrink-0 mt-1.5">
+                    @if (!n.isRead) {
+                      <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    }
+                    <ng-icon name="lucideChevronRight" size="16" color="#9CA3AF"
+                      class="opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </button>
               }
             }
@@ -196,14 +194,17 @@
           <div class="space-y-2">
             @if (tasks.length) {
               @for (task of tasks; track task.id) {
-                <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <button (click)="openTask(task)"
+                  class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-left group">
                   <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="task.subjectColor || '#0f766e'"></div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-900">{{ task.title }}</p>
                     <p class="text-xs text-gray-400">{{ task.subject }}</p>
                   </div>
                   <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap" [class]="task.badgeClass">{{ task.label }}</span>
-                </div>
+                  <ng-icon name="lucideChevronRight" size="16" color="#9CA3AF"
+                    class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
               }
             } @else {
               <p class="text-sm text-gray-400 py-4 text-center">No hay tareas pendientes 🎉</p>

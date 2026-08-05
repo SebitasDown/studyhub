@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideCheckCircle, lucideCircle, lucideTrash2, lucidePlus,
-  lucideCalendar, lucideLoader, lucideX,
+  lucideCalendar, lucideLoader, lucideX, lucideChevronRight,
 } from '@ng-icons/lucide';
-import { SubjectsService, Task } from '../../services/subjects.service';
+import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.service';
 
 @Component({
   selector: 'app-subject-tasks',
@@ -14,7 +15,7 @@ import { SubjectsService, Task } from '../../services/subjects.service';
   imports: [NgIconComponent, FormsModule, DatePipe],
   providers: [provideIcons({
     lucideCheckCircle, lucideCircle, lucideTrash2, lucidePlus,
-    lucideCalendar, lucideLoader, lucideX,
+    lucideCalendar, lucideLoader, lucideX, lucideChevronRight,
   })],
   template: `
     <div>
@@ -67,7 +68,15 @@ import { SubjectsService, Task } from '../../services/subjects.service';
               </button>
 
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium" [class]="task.status === 'COMPLETED' ? 'text-[#94a3b8] line-through' : 'text-[#0f172a]'">{{ task.title }}</p>
+                <div class="flex items-center gap-1 group/task">
+                  <button (click)="openTask(task)"
+                    class="text-sm font-medium text-left bg-transparent border-none p-0 cursor-pointer transition-colors group-hover/task:text-[#0f766e]"
+                    [class]="task.status === 'COMPLETED' ? 'text-[#94a3b8] line-through' : 'text-[#0f172a]'">
+                    {{ task.title }}
+                  </button>
+                  <ng-icon name="lucideChevronRight" size="14" color="#9CA3AF"
+                    class="shrink-0 opacity-0 group-hover/task:opacity-100 transition-opacity" />
+                </div>
                 <div class="flex items-center gap-3 mt-0.5">
                   @if (task.description) {
                     <span class="text-xs text-[#94a3b8] truncate max-w-[200px]">{{ task.description }}</span>
@@ -101,6 +110,11 @@ import { SubjectsService, Task } from '../../services/subjects.service';
 })
 export class SubjectTasksComponent implements OnInit {
   private subjectsService = inject(SubjectsService);
+  private router = inject(Router);
+
+  readonly priorityLabel = TaskHelpers.priorityLabel;
+  readonly priorityBg = TaskHelpers.priorityBg;
+  readonly priorityColor = TaskHelpers.priorityColor;
 
   subjectId = input.required<number>();
 
@@ -151,6 +165,10 @@ export class SubjectTasksComponent implements OnInit {
     });
   }
 
+  openTask(task: Task): void {
+    this.router.navigate(['/subjects', this.subjectId(), 'tareas', task.id]);
+  }
+
   toggleTask(taskId: number): void {
     this.subjectsService.toggleTask(this.subjectId(), taskId).subscribe({
       next: () => this.loadTasks(),
@@ -161,17 +179,5 @@ export class SubjectTasksComponent implements OnInit {
     this.subjectsService.deleteTask(this.subjectId(), taskId).subscribe({
       next: () => this.loadTasks(),
     });
-  }
-
-  priorityLabel(p: string): string {
-    return p === 'HIGH' ? 'Alta' : p === 'MEDIUM' ? 'Media' : 'Baja';
-  }
-
-  priorityBg(p: string): string {
-    return p === 'HIGH' ? '#fef2f2' : p === 'MEDIUM' ? '#fffbeb' : '#f1f5f9';
-  }
-
-  priorityColor(p: string): string {
-    return p === 'HIGH' ? '#dc2626' : p === 'MEDIUM' ? '#d97706' : '#64748b';
   }
 }

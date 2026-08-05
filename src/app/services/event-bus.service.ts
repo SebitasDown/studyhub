@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 export type AppEventType =
   | 'subject:created' | 'subject:updated' | 'subject:deleted'
-  | 'task:created' | 'task:toggled' | 'task:deleted'
+  | 'task:created' | 'task:toggled' | 'task:updated' | 'task:deleted'
   | 'note:created' | 'note:updated' | 'note:deleted'
   | 'schedule:created' | 'schedule:deleted'
   | 'event:created' | 'event:updated' | 'event:deleted'

@@ -1,10 +1,13 @@
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame,
+  lucideAlarmClock, lucideCalendar, lucideMap, lucideUsers, lucideBriefcase,
+  lucideHandshake, lucideZap, lucideFileText, lucideTrophy, lucideBell,
+  lucideChevronRight,
 } from '@ng-icons/lucide';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardData } from '../../services/dashboard.service';
@@ -26,7 +29,12 @@ interface TaskItem {
   selector: 'app-dashboard',
   standalone: true,
   imports: [SidebarComponent, DatePipe, NgIconComponent, RouterLink],
-  providers: [provideIcons({ lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame })],
+  providers: [provideIcons({
+    lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame,
+    lucideAlarmClock, lucideCalendar, lucideMap, lucideUsers, lucideBriefcase,
+    lucideHandshake, lucideZap, lucideFileText, lucideTrophy, lucideBell,
+    lucideChevronRight,
+  })],
   templateUrl: './dashboard.component.html',
   styles: [`:host { display: contents; }`],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +42,7 @@ interface TaskItem {
 export class DashboardComponent implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
   protected notifService = inject(NotificationsService);
+  private router = inject(Router);
   private dashboard = inject(DashboardService);
   private events = inject(EventBusService);
   private calendar = inject(CalendarService);
@@ -71,7 +80,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Escuchar eventos de cambios y recargar
     const eventTypes = [
       'subject:created', 'subject:deleted',
-      'task:created', 'task:toggled', 'task:deleted',
+      'task:created', 'task:toggled', 'task:updated', 'task:deleted',
       'note:created', 'note:deleted',
       'event:created', 'event:updated', 'event:deleted',
       'gamification:updated',
@@ -218,6 +227,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   markAllNotifs(): void {
     this.notifService.markAllAsRead().subscribe();
+  }
+
+  openNotification(n: any): void {
+    if (!n?.isRead) this.markOneNotif(n.id);
+    this.closeNotifPanel();
+    const link = this.notifService.getNotificationLink(n);
+    if (link) this.router.navigate(link.path);
+  }
+
+  openTask(task: TaskItem): void {
+    if (!task?.subjectId) return;
+    this.router.navigate(['/subjects', task.subjectId, 'tareas', task.id]);
   }
 
   private onWindowScroll = (e: Event): void => {
