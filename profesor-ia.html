@@ -148,14 +148,39 @@
     overflow: hidden;
   }
 
-  /* Role chips */
+  /* Role chips (linear carousel) */
   .role-chips {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid #f1f5f9;
   }
+  .chip-nav {
+    width: 32px; height: 32px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 50%;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .chip-nav:hover:not(:disabled) { color: #0f766e; background: #f0fdfa; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .chip-nav:disabled { color: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+  .chip-track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    flex: 1;
+    min-width: 0;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .chip-track::-webkit-scrollbar { display: none; }
   .chip {
     display: flex;
     align-items: center;
@@ -170,6 +195,7 @@
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .chip:not(.active):hover { border-color: #cbd5e1; color: #334155; }
   .chip.active {
@@ -178,6 +204,20 @@
     color: #fff;
   }
   .chip i { font-size: 0.8rem; }
+  .chip-add {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.8rem; font-weight: 500;
+    border: 1px dashed #0f766e;
+    background: transparent;
+    color: #0f766e;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .chip-add:hover { background: #f0fdfa; }
 
   /* Messages */
   .chat-messages {
@@ -524,13 +564,22 @@
       <!-- Chat Main -->
       <div class="chat-main">
 
-        <!-- Role chips -->
+        <!-- Role chips (linear carousel) -->
         <div class="role-chips">
-          <span class="chip active"><i class="fa-regular fa-chalkboard-user"></i> Profesor General</span>
-          <span class="chip"><i class="fa-regular fa-calculator" style="color:#0891b2;"></i> Profesor de Matemáticas</span>
-          <span class="chip"><i class="fa-regular fa-laptop-code" style="color:#7c3aed;"></i> Mentor de Programación</span>
-          <span class="chip"><i class="fa-regular fa-language" style="color:#d97706;"></i> Tutor de Idiomas</span>
-          <span class="chip"><i class="fa-regular fa-pen-fancy" style="color:#dc2626;"></i> Coach de Escritura</span>
+          <button class="chip-nav" id="chipPrev" aria-label="Ver profesores anteriores"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="chip-track" id="chipTrack">
+            <span class="chip active"><i class="fa-regular fa-chalkboard-user"></i> Profesor General</span>
+            <span class="chip"><i class="fa-regular fa-calculator" style="color:#0891b2;"></i> Profesor de Matemáticas</span>
+            <span class="chip"><i class="fa-solid fa-atom" style="color:#dc2626;"></i> Profesor de Física</span>
+            <span class="chip"><i class="fa-regular fa-laptop-code" style="color:#7c3aed;"></i> Profesor de Programación</span>
+            <span class="chip"><i class="fa-regular fa-pen-fancy" style="color:#dc2626;"></i> Profesor de Escritura</span>
+            <span class="chip"><i class="fa-regular fa-language" style="color:#d97706;"></i> Profesor de Idiomas</span>
+            <span class="chip"><i class="fa-solid fa-landmark" style="color:#b45309;"></i> Profesor de Historia</span>
+            <span class="chip"><i class="fa-solid fa-flask" style="color:#0891b2;"></i> Profesor de Ciencias</span>
+            <span class="chip"><i class="fa-solid fa-clipboard-check" style="color:#059669;"></i> Preparador de Exámenes</span>
+            <button class="chip-add"><i class="fa-regular fa-plus"></i> Nuevo Profesor</button>
+          </div>
+          <button class="chip-nav" id="chipNext" aria-label="Ver más profesores"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
         <!-- Messages -->
@@ -739,6 +788,27 @@
 <!-- ═══ TABS SWITCHING SCRIPT ═══ -->
 <script>
   (function() {
+    // ── Role chips carousel ──
+    const chipTrack = document.getElementById('chipTrack');
+    const chipPrev = document.getElementById('chipPrev');
+    const chipNext = document.getElementById('chipNext');
+
+    function updateChipNav() {
+      if (!chipTrack) return;
+      const maxLeft = chipTrack.scrollWidth - chipTrack.clientWidth;
+      chipPrev.disabled = chipTrack.scrollLeft <= 4;
+      chipNext.disabled = chipTrack.scrollLeft >= maxLeft - 4;
+    }
+
+    if (chipTrack) {
+      chipPrev.addEventListener('click', () => chipTrack.scrollBy({ left: -240, behavior: 'smooth' }));
+      chipNext.addEventListener('click', () => chipTrack.scrollBy({ left: 240, behavior: 'smooth' }));
+      chipTrack.addEventListener('scroll', updateChipNav);
+      window.addEventListener('resize', updateChipNav);
+      updateChipNav();
+    }
+
+    // ── Tabs ──
     const tabs = document.querySelectorAll('.tab-btn');
     const panels = {
       'tab-chat': document.getElementById('tab-chat'),
@@ -753,6 +823,7 @@
         Object.values(panels).forEach(p => p.classList.remove('active'));
         const panel = panels[btn.dataset.tab];
         if (panel) panel.classList.add('active');
+        updateChipNav();
       });
     });
   })();
