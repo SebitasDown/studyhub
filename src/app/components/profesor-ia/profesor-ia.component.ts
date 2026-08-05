@@ -9,6 +9,7 @@ import {
   lucideRuler, lucideTerminal, lucideSendHorizonal, lucideTrash2,
   lucideCalendar, lucideGraduationCap, lucideCalculator, lucideCode,
   lucideLanguages, lucidePen, lucideBot, lucideLoader,
+  lucideChevronLeft, lucideChevronRight,
 } from '@ng-icons/lucide';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -25,6 +26,7 @@ import {
     lucideRuler, lucideTerminal, lucideSendHorizonal, lucideTrash2,
     lucideCalendar, lucideGraduationCap, lucideCalculator, lucideCode,
     lucideLanguages, lucidePen, lucideBot, lucideLoader,
+    lucideChevronLeft, lucideChevronRight,
   })],
   templateUrl: './profesor-ia.component.html',
   styles: [`:host { display: block; height: 100dvh; min-height: 0; overflow: hidden; }
@@ -39,6 +41,7 @@ import {
 })
 export class ProfesorIaComponent implements OnInit {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('teacherChips') teacherChips!: ElementRef<HTMLDivElement>;
   protected ai = inject(AiService);
   private platformId = inject(PLATFORM_ID);
 
@@ -46,6 +49,9 @@ export class ProfesorIaComponent implements OnInit {
 
   teacherProfiles = signal<TeacherProfile[]>([]);
   selectedTeacher = signal<TeacherProfile | null>(null);
+
+  canScrollLeft = signal(false);
+  canScrollRight = signal(false);
 
   conversations = signal<Conversation[]>([]);
   selectedConversationId = signal<string | null>(null);
@@ -103,6 +109,7 @@ export class ProfesorIaComponent implements OnInit {
           const general = res.profiles.find(p => p.code === 'GENERAL_TEACHER');
           this.selectedTeacher.set(general || res.profiles[0]);
         }
+        setTimeout(() => this.updateTeacherScrollState(), 0);
       },
       error: () => {
         this.loadingChat.set(false);
@@ -112,6 +119,7 @@ export class ProfesorIaComponent implements OnInit {
       next: (res) => {
         this.conversations.set(res.conversations);
         this.loadingChat.set(false);
+        setTimeout(() => this.updateTeacherScrollState(), 50);
         if (this.conversations().length > 0) {
           this.selectConversation(this.conversations()[0]._id);
         } else {
@@ -171,8 +179,29 @@ export class ProfesorIaComponent implements OnInit {
     });
   }
 
-  selectTeacher(profile: TeacherProfile): void {
+  selectTeacher(profile: TeacherProfile, event?: Event): void {
     this.selectedTeacher.set(profile);
+    const chip = (event?.target as HTMLElement | undefined)?.closest('span');
+    chip?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }
+
+  scrollTeachers(direction: 1 | -1): void {
+    const el = this.teacherChips?.nativeElement;
+    if (!el) return;
+    if (direction < 0 && !this.canScrollLeft()) return;
+    if (direction > 0 && !this.canScrollRight()) return;
+    el.scrollBy({ left: direction * 240, behavior: 'smooth' });
+  }
+
+  updateTeacherScrollState(): void {
+    const el = this.teacherChips?.nativeElement;
+    if (!el) {
+      this.canScrollLeft.set(false);
+      this.canScrollRight.set(false);
+      return;
+    }
+    this.canScrollLeft.set(el.scrollLeft > 4);
+    this.canScrollRight.set(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   }
 
   sendMessage(): void {
@@ -320,6 +349,7 @@ export class ProfesorIaComponent implements OnInit {
         this.teacherProfiles.update(arr => [...arr, res.profile]);
         this.newTeacherProfile.set({ name: '', description: '', subjects: '', systemPrompt: '', teachingStyle: 'balanced', difficultyLevel: 'intermediate' });
         this.showNewTeacherForm.set(false);
+        setTimeout(() => this.updateTeacherScrollState(), 0);
       },
     });
   }
