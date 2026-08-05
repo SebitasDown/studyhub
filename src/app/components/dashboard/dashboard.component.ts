@@ -1,5 +1,5 @@
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardData } from '../../services/dashboard.service';
 import { EventBusService } from '../../services/event-bus.service';
 import { CalendarService, CalendarEvent } from '../../services/calendar.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 interface TaskItem {
   id: number;
@@ -32,12 +33,18 @@ interface TaskItem {
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
+  protected notifService = inject(NotificationsService);
   private dashboard = inject(DashboardService);
   private events = inject(EventBusService);
   private calendar = inject(CalendarService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private unsubscribers: (() => void)[] = [];
+
+  // Notificaciones (panel flotante)
+  notifPanelOpen = false;
+  notifPanelPos = { top: 0, left: 0 };
+  @ViewChild('notifPanel') notifPanelEl?: ElementRef<HTMLElement>;
 
   data: DashboardData = {
     user: null, stats: { subjects: 0, pendingTasks: 0, completedTasks: 0, notes: 0 },
@@ -54,6 +61,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadData();
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.notifService.getAll().subscribe();
+      this.notifService.getUnreadCount().subscribe();
+      this.notifService.startLive();
+    }
 
     // Escuchar eventos de cambios y recargar
     const eventTypes = [
@@ -75,6 +88,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.unsubscribers.forEach(unsub => unsub());
+    this.closeNotifPanel();
+    this.notifService.stopLive();
   }
 
   private loadData(forceRefresh = false): void {
@@ -168,4 +183,50 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (num <= 3) return 'bg-amber-100 text-amber-700';
     return 'bg-blue-100 text-blue-600';
   }
+
+  // ---------- Notificaciones (panel flotante) ----------
+
+  toggleNotifPanel(btn: HTMLElement): void {
+    if (this.notifPanelOpen) {
+      this.closeNotifPanel();
+    } else {
+      this.openNotifPanel(btn);
+    }
+  }
+
+  private openNotifPanel(btn: HTMLElement): void {
+    if (typeof window === 'undefined') return;
+    const rect = btn.getBoundingClientRect();
+    const panelW = Math.min(380, window.innerWidth - 16);
+    const left = Math.max(8, Math.min(rect.right - panelW, window.innerWidth - panelW - 8));
+    this.notifPanelPos = { top: rect.bottom + 10, left };
+    this.notifPanelOpen = true;
+    window.addEventListener('scroll', this.onWindowScroll, true);
+    window.addEventListener('keydown', this.onKeydown);
+  }
+
+  closeNotifPanel(): void {
+    if (!this.notifPanelOpen) return;
+    this.notifPanelOpen = false;
+    window.removeEventListener('scroll', this.onWindowScroll, true);
+    window.removeEventListener('keydown', this.onKeydown);
+  }
+
+  markOneNotif(id: number): void {
+    this.notifService.markAsRead(id).subscribe();
+  }
+
+  markAllNotifs(): void {
+    this.notifService.markAllAsRead().subscribe();
+  }
+
+  private onWindowScroll = (e: Event): void => {
+    // Ignorar scroll dentro del propio panel (lista de notificaciones)
+    if (this.notifPanelEl?.nativeElement.contains(e.target as Node)) return;
+    this.closeNotifPanel();
+  };
+
+  private onKeydown = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') this.closeNotifPanel();
+  };
 }
