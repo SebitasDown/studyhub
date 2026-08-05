@@ -50,6 +50,17 @@ export class NotificationsService {
 
   getIcon(type: string): { icon: string; bg: string; color: string } {
     const map: Record<string, { icon: string; bg: string; color: string }> = {
+      // Tipos reales del backend (enum NotificationType)
+      TASK_DUE:         { icon: '⏰', bg: '#FEF3C7', color: '#D97706' },
+      CLASS_REMINDER:   { icon: '📅', bg: '#DBEAFE', color: '#2563EB' },
+      ROADMAP_REMINDER: { icon: '🗺️', bg: '#EDE9FE', color: '#7C3AED' },
+      GROUP_SESSION:    { icon: '👥', bg: '#CCFBF1', color: '#0D9488' },
+      JOB_MATCH:        { icon: '💼', bg: '#D1FAE5', color: '#059669' },
+      INTERVIEW:        { icon: '🤝', bg: '#E0E7FF', color: '#4F46E5' },
+      KNOWLEDGE_GAP:    { icon: '⚡', bg: '#F3F4F6', color: '#374151' },
+      EXAM_ALERT:       { icon: '📝', bg: '#FEE2E2', color: '#DC2626' },
+      STREAK_RISK:      { icon: '🔥', bg: '#FEE2E2', color: '#DC2626' },
+      // Alias por compatibilidad
       TASK:         { icon: '⏰', bg: '#FEF3C7', color: '#D97706' },
       CLASS:        { icon: '📅', bg: '#DBEAFE', color: '#2563EB' },
       JOB:          { icon: '💼', bg: '#D1FAE5', color: '#059669' },
