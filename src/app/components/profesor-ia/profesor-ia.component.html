@@ -367,7 +367,10 @@
                         <span class="px-2 py-0.5 rounded-full font-semibold" style="background: #f1f5f9; color: #475569;">{{ quiz.difficulty === 'BEGINNER' ? 'Principiante' : quiz.difficulty === 'ADVANCED' ? 'Avanzado' : 'Intermedio' }}</span>
                       }
                       @if (quiz.completed && quiz.resultTotal) {
-                        <span class="font-semibold" style="color: #0f766e;">✓ {{ quiz.resultCorrect }}/{{ quiz.resultTotal }} ({{ quizPercent(quiz.resultScore) }}%)</span>
+                        <span class="font-semibold flex items-center gap-1" style="color: #0f766e;">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          {{ quiz.resultCorrect }}/{{ quiz.resultTotal }} ({{ quizPercent(quiz.resultScore) }}%)
+                        </span>
                       }
                     </div>
                   </div>
@@ -458,8 +461,13 @@
                   <div class="flex justify-center">
                     <ng-icon name="lucideTrophy" size="48" [style.color]="quizCorrectCount() === quizQuestions.length ? '#d97706' : (quizCorrectCount() > 0 ? '#0f766e' : '#94a3b8')" />
                   </div>
-                  <h3 class="text-xl font-bold text-[#0f172a] mt-3">
-                    {{ quizCorrectCount() === quizQuestions.length ? '¡Perfecto! 🎉' : (quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 70 ? '¡Buen trabajo!' : 'Sigue practicando') }}
+                  <h3 class="text-xl font-bold text-[#0f172a] mt-3 flex items-center justify-center gap-2">
+                    @if (quizCorrectCount() === quizQuestions.length) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7">
+                        <path d="M12 3l1.9 5.7L19.6 10l-5.7 1.9L12 17.6l-1.9-5.7L4.4 10l5.7-1.9z"></path>
+                      </svg>
+                    }
+                    {{ quizCorrectCount() === quizQuestions.length ? '¡Perfecto!' : (quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 70 ? '¡Buen trabajo!' : 'Sigue practicando') }}
                   </h3>
                   <p class="text-sm text-[#64748b] mt-2">Acertaste <span class="font-bold text-[#0f172a]">{{ quizCorrectCount() }}</span> de {{ quizQuestions.length }} preguntas.</p>
                   <div class="mt-4 mx-auto max-w-xs">

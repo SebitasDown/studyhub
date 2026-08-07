@@ -255,7 +255,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.isSaving.set(false);
-          this.showToast(`¡Sesión completada! Ganaste ${res.xpEarned} XP 🎉`, 'success');
+          this.showToast(`¡Sesión completada! Ganaste ${res.xpEarned} XP`, 'success');
           this.playCompletionSound();
           this.showBrowserNotification(res.xpEarned);
           this.events.emit('gamification:updated');
@@ -530,8 +530,8 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
     try {
-      const n = new Notification('¡Sesión de estudio completada! 🎉', {
-        body: `Terminaste tu sesión y ganaste ${xp} XP. ¡Sigue así! 💪`,
+      const n = new Notification('¡Sesión de estudio completada!', {
+        body: `Terminaste tu sesión y ganaste ${xp} XP. ¡Sigue así!`,
         tag: 'study-session-complete',
       });
       n.onclick = () => {
