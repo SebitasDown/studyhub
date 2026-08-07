@@ -197,8 +197,13 @@
               @if (answered()) {
                 <div class="mt-4 p-4 rounded-xl"
                      [class]="selected() === currentQuestion?.correctIndex ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
-                  <p class="text-sm font-bold" [class.text-green-700]="selected() === currentQuestion?.correctIndex" [class.text-red-700]="selected() !== currentQuestion?.correctIndex">
-                    {{ selected() === currentQuestion?.correctIndex ? '¡Correcto! 🎉' : 'Incorrecto' }}
+                  <p class="text-sm font-bold flex items-center gap-1.5" [class.text-green-700]="selected() === currentQuestion?.correctIndex" [class.text-red-700]="selected() !== currentQuestion?.correctIndex">
+                    @if (selected() === currentQuestion?.correctIndex) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    }
+                    {{ selected() === currentQuestion?.correctIndex ? '¡Correcto!' : 'Incorrecto' }}
                   </p>
                   @if (q.explanation) {
                     <p class="text-sm text-gray-600 mt-1">{{ q.explanation }}</p>
@@ -209,7 +214,26 @@
           } @else {
             <!-- Resultado -->
             <div class="py-6 text-center">
-              <p class="text-5xl mb-3">{{ correctCount() === (activeLesson.practice?.length || 0) ? '🏆' : (correctCount() > 0 ? '👏' : '💪') }}</p>
+              <div class="mb-3 flex items-center justify-center">
+                @if (correctCount() === (activeLesson.practice?.length || 0)) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-14 h-14">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                    <path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                  </svg>
+                } @else if (correctCount() > 0) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-14 h-14">
+                    <path d="M20 6 9 17l-5-5"></path>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-14 h-14">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                  </svg>
+                }
+              </div>
               <h3 class="text-xl font-bold text-gray-900">
                 {{ correctCount() === (activeLesson.practice?.length || 0) ? '¡Perfecto!' : 'Lección terminada' }}
               </h3>

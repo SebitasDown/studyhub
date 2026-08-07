@@ -96,7 +96,10 @@
             @if (!isMember(g.id)) {
               <button (click)="joinGroup(g.id, g.isPublic)" class="w-full mt-auto flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors hover:brightness-110 cursor-pointer" style="background: #061E24;">
                 <ng-icon name="lucideArrowRight" size="16" />
-                {{ g.isPublic ? 'Unirme' : '🔒 Unirme (privado)' }}
+                @if (!g.isPublic) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                }
+                {{ g.isPublic ? 'Unirme' : 'Unirme (privado)' }}
               </button>
             } @else {
               <a [routerLink]="['/grupos', g.id]" class="w-full mt-auto flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-[#061E24] transition-colors hover:bg-[#F9A826] cursor-pointer" style="background: #F4B960;">
@@ -189,7 +192,10 @@
     <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
       <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
         <div>
-          <h3 class="text-lg font-bold text-[#061E24]">Grupo privado 🔒</h3>
+          <h3 class="text-lg font-bold text-[#061E24] flex items-center gap-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Grupo privado
+          </h3>
           <p class="text-xs text-gray-500 mt-0.5">Introduce el PIN de 4 dígitos</p>
         </div>
         <button (click)="showPinModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">

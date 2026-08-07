@@ -25,17 +25,26 @@
           <!-- Stats -->
           <div class="flex flex-wrap gap-3 shrink-0">
             <div class="bg-white/10 rounded-xl p-3 text-center min-w-[60px]">
-              <p class="text-white/60 text-xs mb-0.5">🏆</p>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mx-auto mb-0.5 text-white/60">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+              </svg>
               <p class="text-white font-black text-lg leading-none">{{ getLevel() }}</p>
               <p class="text-white/50 text-[10px] font-medium">Nivel</p>
             </div>
             <div class="bg-white/10 rounded-xl p-3 text-center min-w-[60px]">
-              <p class="text-white/60 text-xs mb-0.5">⚡</p>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mx-auto mb-0.5 text-white/60">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
               <p class="text-white font-black text-lg leading-none">{{ getXP() }}</p>
               <p class="text-white/50 text-[10px] font-medium">XP</p>
             </div>
             <div class="bg-white/10 rounded-xl p-3 text-center min-w-[60px]">
-              <p class="text-white/60 text-xs mb-0.5">🔥</p>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mx-auto mb-0.5 text-white/60">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+              </svg>
               <p class="text-white font-black text-lg leading-none">{{ getStreak() }}</p>
               <p class="text-white/50 text-[10px] font-medium">Racha</p>
             </div>
@@ -58,22 +67,38 @@
       <!-- Saved toast -->
       @if (saved) {
         <div class="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm flex items-center gap-2 animate-bounce">
-          ✓ Cambios guardados
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Cambios guardados
         </div>
       }
       @if (errorMsg) {
         <div class="fixed top-6 right-6 z-50 bg-red-500 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm flex items-center gap-2">
-          ✗ {{ errorMsg }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          {{ errorMsg }}
         </div>
       }
 
       <!-- Tabs -->
       <div class="max-w-full overflow-x-auto mb-6">
       <div class="flex w-max gap-1 bg-gray-100 p-1 rounded-xl">
-        @for (tab of [['personal','👤 Personal'],['academico','🎓 Académico'],['profesional','💼 Profesional'],['ajustes','⚙️ Ajustes']] ; track tab[0]) {
+        @for (tab of [['personal','Personal'],['academico','Académico'],['profesional','Profesional'],['ajustes','Ajustes']] ; track tab[0]) {
           <button (click)="setTab(tab[0])"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5"
             [class]="activeTab === tab[0] ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'">
+            @switch (tab[0]) {
+              @case ('personal') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              }
+              @case ('academico') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+              }
+              @case ('profesional') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              }
+              @case ('ajustes') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+              }
+            }
             {{ tab[1] }}
           </button>
         }

@@ -322,7 +322,9 @@
                         @for (tech of proj.technologies; track trackIndex($index, tech); let t = $index) {
                           <span class="px-2 py-0.5 rounded text-xs flex items-center gap-1 bg-teal-50 text-teal-700">
                             {{ tech }}
-                            <button (click)="removeTechFromProject(i, t)" class="hover:text-red-500 font-bold ml-1">✕</button>
+                            <button (click)="removeTechFromProject(i, t)" title="Quitar" class="hover:text-red-500 ml-1 flex items-center">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
                           </span>
                         }
                       </div>
