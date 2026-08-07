@@ -32,21 +32,6 @@ export class ProfileComponent implements OnInit {
   saved = false;
   errorMsg = '';
 
-  readonly modules: { id: string; name: string; icon: string; description: string; forced?: boolean }[] = [
-    { id: 'dashboard', name: 'Panel', icon: '📊', description: 'Resumen general con widgets' },
-    { id: 'materias', name: 'Materias', icon: '📚', description: 'Materias, tareas y apuntes' },
-    { id: 'estudio', name: 'Estudio (Pomodoro)', icon: '⏱️', description: 'Temporizador y sesiones de estudio' },
-    { id: 'agenda', name: 'Agenda', icon: '📅', description: 'Clases, exámenes y eventos' },
-    { id: 'profesor-ia', name: 'Profesor IA', icon: '🤖', description: 'Chat con tu asistente de estudio' },
-    { id: 'laboratorio', name: 'Laboratorio / Sandbox', icon: '🧪', description: 'Editor de código con ejecución (requiere activarlo)' },
-    { id: 'mi-cv', name: 'Mi CV', icon: '📄', description: 'Construye y descarga tu currículum' },
-    { id: 'roadmaps', name: 'Rutas de aprendizaje', icon: '🗺️', description: 'Roadmaps generados por IA' },
-    { id: 'riesgo', name: 'Riesgo académico', icon: '⚠️', description: 'Predicción temprana de riesgo' },
-    { id: 'empleos', name: 'Buscar trabajo', icon: '💼', description: 'Bolsa de empleos (no disponible)', forced: true },
-    { id: 'grupos', name: 'Grupos de estudio', icon: '👥', description: 'Grupos y chats (no disponible)', forced: true },
-    { id: 'perfil', name: 'Perfil', icon: '👤', description: 'Tus datos y ajustes' },
-  ];
-
   readonly modalidades = ['ON_SITE', 'REMOTE', 'HYBRID'];
   readonly nivelesProfesionales = ['STUDENT', 'INTERN', 'JUNIOR', 'MID', 'SENIOR'];
   readonly disponibilidades = ['FULL_TIME', 'PART_TIME', 'FREELANCE', 'NOT_AVAILABLE'];
@@ -80,16 +65,10 @@ export class ProfileComponent implements OnInit {
         });
       });
       this.gamificationService.getProgress().subscribe();
-
-      // Sincronizar módulos visibles con el backend (si hay sesión).
-      this.uiPreferences.syncModules();
     }
   }
 
-  setTab(t: string): void {
-    this.activeTab = t as Tab;
-    if (t === 'ajustes') this.uiPreferences.syncModules();
-  }
+  setTab(t: string): void { this.activeTab = t as Tab; }
 
   setTheme(theme: AppTheme): void { this.uiPreferences.update({ theme }); }
   setDensity(density: UiDensity): void { this.uiPreferences.update({ density }); }
