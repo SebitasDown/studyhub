@@ -7,8 +7,10 @@ import {
   lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame,
   lucideAlarmClock, lucideCalendar, lucideMap, lucideUsers, lucideBriefcase,
   lucideHandshake, lucideZap, lucideFileText, lucideTrophy, lucideBell,
-  lucideChevronRight, lucideTimer, lucideBrain,
+  lucideChevronRight, lucideTimer, lucideBrain, lucideEye, lucideEyeOff,
+  lucideGripVertical, lucideTrendingUp, lucideSettings2,
 } from '@ng-icons/lucide';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardData, LeaderboardData, LeaderboardEntry } from '../../services/dashboard.service';
 import { EventBusService } from '../../services/event-bus.service';
@@ -29,12 +31,13 @@ interface TaskItem {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [SidebarComponent, DatePipe, NgIconComponent, RouterLink],
+  imports: [SidebarComponent, DatePipe, NgIconComponent, RouterLink, DragDropModule],
   providers: [provideIcons({
     lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame,
     lucideAlarmClock, lucideCalendar, lucideMap, lucideUsers, lucideBriefcase,
     lucideHandshake, lucideZap, lucideFileText, lucideTrophy, lucideBell,
-    lucideChevronRight, lucideTimer, lucideBrain,
+    lucideChevronRight, lucideTimer, lucideBrain, lucideEye, lucideEyeOff,
+    lucideGripVertical, lucideTrendingUp, lucideSettings2,
   })],
   templateUrl: './dashboard.component.html',
   styles: [`:host { display: contents; }`],
@@ -75,7 +78,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   leaderboardTab: 'streak' | 'hours' = 'streak';
   leaderboardLoading = true;
 
+  // ── Widgets personalizables ──
+  private static readonly WIDGET_STORAGE = 'studyhub_dashboard_widgets';
+  private static readonly DEFAULT_ROWS = [
+    { row: 'stats', ids: ['stats', 'progreso'] },
+    { row: 'main', ids: ['clases', 'riesgo'] },
+    { row: 'tasks', ids: ['tareas', 'examenes', 'metas'] },
+    { row: 'social', ids: ['ranking', 'sesiones'] },
+    { row: 'notes', ids: ['notas'] },
+  ];
+  widgetRows: { row: string; ids: string[] }[] = DashboardComponent.DEFAULT_ROWS.map(r => ({ ...r, ids: [...r.ids] }));
+  widgetVisible: Record<string, boolean> = {};
+  customizing = false;
+
+  // ── Gráficos y contadores ──
+  allSessions: StudySessionRecord[] = [];
+  counters: Record<string, number> = {};
+  private countersAnimated = false;
+
   ngOnInit(): void {
+    this.loadWidgetPrefs();
     this.loadData();
     this.loadRecentSessions();
     this.loadLeaderboard();
@@ -153,6 +175,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tasks = this.buildTasks(res);
         this.riskBarClass = this.computeRiskClass(res);
         this.loading = false;
+        this.animateCounters();
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -215,7 +238,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private loadRecentSessions(): void {
     // getSessions ya hace fallback a la caché local en caso de error.
     this.studyTimer.getSessions().subscribe((records) => {
-      this.recentSessions = records.slice(0, 5);
+      this.allSessions = records || [];
+      this.recentSessions = this.allSessions.slice(0, 5);
       this.cdr.markForCheck();
     });
   }
@@ -390,4 +414,156 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private onKeydown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') this.closeNotifPanel();
   };
+
+  // ───────────── Widgets personalizables ─────────────
+  private loadWidgetPrefs(): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(DashboardComponent.WIDGET_STORAGE) || 'null');
+      const known = new Set(DashboardComponent.DEFAULT_ROWS.flatMap(r => r.ids));
+      const byRow = new Map<string, string[]>((saved?.rows || []).map((r: any) => [
+        r?.row,
+        (Array.isArray(r?.ids) ? r.ids : []).filter((id: string) => known.has(id)),
+      ]));
+      // Se reconstruyen las filas: usa lo guardado (sanitizado) o el orden por defecto.
+      this.widgetRows = DashboardComponent.DEFAULT_ROWS.map(r => {
+        const savedIds = byRow.get(r.row);
+        return { row: r.row, ids: savedIds && savedIds.length ? savedIds : [...r.ids] };
+      });
+      if (saved?.visible && typeof saved.visible === 'object') {
+        this.widgetVisible = { ...saved.visible };
+      }
+    } catch {
+      /* preferencias corruptas: usar valores por defecto */
+    }
+  }
+
+  private persistWidgetPrefs(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(DashboardComponent.WIDGET_STORAGE, JSON.stringify({
+      rows: this.widgetRows,
+      visible: this.widgetVisible,
+    }));
+  }
+
+  widgetIsVisible(id: string): boolean {
+    return this.widgetVisible[id] !== false;
+  }
+
+  widgetRow(rowId: string): string[] {
+    return this.widgetRows.find(r => r.row === rowId)?.ids ?? [];
+  }
+
+  widgetTitle(id: string): string {
+    const map: Record<string, string> = {
+      stats: 'Resumen', progreso: 'Tu progreso', clases: 'Clases de hoy', riesgo: 'Riesgo académico',
+      tareas: 'Tareas próximas', examenes: 'Exámenes y eventos', metas: 'Metas activas',
+      ranking: 'Ranking', sesiones: 'Sesiones de estudio', notas: 'Notas recientes',
+    };
+    return map[id] ?? id;
+  }
+
+  toggleWidget(id: string): void {
+    this.widgetVisible[id] = this.widgetVisible[id] === false ? true : false;
+    this.persistWidgetPrefs();
+  }
+
+  onWidgetDrop(event: CdkDragDrop<string[]>, rowId: string): void {
+    const row = this.widgetRows.find(r => r.row === rowId);
+    if (!row) return;
+    // CDK calcula los índices entre los widgets VISIBLES; se reordena el subconjunto
+    // visible y se reconstruye la fila conservando los ocultos en su lugar relativo.
+    const visible = row.ids.filter(id => this.widgetIsVisible(id));
+    moveItemInArray(visible, event.previousIndex, event.currentIndex);
+    const newIds: string[] = [];
+    let vi = 0;
+    for (const id of row.ids) {
+      newIds.push(this.widgetIsVisible(id) ? visible[vi++] : id);
+    }
+    row.ids = newIds;
+    this.persistWidgetPrefs();
+  }
+
+  resetWidgets(): void {
+    this.widgetRows = DashboardComponent.DEFAULT_ROWS.map(r => ({ ...r, ids: [...r.ids] }));
+    this.widgetVisible = {};
+    this.persistWidgetPrefs();
+  }
+
+  // ───────────── Contadores animados ─────────────
+  private animateCounters(): void {
+    if (this.countersAnimated || typeof requestAnimationFrame === 'undefined') return;
+    this.countersAnimated = true;
+    const targets: Record<string, number> = {
+      subjects: this.data.stats?.subjects ?? 0,
+      pending: this.data.stats?.pendingTasks ?? 0,
+      completed: this.data.stats?.completedTasks ?? 0,
+      streak: this.data.gamification?.streak ?? 0,
+    };
+    const start = performance.now();
+    const dur = 900;
+    const step = (now: number) => {
+      const p = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      for (const [key, target] of Object.entries(targets)) {
+        this.counters[key] = Math.round(target * eased);
+      }
+      this.cdr.markForCheck();
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // ───────────── Gráficos ─────────────
+  xpProgress(): number {
+    const g = this.data.gamification;
+    const xpForNext = g?.xpForNextLevel ?? 500;
+    const xp = g?.xp ?? 0;
+    return xpForNext > 0 ? Math.min(100, Math.round((xp / xpForNext) * 100)) : 0;
+  }
+
+  donutCircumference(): number {
+    return 2 * Math.PI * 42;
+  }
+
+  donutOffset(): number {
+    return this.donutCircumference() * (1 - this.xpProgress() / 100);
+  }
+
+  weeklyHours(): { label: string; minutes: number; isToday: boolean; max: number }[] {
+    const byDay = new Map<string, number>();
+    for (const s of this.allSessions) {
+      if (!s?.date) continue;
+      const d = new Date(s.date);
+      const key = d.toDateString();
+      byDay.set(key, (byDay.get(key) || 0) + (s.durationMinutes || 0));
+    }
+    const days: { label: string; minutes: number; isToday: boolean; max: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const minutes = byDay.get(d.toDateString()) || 0;
+      const label = i === 0
+        ? 'Hoy'
+        : d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '').slice(0, 3);
+      days.push({ label, minutes, isToday: i === 0, max: 0 });
+    }
+    const max = Math.max(1, ...days.map(dd => dd.minutes));
+    return days.map(dd => ({ ...dd, max }));
+  }
+
+  weeklyTotalMinutes(): number {
+    return this.weeklyHours().reduce((acc, d) => acc + d.minutes, 0);
+  }
+
+  fmtWeekly(minutes: number): string {
+    if (minutes < 60) return `${minutes} min`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m === 0 ? `${h} h` : `${h} h ${m} min`;
+  }
+
+  barHeight(minutes: number, max: number): number {
+    return max > 0 ? Math.max(4, Math.round((minutes / max) * 100)) : 4;
+  }
 }
