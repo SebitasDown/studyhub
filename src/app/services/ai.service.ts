@@ -159,6 +159,109 @@ export class AiService {
     );
   }
 
+  /**
+   * Envía un mensaje y consume la respuesta en streaming vía SSE (POST /ai/chat/stream).
+   *
+   * NOTA: EventSource solo soporta GET, por lo que para enviar el mensaje (POST) con
+   * autenticación se usa fetch() + ReadableStream. Cada evento 'message' contiene un
+   * fragmento de texto; 'done' marca el final; 'error' notifica un fallo del servidor.
+   */
+  streamChat(
+    message: string,
+    conversationId: string | undefined,
+    teacherId: string | undefined,
+    onChunk: (chunk: string) => void,
+  ): Observable<ChatResponse> {
+    return new Observable<ChatResponse>((subscriber) => {
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
+      const controller = new AbortController();
+
+      fetch(`${API}/ai/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          conversationId: conversationId || undefined,
+          teacherId,
+          message,
+        }),
+        signal: controller.signal,
+      })
+        .then(async (res) => {
+          if (!res.ok || !res.body) {
+            const body = await res.text().catch(() => '');
+            throw new Error(`SSE error ${res.status}: ${body.slice(0, 200)}`);
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let reply = '';
+          let finished = false;
+
+          const dispatch = (eventName: string, data: string) => {
+            if (eventName === 'message') {
+              reply += data;
+              onChunk(data);
+            } else if (eventName === 'done') {
+              finished = true;
+              let streamConversationId = conversationId || '';
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed && typeof parsed.conversationId === 'string') {
+                  streamConversationId = parsed.conversationId;
+                }
+              } catch {
+                // payload 'done' simple (ej: true), conservar el id conocido
+              }
+              subscriber.next({ conversationId: streamConversationId, reply });
+              subscriber.complete();
+            } else if (eventName === 'error') {
+              finished = true;
+              subscriber.error(new Error(data));
+            }
+          };
+
+          const read = (): Promise<void> =>
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                if (!finished) {
+                  finished = true;
+                  subscriber.next({ conversationId: conversationId || '', reply });
+                  subscriber.complete();
+                }
+                return;
+              }
+              buffer += decoder.decode(value, { stream: true });
+              let sep: number;
+              while ((sep = buffer.indexOf('\n\n')) !== -1) {
+                const raw = buffer.slice(0, sep);
+                buffer = buffer.slice(sep + 2);
+                let eventName = 'message';
+                let data = '';
+                for (const line of raw.split('\n')) {
+                  if (line.startsWith('event:')) eventName = line.slice(6).trim();
+                  else if (line.startsWith('data:')) data += line.slice(5).trimStart();
+                }
+                if (data) dispatch(eventName, data);
+              }
+              return read();
+            });
+
+          read().catch((err) => {
+            if (err?.name === 'AbortError') subscriber.complete();
+            else subscriber.error(err);
+          });
+        })
+        .catch((err) => subscriber.error(err));
+
+      return () => controller.abort();
+    });
+  }
+
   getKnowledgeGaps(forceRefresh = false): Observable<{ gaps: KnowledgeGap[] }> {
     if (!forceRefresh) {
       const cached = AppCache.get<{ gaps: KnowledgeGap[] }>('ai_knowledge_gaps');

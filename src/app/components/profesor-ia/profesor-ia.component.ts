@@ -37,6 +37,8 @@ import {
     .chat-msg strong { font-weight: 700; }
     .chat-msg em { font-style: italic; }
     .chat-msg br { display: block; content: ''; margin: 0.25em 0; }
+    .streaming-caret { background: #0f766e; animation: caret-blink 1s step-end infinite; vertical-align: text-bottom; }
+    @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
   `],
 })
 export class ProfesorIaComponent implements OnInit {
@@ -59,6 +61,7 @@ export class ProfesorIaComponent implements OnInit {
 
   messageInput = signal('');
   sending = signal(false);
+  streamingMsgId = signal<string | null>(null);
 
   loadingChat = signal(true);
   loadingMessages = signal(false);
@@ -221,21 +224,34 @@ export class ProfesorIaComponent implements OnInit {
     this.sending.set(true);
     setTimeout(() => this.scrollToBottom(true), 50);
 
-    this.ai.sendMessage(
+    const streamId = 'stream-' + Date.now();
+    // Mensaje placeholder del asistente que se irá llenando con los chunks del SSE
+    this.messages.update(arr => [...arr, {
+      _id: streamId,
+      conversationId: this.selectedConversationId() || '',
+      userId: 0,
+      role: 'assistant' as const,
+      content: '',
+      createdAt: new Date().toISOString(),
+    }]);
+    this.streamingMsgId.set(streamId);
+
+    this.ai.streamChat(
       text,
       this.selectedConversationId() || undefined,
       this.selectedTeacher()?.code || undefined,
+      (chunk) => {
+        this.messages.update(arr => arr.map(m =>
+          m._id === streamId ? { ...m, content: m.content + chunk } : m
+        ));
+        this.scrollToBottom();
+      },
     ).subscribe({
       next: (res) => {
-        const assistantMsg: Message = {
-          _id: 'resp-' + Date.now(),
-          conversationId: res.conversationId || this.selectedConversationId() || '',
-          userId: 0,
-          role: 'assistant',
-          content: res.reply,
-          createdAt: new Date().toISOString(),
-        };
-        this.messages.update(arr => [...arr, assistantMsg]);
+        this.messages.update(arr => arr.map(m =>
+          m._id === streamId ? { ...m, _id: 'resp-' + Date.now() } : m
+        ));
+        this.streamingMsgId.set(null);
         if (!this.selectedConversationId() && res.conversationId) {
           this.selectedConversationId.set(res.conversationId);
         }
@@ -244,7 +260,45 @@ export class ProfesorIaComponent implements OnInit {
         setTimeout(() => this.scrollToBottom(true), 50);
       },
       error: () => {
-        this.sending.set(false);
+        this.streamingMsgId.set(null);
+        // Si ya llegó algo del stream, conservarlo; si no, reintentar con el endpoint normal
+        const streamed = this.messages().find(m => m._id === streamId)?.content;
+        if (streamed) {
+          this.messages.update(arr => arr.map(m =>
+            m._id === streamId ? { ...m, _id: 'resp-' + Date.now() } : m
+          ));
+          this.sending.set(false);
+          this.refreshConversations();
+          setTimeout(() => this.scrollToBottom(true), 50);
+          return;
+        }
+        this.messages.update(arr => arr.filter(m => m._id !== streamId));
+        this.ai.sendMessage(
+          text,
+          this.selectedConversationId() || undefined,
+          this.selectedTeacher()?.code || undefined,
+        ).subscribe({
+          next: (res) => {
+            const assistantMsg: Message = {
+              _id: 'resp-' + Date.now(),
+              conversationId: res.conversationId || this.selectedConversationId() || '',
+              userId: 0,
+              role: 'assistant',
+              content: res.reply,
+              createdAt: new Date().toISOString(),
+            };
+            this.messages.update(arr => [...arr, assistantMsg]);
+            if (!this.selectedConversationId() && res.conversationId) {
+              this.selectedConversationId.set(res.conversationId);
+            }
+            this.sending.set(false);
+            this.refreshConversations();
+            setTimeout(() => this.scrollToBottom(true), 50);
+          },
+          error: () => {
+            this.sending.set(false);
+          },
+        });
       },
     });
   }
