@@ -1,101 +1,217 @@
-<div class="flex h-screen bg-gray-50/50">
-  <app-sidebar activeRoute="estudio"></app-sidebar>
-  <div class="flex-1 min-w-0 overflow-auto p-4 sm:p-6 lg:p-8">
-    <div class="max-w-2xl mx-auto pt-6">
-      
+<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+  <app-sidebar activeRoute="estudio" />
+
+  <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+    <div class="max-w-3xl mx-auto">
+
       <!-- Header -->
-      <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Estudio</h1>
-      <p class="text-gray-400 mt-1 text-sm mb-10">{{ statsHours() }} h registradas esta semana</p>
-
-      <div class="border-t border-gray-200/80 pt-10 flex justify-center">
-        <!-- Timer Card -->
-        <div class="bg-white rounded-3xl shadow-md border border-gray-100 px-5 sm:px-10 lg:px-16 py-8 sm:py-12 w-full flex flex-col items-center gap-8 sm:gap-10">
-          
-          <!-- Circular Timer -->
-          <div class="relative flex items-center justify-center w-56 h-56">
-            <svg class="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="44" fill="none" stroke="#e2e8f0" stroke-width="8"/>
-            </svg>
-            <div class="flex flex-col items-center z-10">
-              <span class="text-5xl font-bold text-slate-900 tracking-tighter tabular-nums">{{ formatTime }}</span>
-              <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-2">
-                @for (tech of techniques; track tech.id) {
-                  @if (tech.id === selectedTechnique()) { {{ tech.name }} }
-                }
-              </span>
-            </div>
-          </div>
-
-          <!-- Controls -->
-          <div class="flex items-center gap-5">
-            <button (click)="resetTimer()" title="Reiniciar"
-                    class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-all">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
-                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-              </svg>
-            </button>
-            
-            <button (click)="toggleTimer()" title="Iniciar / Pausar"
-                    class="w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105"
-                    style="background: linear-gradient(135deg, #0e7490, #0369a1);">
-              @if (isRunning()) {
-                <svg viewBox="0 0 24 24" fill="white" class="w-8 h-8">
-                  <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
-                </svg>
-              } @else {
-                <svg viewBox="0 0 24 24" fill="white" class="w-8 h-8 ml-1">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-              }
-            </button>
-            
-            <button (click)="finishSession()" title="Completar sesión"
-                    class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-all">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-5 h-5">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </button>
-          </div>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 tracking-tight" style="color: #061E24;">Estudio</h1>
+          <p class="text-gray-500 text-sm mt-1">Enfócate con la técnica Pomodoro y registra tu tiempo real de estudio.</p>
         </div>
-      </div>
-
-      <!-- Materia Selector -->
-      <div class="mt-10">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Materia</p>
-        <div class="flex flex-wrap gap-2.5">
-          @for (subject of subjects(); track subject.id) {
-            <button (click)="selectedSubject.set(selectedSubject() === subject.id ? null : subject.id)"
-                    class="px-4 py-2 rounded-full border text-sm font-semibold transition-all flex items-center gap-2"
-                    [class]="selectedSubject() === subject.id
-                             ? 'text-white border-transparent shadow-md'
-                             : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm'"
-                    [style]="selectedSubject() === subject.id ? 'background-color:' + subject.color : ''">
-              <span class="w-2 h-2 rounded-full flex-shrink-0" [style.backgroundColor]="subject.color"></span>
-              {{ subject.nombre }}
-            </button>
-          }
-          @if (subjects().length === 0) {
-            <p class="text-sm text-gray-400 italic">Sin materias aún — créalas en la sección "Materias"</p>
+        <!-- Stats pill -->
+        <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-100 shadow-sm w-max">
+          @if (statsLoading()) {
+            <div class="h-4 w-24 rounded bg-gray-100 animate-pulse"></div>
+          } @else {
+            <ng-icon name="lucideClock" size="16" color="#0C5A60" />
+            <span class="text-sm font-semibold text-gray-900">
+              {{ statsHours() }} <span class="text-gray-400 font-medium">h esta semana</span>
+            </span>
           }
         </div>
       </div>
 
-      <!-- Técnica Selector -->
+      <!-- Timer Card -->
+      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 px-5 sm:px-10 py-8 sm:py-10 flex flex-col items-center gap-6 sm:gap-7">
+
+        <!-- Circular Timer -->
+        <div class="relative flex items-center justify-center w-60 h-60 sm:w-64 sm:h-64">
+          <svg class="absolute top-0 left-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#e9edf2" stroke-width="8"/>
+            <circle cx="50" cy="50" r="44" fill="none"
+                    [attr.stroke]="currentTech.color"
+                    stroke-width="8" stroke-linecap="round"
+                    [attr.stroke-dasharray]="ringCircumference"
+                    [attr.stroke-dashoffset]="ringDashOffset"
+                    class="transition-all duration-1000 ease-linear"
+                    [class.opacity-70]="isRunning()" />
+          </svg>
+          <div class="flex flex-col items-center z-10">
+            <span class="text-6xl font-bold text-slate-900 tracking-tighter tabular-nums">{{ formatTime }}</span>
+            <span class="text-xs font-bold uppercase tracking-widest mt-3 flex items-center gap-1.5" [style.color]="currentTech.color">
+              <ng-icon [name]="currentTech.icon" size="14" />
+              {{ currentTech.name }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <p class="text-xs font-medium text-gray-400 -mt-1 flex items-center gap-1.5 h-4">
+          @if (isRunning()) {
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Sesión en curso — concéntrate en una sola tarea
+          } @else if (elapsedSeconds > 0) {
+            <ng-icon name="lucidePause" size="12" />
+            Sesión en pausa — puedes retomarla o completarla
+          } @else {
+            Listo para comenzar
+          }
+        </p>
+
+        <!-- Controls -->
+        <div class="flex items-center gap-5">
+          <button (click)="resetTimer()" title="Reiniciar" [disabled]="isSaving()"
+                  class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer">
+            <ng-icon name="lucideRotateCcw" size="20" />
+          </button>
+
+          <button (click)="toggleTimer()" title="Iniciar / Pausar" [disabled]="isSaving()"
+                  class="w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  style="background: linear-gradient(135deg, #0e7490, #0369a1);">
+            @if (isRunning()) {
+              <ng-icon name="lucidePause" size="30" color="white" />
+            } @else {
+              <ng-icon name="lucidePlay" size="30" color="white" class="ml-1" />
+            }
+          </button>
+
+          <button (click)="finishSession()" title="Completar sesión" [disabled]="!canFinish"
+                  class="w-12 h-12 rounded-full border flex items-center justify-center transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  [class]="canFinish
+                           ? 'border-gray-200 text-gray-500 hover:bg-green-50 hover:text-green-600 hover:border-green-200'
+                           : 'border-gray-100 text-gray-300'">
+            @if (isSaving()) {
+              <svg class="animate-spin w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="40" stroke-dashoffset="10" stroke-linecap="round"/>
+              </svg>
+            } @else {
+              <ng-icon name="lucideCheck" size="22" />
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Materia -->
       <div class="mt-8">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Técnica</p>
-        <div class="flex flex-wrap gap-2.5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+            <ng-icon name="lucideBookOpen" size="13" />
+            Materia
+          </p>
+          @if (subjects().length > 0) {
+            <a routerLink="/subjects"
+               class="text-xs font-semibold text-[#0C5A60] hover:text-[#F4B960] transition-colors flex items-center gap-1 cursor-pointer">
+              Gestionar <ng-icon name="lucideArrowRight" size="12" />
+            </a>
+          }
+        </div>
+
+        @if (subjectsLoading()) {
+          <div class="flex flex-wrap gap-2.5">
+            @for (_ of [1, 2, 3]; track $index) {
+              <div class="h-9 w-28 rounded-full bg-gray-100 animate-pulse"></div>
+            }
+          </div>
+        } @else if (subjects().length > 0) {
+          <div class="flex flex-wrap gap-2.5">
+            @for (subject of subjects(); track subject.id) {
+              <button (click)="selectedSubject.set(selectedSubject() === subject.id ? null : subject.id)"
+                      class="px-4 py-2 rounded-full border text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer"
+                      [class]="selectedSubject() === subject.id
+                               ? 'text-white border-transparent shadow-md'
+                               : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-sm'"
+                      [style]="selectedSubject() === subject.id ? 'background-color:' + subject.color : ''">
+                <span class="w-2 h-2 rounded-full flex-shrink-0" [style.backgroundColor]="subject.color"></span>
+                {{ subject.nombre }}
+              </button>
+            }
+          </div>
+          @if (selectedSubject()) {
+            <p class="text-xs text-gray-400 mt-3">
+              Asociando la sesión a <span class="font-semibold text-gray-600">{{ selectedSubjectName }}</span>
+            </p>
+          }
+        } @else {
+          <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-6 flex flex-col items-center gap-3 text-center">
+            <p class="text-sm text-gray-400">No tienes materias aún. Crea una para registrar tu estudio con más contexto.</p>
+            <a routerLink="/subjects"
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110 cursor-pointer"
+               style="background: #0C5A60;">
+              <ng-icon name="lucidePlus" size="16" />
+              Crear materia
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- Técnica -->
+      <div class="mt-8">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+          <ng-icon name="lucideZap" size="13" />
+          Técnica de estudio
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           @for (tech of techniques; track tech.id) {
             <button (click)="selectTechnique(tech.id)"
-                    class="px-5 py-2 rounded-full border text-sm font-semibold transition-all"
+                    [disabled]="isRunning() || isSaving()"
+                    class="relative text-left p-4 rounded-2xl border transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     [class]="selectedTechnique() === tech.id
-                             ? 'bg-slate-800 text-white border-slate-800 shadow-md'
-                             : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'">
-              {{ tech.name }}
+                             ? 'border-transparent shadow-md ring-2'
+                             : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'"
+                    [style.--tw-ring-color]="selectedTechnique() === tech.id ? tech.color : ''"
+                    [style.background-color]="selectedTechnique() === tech.id ? tech.color + '0d' : ''">
+              <div class="flex items-center gap-2.5 mb-1.5">
+                <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                      [style.background]="selectedTechnique() === tech.id ? tech.color : tech.color + '1f'"
+                      [style.color]="selectedTechnique() === tech.id ? '#ffffff' : tech.color">
+                  <ng-icon [name]="tech.icon" size="16" />
+                </span>
+                <span class="font-bold text-sm text-gray-900">{{ tech.name }}</span>
+              </div>
+              <p class="text-xs text-gray-500 leading-relaxed">{{ tech.description }}</p>
+              <span class="text-[11px] font-bold mt-2 inline-block" [style.color]="tech.color">{{ tech.minutes }} min</span>
+              @if (selectedTechnique() === tech.id) {
+                <span class="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+                      [style.background]="tech.color">
+                  <ng-icon name="lucideCheck" size="12" color="white" />
+                </span>
+              }
             </button>
           }
         </div>
       </div>
 
     </div>
-  </div>
+  </main>
+
+  <!-- Toast -->
+  @if (toast()) {
+    <div class="fixed bottom-6 right-6 z-50 animate-fade-in-up">
+      <div class="flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-lg border"
+           [class]="toast()!.type === 'success'
+                    ? 'bg-white border-emerald-200 text-emerald-800'
+                    : 'bg-white border-red-200 text-red-800'">
+        @if (toast()!.type === 'success') {
+          <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        } @else {
+          <svg class="w-5 h-5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        }
+        <span class="text-sm font-medium">{{ toast()!.message }}</span>
+        <button (click)="toast.set(null)" class="ml-2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
 </div>
