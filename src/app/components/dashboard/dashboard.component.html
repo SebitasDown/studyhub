@@ -298,7 +298,7 @@
                       <div class="space-y-2.5 flex-1">
                         @if (data.upcomingClasses.length) {
                           @for (cls of data!.upcomingClasses; track $index) {
-                            <div class="flex items-center gap-3 p-3 rounded-xl transition-all hover:translate-x-0.5" style="background: var(--sh-surface-2);">
+                            <div class="flex items-center gap-3 p-3 rounded-xl transition-all hover:translate-x-0.5 sh-hover-shadow" style="background: var(--sh-surface-2);">
                               <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" [style.background]="cls.color || '#0C5A60'"></div>
                               <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold" style="color: var(--sh-text);">{{ cls.subject }}</p>
@@ -371,7 +371,7 @@
                         @if (tasks.length) {
                           @for (task of tasks; track task.id) {
                             <button (click)="openTask(task)"
-                              class="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all cursor-pointer group hover:translate-x-0.5"
+                              class="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all cursor-pointer group hover:translate-x-0.5 sh-hover-shadow"
                               style="background: var(--sh-surface-2);">
                               <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="task.subjectColor || '#0C5A60'"></div>
                               <div class="flex-1 min-w-0">
@@ -500,7 +500,7 @@
                         <div class="flex-1 space-y-1.5">
                           @for (entry of leaderboardEntries(); track entry.userId; let i = $index) {
                             @let isMe = entry.userId === user?.id;
-                            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors"
+                            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors sh-hover-shadow"
                               [class]="isMe ? 'ring-1 ring-[#0C5A60]/40' : 'hover:translate-x-0.5'"
                               [style.background]="isMe ? 'var(--sh-primary-soft)' : 'transparent'">
                               <span class="w-6 text-center text-sm font-bold shrink-0"
@@ -550,7 +550,7 @@
                       @if (recentSessions.length) {
                         <div class="flex-1 space-y-1">
                           @for (s of recentSessions; track s.id) {
-                            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-all hover:translate-x-0.5" style="background: var(--sh-surface-2);">
+                            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-all hover:translate-x-0.5 sh-hover-shadow" style="background: var(--sh-surface-2);">
                               <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                                    [style.background]="techColor(s.technique) + '1f'"
                                    [style.color]="techColor(s.technique)">
