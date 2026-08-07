@@ -1,42 +1,73 @@
-<div class="flex h-screen" style="background: #f9fafb; font-family: 'Inter', 'Roboto', sans-serif;">
+<div class="flex h-screen" style="background: var(--sh-bg); font-family: 'Inter', 'Roboto', sans-serif;">
   <!-- Sidebar -->
   <app-sidebar activeRoute="dashboard" />
 
   <!-- Main Content -->
   <main class="flex-1 min-w-0 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8">
+
     @if (loading) {
-      <div class="flex justify-center py-20">
-        <div class="animate-pulse text-gray-400">Cargando tu panel…</div>
+      <!-- Skeletons -->
+      <div class="space-y-5">
+        <div class="skeleton h-32 rounded-2xl"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton h-28 rounded-xl"></div> }
+        </div>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div class="skeleton h-64 rounded-xl"></div>
+          <div class="skeleton h-64 rounded-xl"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="skeleton h-56 rounded-xl"></div>
+          <div class="skeleton h-56 rounded-xl"></div>
+          <div class="skeleton h-56 rounded-xl"></div>
+        </div>
       </div>
     } @else if (errorMsg) {
       <div class="flex justify-center py-20">
         <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 max-w-md text-sm">{{ errorMsg }}</div>
       </div>
     } @else {
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Hola, {{ data.user?.nombre || user?.nombre || 'Estudiante' }} 👋</h1>
-          <p class="text-gray-500 text-sm mt-1">Hoy es {{ today | date:'EEEE, d \'de\' MMMM' }}</p>
-        </div>
-        <div class="flex items-center justify-end gap-3">
-          <button #notifBell
-            (click)="toggleNotifPanel(notifBell)"
-            class="relative w-10 h-10 rounded-full border border-gray-200 bg-white shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 hover:border-gray-300 hover:shadow transition-all cursor-pointer"
-            [attr.aria-label]="'Notificaciones'"
-            [attr.aria-expanded]="notifPanelOpen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            @if (notifService.unreadCount() > 0) {
-              <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
-            }
-          </button>
-          <a routerLink="/profesor-ia" class="flex w-full sm:w-auto justify-center items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-all hover:brightness-110 cursor-pointer" style="background: #0f766e;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Hablar con tu Profesor IA
-          </a>
+
+      <!-- ════════════ Banner de identidad ════════════ -->
+      <div class="rounded-2xl mb-6 sm:mb-8 relative overflow-hidden animate-fade-in-up" style="background: var(--sh-gradient); box-shadow: var(--sh-shadow-lg);">
+        <div class="absolute top-0 right-0 w-72 h-72 rounded-full opacity-10" style="background: #F4B960; transform: translate(30%, -40%);"></div>
+        <div class="absolute -bottom-20 -left-10 w-56 h-56 rounded-full opacity-10" style="background: #fff; transform: translate(-20%, 30%);"></div>
+        <div class="p-6 sm:p-8 relative">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="animate-fade-in-up">
+              <p class="text-white/60 text-[11px] font-bold uppercase tracking-[0.2em] mb-1.5">Panel de estudio</p>
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-white sh-display tracking-tight">Hola, {{ data.user?.nombre || user?.nombre || 'Estudiante' }} 👋</h1>
+              <p class="text-white/70 text-sm mt-1.5 capitalize">Hoy es {{ today | date:'EEEE, d \'de\' MMMM' }}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 animate-fade-in-up animate-delay-100 relative">
+              <button #notifBell
+                (click)="toggleNotifPanel(notifBell)"
+                class="relative w-11 h-11 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/10 cursor-pointer sh-press"
+                style="background: rgba(255,255,255,0.12);"
+                [attr.aria-label]="'Notificaciones'"
+                [attr.aria-expanded]="notifPanelOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                @if (notifService.unreadCount() > 0) {
+                  <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-[#0C5A60]"></span>
+                }
+              </button>
+              <a routerLink="/profesor-ia"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:brightness-105 hover:-translate-y-0.5 cursor-pointer sh-press"
+                style="background: var(--sh-accent); color: #021C22;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Hablar con tu Profesor IA
+              </a>
+              <button (click)="customizing = !customizing"
+                class="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer sh-press"
+                [class]="customizing ? 'bg-white text-[#0C5A60]' : 'bg-white/10 text-white hover:bg-white/20'">
+                <ng-icon name="lucideSettings2" size="15" />
+                Personalizar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -44,19 +75,21 @@
       @if (notifPanelOpen) {
         <div class="fixed inset-0 z-40" (click)="closeNotifPanel()"></div>
         <div #notifPanel role="dialog" aria-label="Notificaciones"
-          class="fixed z-50 w-[380px] max-w-[calc(100vw-16px)] rounded-2xl border border-gray-100 bg-white shadow-2xl flex flex-col overflow-hidden"
+          class="fixed z-50 w-[380px] max-w-[calc(100vw-16px)] rounded-2xl border flex flex-col overflow-hidden animate-pop-in"
+          style="background: var(--sh-surface); border-color: var(--sh-border); box-shadow: var(--sh-shadow-lg);"
           [style.top.px]="notifPanelPos.top"
           [style.left.px]="notifPanelPos.left">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--sh-border);">
             <div class="flex items-center gap-2">
-              <h3 class="font-semibold text-gray-900 text-sm">Notificaciones</h3>
+              <h3 class="font-semibold text-sm" style="color: var(--sh-text);">Notificaciones</h3>
               @if (notifService.unreadCount() > 0) {
                 <span class="text-[10px] font-bold text-white bg-red-500 rounded-full px-1.5 py-0.5 leading-none">{{ notifService.unreadCount() }}</span>
               }
             </div>
             <button (click)="markAllNotifs()"
-              class="text-xs font-medium text-gray-400 hover:text-[#0f766e] transition-colors cursor-pointer"
-              [class.invisible]="notifService.unreadCount() === 0">
+              class="text-xs font-medium transition-colors cursor-pointer hover:underline"
+              [class.invisible]="notifService.unreadCount() === 0"
+              style="color: var(--sh-primary);">
               Marcar todas como leídas
             </button>
           </div>
@@ -65,19 +98,20 @@
             @if (notifService.notifications().length === 0) {
               <div class="py-12 text-center">
                 <p class="text-3xl mb-2">🔔</p>
-                <p class="text-sm text-gray-400 font-medium">No tienes notificaciones aún.</p>
+                <p class="text-sm font-medium" style="color: var(--sh-faint);">No tienes notificaciones aún.</p>
               </div>
             } @else {
               @for (n of notifService.notifications(); track n.id) {
                 @let iconData = notifService.getIcon(n.type);
                 <button (click)="openNotification(n)"
-                  class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0 group"
-                  [class.bg-teal-50]="!n.isRead">
+                  class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer group"
+                  [class.bg-teal-50]="!n.isRead"
+                  style="border-bottom: 1px solid var(--sh-border);">
                   <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5" [style.background]="iconData.bg">
                     <ng-icon [name]="iconData.icon" size="18" [color]="iconData.color" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold truncate" [style.color]="n.isRead ? '#6B7280' : '#111827'">{{ n.title }}</p>
+                    <p class="text-sm font-semibold truncate" [style.color]="n.isRead ? 'var(--sh-muted)' : 'var(--sh-text)'">{{ n.title }}</p>
                     <p class="text-xs text-gray-500 line-clamp-2 mt-0.5">{{ n.message }}</p>
                     <p class="text-[11px] text-gray-400 mt-1">{{ n.createdAt | date:'d MMM, HH:mm' }}</p>
                   </div>
@@ -94,310 +128,505 @@
           </div>
 
           <a routerLink="/notificaciones" (click)="closeNotifPanel()"
-            class="block text-center text-xs font-semibold text-[#0f766e] hover:bg-teal-50 py-2.5 border-t border-gray-100 transition-colors">
+            class="block text-center text-xs font-semibold py-2.5 transition-colors"
+            style="color: var(--sh-primary); border-top: 1px solid var(--sh-border);">
             Ver todas las notificaciones →
           </a>
         </div>
       }
 
-      <!-- Row 1: Summary Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-6">
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #f0fdfa;">
-            <ng-icon name="lucideBookOpen" size="20" color="#0f766e" />
-          </div>
-          <p class="text-3xl font-bold text-gray-900">{{ data.stats.subjects || 0 }}</p>
-          <p class="text-sm text-gray-400 mt-1">Materias activas</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #fff7ed;">
-            <ng-icon name="lucideClock" size="20" color="#f97316" />
-          </div>
-          <p class="text-3xl font-bold text-gray-900">{{ data.stats.pendingTasks || 0 }}</p>
-          <p class="text-sm text-gray-400 mt-1">Tareas pendientes</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #f0fdf4;">
-            <ng-icon name="lucideCheckCircle" size="20" color="#22c55e" />
-          </div>
-          <p class="text-3xl font-bold text-gray-900">{{ data.stats.completedTasks || 0 }}</p>
-          <p class="text-sm text-gray-400 mt-1">Tareas completadas</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style="background: #fff1f2;">
-            <ng-icon name="lucideFlame" size="20" color="#f43f5e" />
-          </div>
-          <p class="text-3xl font-bold text-gray-900">{{ data.gamification.streak || 0 }} días</p>
-          <p class="text-sm text-gray-400 mt-1">Racha actual</p>
-        </div>
-      </div>
-
-      <!-- Row 2: Classes Today (65%) + Academic Risk (35%) -->
-      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)] gap-4 sm:gap-5 mb-6">
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" class="w-5 h-5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              Clases de hoy
-            </h3>
-            <a routerLink="/subjects" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver todas</a>
-          </div>
-          <div class="space-y-3">
-            @if (data.upcomingClasses.length) {
-              @for (cls of data!.upcomingClasses; track $index) {
-                <div class="flex items-center gap-3 p-3 rounded-lg" style="background: #f8fafa;">
-                  <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="cls.color || '#0f766e'"></div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900">{{ cls.subject }}</p>
-                    <p class="text-xs text-gray-400 truncate">{{ cls.classroom || 'Salón por definir' }} @if (cls.profesor) { · {{ cls.profesor }} }</p>
-                  </div>
-                  <span class="text-xs font-medium text-gray-500 whitespace-nowrap">{{ cls.startTime }} - {{ cls.endTime }}</span>
-                </div>
-              }
-            } @else {
-              <p class="text-sm text-gray-400 py-4 text-center">No hay clases programadas para hoy 🎉</p>
-            }
-          </div>
-        </div>
-
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
-          <div class="flex items-center gap-2 mb-4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <h3 class="font-semibold text-gray-900">Riesgo académico</h3>
-          </div>
-          @if (data.academicRisk) {
-            <div class="flex items-baseline gap-1 mb-2">
-              <span class="text-5xl font-bold text-gray-900">{{ data!.academicRisk!.score }}</span>
-              <span class="text-sm font-semibold uppercase" [class.text-green-600]="data!.academicRisk!.score < 40" [class.text-yellow-600]="data!.academicRisk!.score >= 40 && data!.academicRisk!.score < 70" [class.text-red-600]="data!.academicRisk!.score >= 70">{{ data!.academicRisk!.level }}</span>
+      <!-- ════════════ Barra de personalización ════════════ -->
+      @if (customizing) {
+        <div class="sh-card p-4 sm:p-5 mb-6 animate-pop-in">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <div class="sh-icon-tile" style="background: var(--sh-primary-soft);">
+                <ng-icon name="lucideSettings2" size="17" color="var(--sh-primary)" />
+              </div>
+              <div>
+                <p class="text-sm font-bold">Personaliza tu panel</p>
+                <p class="text-xs sh-muted">Arrastra las tarjetas para reordenarlas · usa el ojo para mostrarlas u ocultarlas</p>
+              </div>
             </div>
-            <div class="w-full h-2 rounded-full bg-gray-100 mb-3">
-              <div class="h-2 rounded-full transition-all" [style.width.%]="data!.academicRisk!.score" [class]="riskBarClass"></div>
-            </div>
-            <p class="text-xs text-gray-400 flex-1">Mantén tu progreso. Trabaja en tus brechas de conocimiento más importantes para reducirlo.</p>
-            <button routerLink="/riesgo" class="w-full mt-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" style="background: #f3f4f6;">Ver detalle →</button>
-          } @else {
-            <div class="flex-1 flex items-center justify-center">
-              <p class="text-sm text-gray-400">Sin datos de riesgo aún</p>
-            </div>
-            <button class="w-full mt-3 py-2 rounded-lg text-sm font-medium text-gray-600" style="background: #f3f4f6;">Calcular riesgo</button>
-          }
-        </div>
-      </div>
-
-      <!-- Row 3: Upcoming Tasks (40%) + Upcoming Exams/Events (30%) + Active Goals (30%) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:gap-5 mb-6">
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900">Tareas próximas</h3>
-            <a routerLink="/subjects" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver todas</a>
+            <button (click)="resetWidgets()" class="text-xs font-semibold transition-colors cursor-pointer hover:text-red-500" style="color: var(--sh-faint);">
+              Restablecer diseño
+            </button>
           </div>
-          <div class="space-y-2">
-            @if (tasks.length) {
-              @for (task of tasks; track task.id) {
-                <button (click)="openTask(task)"
-                  class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-left group">
-                  <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="task.subjectColor || '#0f766e'"></div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900">{{ task.title }}</p>
-                    <p class="text-xs text-gray-400">{{ task.subject }}</p>
-                  </div>
-                  <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap" [class]="task.badgeClass">{{ task.label }}</span>
-                  <ng-icon name="lucideChevronRight" size="16" color="#9CA3AF"
-                    class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div class="flex flex-wrap gap-2 mt-4">
+            @for (w of widgetRows; track w.row) {
+              @for (id of w.ids; track id) {
+                <button (click)="toggleWidget(id)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer sh-press"
+                  [class]="widgetIsVisible(id)
+                    ? 'bg-[#0C5A60]/10 border-[#0C5A60]/30'
+                    : 'bg-transparent border-[var(--sh-border)]'"
+                  [style.color]="widgetIsVisible(id) ? 'var(--sh-primary)' : 'var(--sh-faint)'">
+                  <ng-icon [name]="widgetIsVisible(id) ? 'lucideEye' : 'lucideEyeOff'" size="13" />
+                  {{ widgetTitle(id) }}
                 </button>
               }
-            } @else {
-              <p class="text-sm text-gray-400 py-4 text-center">No hay tareas pendientes 🎉</p>
             }
           </div>
         </div>
+      }
 
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Exámenes y eventos
-            </h3>
-            <a routerLink="/agenda" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver agenda</a>
-          </div>
-          <div class="space-y-2">
-            @if (upcomingExams.length) {
-              @for (exam of upcomingExams; track exam.id) {
-                <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <span class="text-xs px-1.5 py-0.5 rounded font-medium bg-red-100 text-red-700 whitespace-nowrap">Examen</span>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate">{{ exam.title }}</p>
-                    <p class="text-xs text-gray-400">{{ exam.startAt | date:'dd MMM, HH:mm' }}</p>
-                  </div>
-                  <span class="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap" [class]="examBadgeClass(examDaysUntil(exam.startAt))">
-                    {{ examDaysUntil(exam.startAt) }}
-                  </span>
-                </div>
-              }
-            } @else {
-              <p class="text-sm text-gray-400 py-4 text-center">No hay exámenes próximos 🎉</p>
-            }
-          </div>
-        </div>
+      <!-- ════════════ Widgets ════════════ -->
+      <div class="sh-stagger">
 
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
-          <h3 class="font-semibold text-gray-900 mb-4">Metas activas</h3>
-          @if (data.activeGoals.length) {
-            <div class="space-y-4 flex-1">
-              @for (goal of data!.activeGoals; track $index) {
-                <div>
-                  <div class="flex justify-between text-sm mb-1">
-                    <span class="text-gray-800 font-medium truncate">{{ goal.title }}</span>
-                    <span class="text-gray-500">{{ goal.progress }}%</span>
-                  </div>
-                  <div class="w-full h-2 rounded-full bg-gray-100">
-                    <div class="h-2 rounded-full transition-all" style="background: #0f766e;" [style.width.%]="goal.progress"></div>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="flex-1 flex items-center justify-center">
-              <p class="text-sm text-gray-400">Sin metas activas</p>
-            </div>
-          }
-          <a routerLink="/profesor-ia" class="block w-full mt-4 py-2 rounded-lg text-sm font-medium text-center text-gray-600 hover:text-gray-900 transition-colors"
-            style="background: #f3f4f6;">
-            Crear meta
-          </a>
-        </div>
-      </div>
-
-      <!-- Row 4: Recent Notes -->
-      <div>
-        <h3 class="font-semibold text-gray-900 mb-4">Notas recientes</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-          @if (data.recentNotes.length) {
-            @for (note of data!.recentNotes; track note.id) {
-              <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-2 h-2 rounded-full" [style.background]="note.subjectColor || '#0f766e'"></div>
-                  <span class="text-xs text-gray-400">{{ note.subject }}</span>
-                </div>
-                <h4 class="font-semibold text-gray-900 text-sm mb-1">{{ note.title }}</h4>
-                <p class="text-xs text-gray-500 line-clamp-3">{{ note.content }}</p>
+        <!-- ROW A: Resumen + Tu progreso -->
+        <div cdkDropList [cdkDropListData]="widgetRow('stats')" (cdkDropListDropped)="onWidgetDrop($event, 'stats')"
+          class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mb-5">
+          @for (id of widgetRow('stats'); track id) {
+            @if (widgetIsVisible(id)) {
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+                [class.xl:col-span-2]="id === 'stats'"
+                [class.cursor-grab]="customizing"
+                [class.ring-2]="customizing"
+                [class.ring-[#0C5A60]/40]="customizing"
+                [class.rounded-2xl]="customizing">
+                @switch (id) {
+                  @case ('stats') {
+                    <div class="sh-card sh-card-hover p-4 sm:p-5">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="sh-section-title">
+                          @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                          Resumen
+                        </h3>
+                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full" style="background: var(--sh-primary-soft); color: var(--sh-primary);">Esta semana</span>
+                      </div>
+                      <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                          <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #e6f4f2;">
+                            <ng-icon name="lucideBookOpen" size="19" color="#0C5A60" />
+                          </div>
+                          <p class="text-2xl font-extrabold sh-display">{{ counters['subjects'] ?? 0 }}</p>
+                          <p class="text-xs sh-muted mt-0.5">Materias activas</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                          <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #fff4e6;">
+                            <ng-icon name="lucideClock" size="19" color="#d97706" />
+                          </div>
+                          <p class="text-2xl font-extrabold sh-display">{{ counters['pending'] ?? 0 }}</p>
+                          <p class="text-xs sh-muted mt-0.5">Tareas pendientes</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                          <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #e7f6ec;">
+                            <ng-icon name="lucideCheckCircle" size="19" color="#1e9f68" />
+                          </div>
+                          <p class="text-2xl font-extrabold sh-display">{{ counters['completed'] ?? 0 }}</p>
+                          <p class="text-xs sh-muted mt-0.5">Tareas completadas</p>
+                        </div>
+                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                          <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #fdeaea;">
+                            <ng-icon name="lucideFlame" size="19" color="#ef4444" />
+                          </div>
+                          <p class="text-2xl font-extrabold sh-display">{{ counters['streak'] ?? 0 }}<span class="text-sm text-[#94a3a0] font-bold"> días</span></p>
+                          <p class="text-xs sh-muted mt-0.5">Racha actual</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                  @case ('progreso') {
+                    <div class="sh-card sh-card-hover p-5 flex flex-col h-full">
+                      <h3 class="sh-section-title mb-4">
+                        @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                        <ng-icon name="lucideTrendingUp" size="16" color="var(--sh-primary)" />
+                        Tu progreso
+                      </h3>
+                      <div class="flex items-center gap-4">
+                        <div class="relative w-24 h-24 shrink-0">
+                          <svg viewBox="0 0 100 100" class="w-24 h-24 -rotate-90">
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--sh-border)" stroke-width="10" />
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="#0C5A60" stroke-width="10" stroke-linecap="round"
+                              [attr.stroke-dasharray]="donutCircumference()" [attr.stroke-dashoffset]="donutOffset()"
+                              class="transition-all duration-1000 ease-out" />
+                          </svg>
+                          <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <p class="text-lg font-extrabold sh-display" style="color: var(--sh-text);">{{ xpProgress() }}%</p>
+                            <p class="text-[9px] font-bold uppercase tracking-wide sh-faint">XP</p>
+                          </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-bold">Nivel {{ data.gamification.level }}</p>
+                          <p class="text-xs sh-muted mt-1">{{ data.gamification.xp }} / {{ data.gamification.xpForNextLevel }} XP</p>
+                          <div class="w-full h-1.5 rounded-full mt-2.5 overflow-hidden" style="background: var(--sh-border);">
+                            <div class="h-full rounded-full transition-all duration-700" style="background: var(--sh-accent);" [style.width.%]="xpProgress()"></div>
+                          </div>
+                          <p class="text-xs sh-muted mt-3">Esta semana: <span class="font-bold" style="color: var(--sh-primary);">{{ fmtWeekly(weeklyTotalMinutes()) }}</span></p>
+                        </div>
+                      </div>
+                      <div class="flex items-end gap-1.5 h-20 mt-5">
+                        @for (d of weeklyHours(); track $index) {
+                          <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full group">
+                            <div class="w-full rounded-t-md transition-all duration-700 group-hover:opacity-100"
+                              [style.height.%]="barHeight(d.minutes, d.max)"
+                              [style.background]="d.isToday ? 'var(--sh-accent)' : '#0C5A60'"
+                              [style.opacity]="d.minutes > 0 ? '0.9' : '0.12'"
+                              [title]="d.label + ': ' + fmtWeekly(d.minutes)"></div>
+                            <span class="text-[9px] font-bold" [style.color]="d.isToday ? 'var(--sh-accent-strong)' : 'var(--sh-faint)'">{{ d.label }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
               </div>
             }
-          } @else {
-            <div class="col-span-3">
-              <p class="text-sm text-gray-400 py-4 text-center">No hay notas aún</p>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Row 5: Ranking + Sesiones de estudio recientes -->
-      <div class="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
-
-        <!-- Ranking de estudiantes -->
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" class="w-5 h-5"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M6 4h12v8a6 6 0 0 1-12 0V4z"/><path d="M6 7H4a2 2 0 0 0 0 4h2"/><path d="M18 7h2a2 2 0 0 1 0 4h-2"/></svg>
-              Ranking de estudiantes
-            </h3>
-            <div class="flex p-1 rounded-full" style="background: #f1f5f9;">
-              <button (click)="switchLeaderboardTab('streak')"
-                class="px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer"
-                [class]="leaderboardTab === 'streak' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#64748b] hover:text-[#0f172a]'">
-                🔥 Racha
-              </button>
-              <button (click)="switchLeaderboardTab('hours')"
-                class="px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer"
-                [class]="leaderboardTab === 'hours' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#64748b] hover:text-[#0f172a]'">
-                ⏱️ Horas
-              </button>
-            </div>
-          </div>
-
-          @if (leaderboardLoading) {
-            <div class="flex-1 flex items-center justify-center py-10">
-              <div class="animate-pulse text-gray-300 text-sm">Cargando ranking…</div>
-            </div>
-          } @else if (leaderboard && leaderboardEntries().length) {
-            <div class="flex-1 space-y-1.5">
-              @for (entry of leaderboardEntries(); track entry.userId; let i = $index) {
-                @let isMe = entry.userId === user?.id;
-                <div class="flex items-center gap-3 p-2 rounded-lg transition-colors"
-                  [class]="isMe ? 'ring-1 ring-[#0f766e]/40' : 'hover:bg-gray-50'"
-                  [style.background]="isMe ? '#f0fdfa' : 'transparent'">
-                  <span class="w-6 text-center text-sm font-bold shrink-0"
-                    [class]="i === 0 ? 'text-amber-500' : (i === 1 ? 'text-slate-400' : (i === 2 ? 'text-orange-400' : 'text-gray-300'))">
-                    {{ i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i + 1)) }}
-                  </span>
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden"
-                    style="background: #0f766e;">
-                    @if (avatarFor(entry)) {
-                      <img [src]="avatarFor(entry)" class="w-full h-full object-cover" alt="" />
-                    } @else {
-                      <span>{{ initials(entry.nombre) }}</span>
-                    }
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium truncate">
-                      {{ entry.nombre }} {{ entry.apellido }}
-                      @if (isMe) { <span class="text-[11px] font-semibold text-[#0f766e]">(tú)</span> }
-                    </p>
-                    <p class="text-xs text-gray-400 truncate">{{ leaderboardSub(entry) }}</p>
-                  </div>
-                  <span class="text-sm font-bold text-[#0f766e] shrink-0">{{ leaderboardMetric(entry) }}</span>
-                </div>
-              }
-            </div>
-            @if (myRank() && myRank()! > (leaderboardTab === 'streak' ? leaderboard!.byStreak.length : leaderboard!.byHours.length)) {
-              <p class="text-xs text-gray-400 mt-3 text-center">Tu posición actual: #{{ myRank() }}</p>
-            }
-          } @else {
-            <div class="flex-1 flex flex-col items-center justify-center py-10 text-center">
-              <p class="text-3xl mb-2">🏆</p>
-              <p class="text-sm text-gray-400 font-medium">Aún no hay ranking.</p>
-              <p class="text-xs text-gray-300 mt-1">Completa sesiones de estudio y mantén tu racha para aparecer aquí.</p>
-            </div>
           }
         </div>
 
-        <!-- Sesiones de estudio recientes -->
-        <div class="min-w-0 bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900 flex items-center gap-2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0C5A60" stroke-width="2" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Sesiones de estudio
-            </h3>
-            <a routerLink="/estudio" class="text-sm text-gray-400 hover:text-[#0f766e] transition-colors">Ver historial</a>
-          </div>
-          @if (recentSessions.length) {
-            <div class="flex-1 space-y-1">
-              @for (s of recentSessions; track s.id) {
-                <div class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                       [style.background]="techColor(s.technique) + '1f'"
-                       [style.color]="techColor(s.technique)">
-                    <ng-icon [name]="techIcon(s.technique)" size="16" />
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate">{{ techName(s.technique) }}</p>
-                    <p class="text-xs text-gray-400">{{ sessionTimeLabel(s.date) }}</p>
-                  </div>
-                  <span class="text-xs font-medium text-gray-500 whitespace-nowrap">{{ fmtMinutes(s.durationMinutes) }}</span>
-                  <span class="text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap" style="background: #e6f7f5; color: #0C5A60;">+{{ s.xpEarned }} XP</span>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="flex-1 flex items-center justify-center py-6 text-center">
-              <div>
-                <p class="text-3xl mb-2">⏱️</p>
-                <p class="text-sm text-gray-400 font-medium">Aún no hay sesiones de estudio.</p>
-                <a routerLink="/estudio" class="inline-block mt-3 text-xs font-semibold text-[#0f766e] hover:underline">Iniciar tu primera sesión →</a>
+        <!-- ROW B: Clases de hoy + Riesgo académico -->
+        <div cdkDropList [cdkDropListData]="widgetRow('main')" (cdkDropListDropped)="onWidgetDrop($event, 'main')"
+          class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)] gap-4 sm:gap-5 mb-5">
+          @for (id of widgetRow('main'); track id) {
+            @if (widgetIsVisible(id)) {
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+                [class.cursor-grab]="customizing"
+                [class.ring-2]="customizing"
+                [class.ring-[#0C5A60]/40]="customizing"
+                [class.rounded-2xl]="customizing">
+                @switch (id) {
+                  @case ('clases') {
+                    <div class="sh-card sh-card-hover p-5 min-w-0">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="sh-section-title">
+                          @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#0C5A60" stroke-width="2" class="w-5 h-5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          Clases de hoy
+                        </h3>
+                        <a routerLink="/subjects" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver todas →</a>
+                      </div>
+                      <div class="space-y-2.5">
+                        @if (data.upcomingClasses.length) {
+                          @for (cls of data!.upcomingClasses; track $index) {
+                            <div class="flex items-center gap-3 p-3 rounded-xl transition-all hover:translate-x-0.5" style="background: var(--sh-surface-2);">
+                              <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" [style.background]="cls.color || '#0C5A60'"></div>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold" style="color: var(--sh-text);">{{ cls.subject }}</p>
+                                <p class="text-xs sh-muted truncate">{{ cls.classroom || 'Salón por definir' }} @if (cls.profesor) { · {{ cls.profesor }} }</p>
+                              </div>
+                              <span class="text-xs font-bold whitespace-nowrap px-2.5 py-1 rounded-lg" style="background: var(--sh-primary-soft); color: var(--sh-primary);">{{ cls.startTime }} - {{ cls.endTime }}</span>
+                            </div>
+                          }
+                        } @else {
+                          <div class="py-8 text-center">
+                            <p class="text-3xl mb-2">🎉</p>
+                            <p class="text-sm sh-muted">No hay clases programadas para hoy</p>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @case ('riesgo') {
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                      <h3 class="sh-section-title mb-4">
+                        @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Riesgo académico
+                      </h3>
+                      @if (data.academicRisk) {
+                        <div class="flex items-baseline gap-2 mb-2">
+                          <span class="text-5xl font-extrabold sh-display" style="color: var(--sh-text);">{{ data!.academicRisk!.score }}</span>
+                          <span class="text-sm font-bold uppercase" [class.text-green-600]="data!.academicRisk!.score < 40" [class.text-yellow-600]="data!.academicRisk!.score >= 40 && data!.academicRisk!.score < 70" [class.text-red-600]="data!.academicRisk!.score >= 70">{{ data!.academicRisk!.level }}</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full overflow-hidden mb-3" style="background: var(--sh-border);">
+                          <div class="h-full rounded-full transition-all duration-700" [style.width.%]="data!.academicRisk!.score" [class]="riskBarClass"></div>
+                        </div>
+                        <p class="text-xs sh-muted flex-1 leading-relaxed">Mantén tu progreso. Trabaja en tus brechas de conocimiento más importantes para reducirlo.</p>
+                        <a routerLink="/riesgo" class="sh-btn-ghost w-full mt-3 justify-center">Ver detalle →</a>
+                      } @else {
+                        <div class="flex-1 flex items-center justify-center">
+                          <p class="text-sm sh-muted">Sin datos de riesgo aún</p>
+                        </div>
+                        <a routerLink="/riesgo" class="sh-btn-ghost w-full mt-3 justify-center">Calcular riesgo</a>
+                      }
+                    </div>
+                  }
+                }
               </div>
-            </div>
+            }
           }
         </div>
+
+        <!-- ROW C: Tareas próximas + Exámenes y eventos + Metas activas -->
+        <div cdkDropList [cdkDropListData]="widgetRow('tasks')" (cdkDropListDropped)="onWidgetDrop($event, 'tasks')"
+          class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mb-5">
+          @for (id of widgetRow('tasks'); track id) {
+            @if (widgetIsVisible(id)) {
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+                [class.cursor-grab]="customizing"
+                [class.ring-2]="customizing"
+                [class.ring-[#0C5A60]/40]="customizing"
+                [class.rounded-2xl]="customizing">
+                @switch (id) {
+                  @case ('tareas') {
+                    <div class="sh-card sh-card-hover p-5 min-w-0">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="sh-section-title">
+                          @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                          Tareas próximas
+                        </h3>
+                        <a routerLink="/subjects" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver todas →</a>
+                      </div>
+                      <div class="space-y-2">
+                        @if (tasks.length) {
+                          @for (task of tasks; track task.id) {
+                            <button (click)="openTask(task)"
+                              class="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all cursor-pointer group hover:translate-x-0.5"
+                              style="background: var(--sh-surface-2);">
+                              <div class="w-2 h-2 rounded-full flex-shrink-0" [style.background]="task.subjectColor || '#0C5A60'"></div>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold truncate" style="color: var(--sh-text);">{{ task.title }}</p>
+                                <p class="text-xs sh-muted">{{ task.subject }}</p>
+                              </div>
+                              <span class="text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap" [class]="task.badgeClass">{{ task.label }}</span>
+                              <ng-icon name="lucideChevronRight" size="16" color="#9CA3AF"
+                                class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </button>
+                          }
+                        } @else {
+                          <div class="py-8 text-center">
+                            <p class="text-3xl mb-2">🎉</p>
+                            <p class="text-sm sh-muted">No hay tareas pendientes</p>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @case ('examenes') {
+                    <div class="sh-card sh-card-hover p-5 min-w-0">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="sh-section-title">
+                          @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          Exámenes y eventos
+                        </h3>
+                        <a routerLink="/agenda" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver agenda →</a>
+                      </div>
+                      <div class="space-y-2">
+                        @if (upcomingExams.length) {
+                          @for (exam of upcomingExams; track exam.id) {
+                            <div class="flex items-center gap-3 p-3 rounded-xl transition-colors" style="background: var(--sh-surface-2);">
+                              <span class="text-xs px-1.5 py-0.5 rounded font-bold bg-red-100 text-red-700 whitespace-nowrap">Examen</span>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold truncate" style="color: var(--sh-text);">{{ exam.title }}</p>
+                                <p class="text-xs sh-muted">{{ exam.startAt | date:'dd MMM, HH:mm' }}</p>
+                              </div>
+                              <span class="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" [class]="examBadgeClass(examDaysUntil(exam.startAt))">
+                                {{ examDaysUntil(exam.startAt) }}
+                              </span>
+                            </div>
+                          }
+                        } @else {
+                          <div class="py-8 text-center">
+                            <p class="text-3xl mb-2">🗓️</p>
+                            <p class="text-sm sh-muted">No hay exámenes próximos</p>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @case ('metas') {
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                      <h3 class="sh-section-title mb-4">
+                        @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                        Metas activas
+                      </h3>
+                      @if (data.activeGoals.length) {
+                        <div class="space-y-4 flex-1">
+                          @for (goal of data!.activeGoals; track $index) {
+                            <div>
+                              <div class="flex justify-between text-sm mb-1.5">
+                                <span class="font-semibold truncate" style="color: var(--sh-text);">{{ goal.title }}</span>
+                                <span class="sh-muted font-bold">{{ goal.progress }}%</span>
+                              </div>
+                              <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--sh-border);">
+                                <div class="h-full rounded-full transition-all duration-700" style="background: linear-gradient(90deg, #0C5A60, #0f766e);" [style.width.%]="goal.progress"></div>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="flex-1 flex items-center justify-center py-8">
+                          <p class="text-sm sh-muted">Sin metas activas</p>
+                        </div>
+                      }
+                      <a routerLink="/profesor-ia" class="sh-btn-ghost w-full mt-4 justify-center">Crear meta</a>
+                    </div>
+                  }
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <!-- ROW D: Ranking + Sesiones de estudio recientes -->
+        <div cdkDropList [cdkDropListData]="widgetRow('social')" (cdkDropListDropped)="onWidgetDrop($event, 'social')"
+          class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 mb-5">
+          @for (id of widgetRow('social'); track id) {
+            @if (widgetIsVisible(id)) {
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+                [class.cursor-grab]="customizing"
+                [class.ring-2]="customizing"
+                [class.ring-[#0C5A60]/40]="customizing"
+                [class.rounded-2xl]="customizing">
+                @switch (id) {
+                  @case ('ranking') {
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="sh-section-title">
+                          @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" class="w-5 h-5"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M6 4h12v8a6 6 0 0 1-12 0V4z"/><path d="M6 7H4a2 2 0 0 0 0 4h2"/><path d="M18 7h2a2 2 0 0 1 0 4h-2"/></svg>
+                          Ranking de estudiantes
+                        </h3>
+                        <div class="flex p-1 rounded-full" style="background: var(--sh-hover);">
+                          <button (click)="switchLeaderboardTab('streak')"
+                            class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer"
+                            [class]="leaderboardTab === 'streak' ? 'bg-white text-[#0f172a] shadow-sm' : 'sh-muted hover:text-[#0f172a]'">
+                            🔥 Racha
+                          </button>
+                          <button (click)="switchLeaderboardTab('hours')"
+                            class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer"
+                            [class]="leaderboardTab === 'hours' ? 'bg-white text-[#0f172a] shadow-sm' : 'sh-muted hover:text-[#0f172a]'">
+                            ⏱️ Horas
+                          </button>
+                        </div>
+                      </div>
+
+                      @if (leaderboardLoading) {
+                        <div class="space-y-2">
+                          @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton h-10 rounded-lg"></div> }
+                        </div>
+                      } @else if (leaderboard && leaderboardEntries().length) {
+                        <div class="flex-1 space-y-1.5">
+                          @for (entry of leaderboardEntries(); track entry.userId; let i = $index) {
+                            @let isMe = entry.userId === user?.id;
+                            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-colors"
+                              [class]="isMe ? 'ring-1 ring-[#0C5A60]/40' : 'hover:translate-x-0.5'"
+                              [style.background]="isMe ? 'var(--sh-primary-soft)' : 'transparent'">
+                              <span class="w-6 text-center text-sm font-bold shrink-0"
+                                [class]="i === 0 ? 'text-amber-500' : (i === 1 ? 'text-slate-400' : (i === 2 ? 'text-orange-400' : 'text-gray-300'))">
+                                {{ i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i + 1)) }}
+                              </span>
+                              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden" style="background: #0C5A60;">
+                                @if (avatarFor(entry)) {
+                                  <img [src]="avatarFor(entry)" class="w-full h-full object-cover" alt="" />
+                                } @else {
+                                  <span>{{ initials(entry.nombre) }}</span>
+                                }
+                              </div>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold truncate" style="color: var(--sh-text);">
+                                  {{ entry.nombre }} {{ entry.apellido }}
+                                  @if (isMe) { <span class="text-[11px] font-bold" style="color: var(--sh-primary);">(tú)</span> }
+                                </p>
+                                <p class="text-xs sh-muted truncate">{{ leaderboardSub(entry) }}</p>
+                              </div>
+                              <span class="text-sm font-extrabold shrink-0" style="color: var(--sh-primary);">{{ leaderboardMetric(entry) }}</span>
+                            </div>
+                          }
+                        </div>
+                        @if (myRank() && myRank()! > (leaderboardTab === 'streak' ? leaderboard!.byStreak.length : leaderboard!.byHours.length)) {
+                          <p class="text-xs sh-muted mt-3 text-center">Tu posición actual: #{{ myRank() }}</p>
+                        }
+                      } @else {
+                        <div class="flex-1 flex flex-col items-center justify-center py-10 text-center">
+                          <p class="text-3xl mb-2">🏆</p>
+                          <p class="text-sm sh-muted font-medium">Aún no hay ranking.</p>
+                          <p class="text-xs sh-faint mt-1">Completa sesiones de estudio y mantén tu racha para aparecer aquí.</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                  @case ('sesiones') {
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                      <div class="flex items-center justify-between mb-4">
+                        <h3 class="sh-section-title">
+                          @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#0C5A60" stroke-width="2" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          Sesiones de estudio
+                        </h3>
+                        <a routerLink="/estudio" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver historial →</a>
+                      </div>
+                      @if (recentSessions.length) {
+                        <div class="flex-1 space-y-1">
+                          @for (s of recentSessions; track s.id) {
+                            <div class="flex items-center gap-3 p-2.5 rounded-xl transition-all hover:translate-x-0.5" style="background: var(--sh-surface-2);">
+                              <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                                   [style.background]="techColor(s.technique) + '1f'"
+                                   [style.color]="techColor(s.technique)">
+                                <ng-icon [name]="techIcon(s.technique)" size="16" />
+                              </div>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold truncate" style="color: var(--sh-text);">{{ techName(s.technique) }}</p>
+                                <p class="text-xs sh-muted">{{ sessionTimeLabel(s.date) }}</p>
+                              </div>
+                              <span class="text-xs font-semibold whitespace-nowrap sh-muted">{{ fmtMinutes(s.durationMinutes) }}</span>
+                              <span class="text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap" style="background: var(--sh-primary-soft); color: var(--sh-primary);">+{{ s.xpEarned }} XP</span>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="flex-1 flex items-center justify-center py-6 text-center">
+                          <div>
+                            <p class="text-3xl mb-2">⏱️</p>
+                            <p class="text-sm sh-muted font-medium">Aún no hay sesiones de estudio.</p>
+                            <a routerLink="/estudio" class="inline-block mt-3 text-xs font-bold hover:underline" style="color: var(--sh-primary);">Iniciar tu primera sesión →</a>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <!-- ROW E: Notas recientes -->
+        <div cdkDropList [cdkDropListData]="widgetRow('notes')" (cdkDropListDropped)="onWidgetDrop($event, 'notes')">
+          @for (id of widgetRow('notes'); track id) {
+            @if (widgetIsVisible(id)) {
+              <div cdkDrag [cdkDragDisabled]="!customizing"
+                [class.cursor-grab]="customizing"
+                [class.ring-2]="customizing"
+                [class.ring-[#0C5A60]/40]="customizing"
+                [class.rounded-2xl]="customizing">
+                @switch (id) {
+                  @case ('notas') {
+                    <div class="mb-4">
+                      <h3 class="sh-section-title">
+                        @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
+                        Notas recientes
+                      </h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                      @if (data.recentNotes.length) {
+                        @for (note of data!.recentNotes; track note.id) {
+                          <div class="sh-card sh-card-hover p-5">
+                            <div class="flex items-center gap-2 mb-2.5">
+                              <div class="w-2.5 h-2.5 rounded-full" [style.background]="note.subjectColor || '#0C5A60'"></div>
+                              <span class="text-xs sh-muted">{{ note.subject }}</span>
+                            </div>
+                            <h4 class="font-bold text-sm mb-1.5" style="color: var(--sh-text);">{{ note.title }}</h4>
+                            <p class="text-xs leading-relaxed line-clamp-3 sh-muted">{{ note.content }}</p>
+                          </div>
+                        }
+                      } @else {
+                        <div class="col-span-full">
+                          <div class="py-10 text-center sh-card">
+                            <p class="text-3xl mb-2">📝</p>
+                            <p class="text-sm sh-muted">No hay notas aún</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+          }
+        </div>
+
       </div>
     }
   </main>
