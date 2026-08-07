@@ -185,7 +185,7 @@
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('stats') {
-                    <div class="sh-card sh-card-hover p-4 sm:p-5 h-full flex flex-col">
+                    <div class="sh-card p-4 sm:p-5 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -226,7 +226,7 @@
                     </div>
                   }
                   @case ('progreso') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col h-full">
+                    <div class="sh-card p-5 flex flex-col h-full">
                       <h3 class="sh-section-title mb-4">
                         @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
                         <ng-icon name="lucideTrendingUp" size="16" color="var(--sh-primary)" />
@@ -286,7 +286,7 @@
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('clases') {
-                    <div class="sh-card sh-card-hover p-5 min-w-0 h-full flex flex-col">
+                    <div class="sh-card p-5 min-w-0 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -317,7 +317,7 @@
                     </div>
                   }
                   @case ('riesgo') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
+                    <div class="sh-card p-5 flex flex-col min-w-0 h-full">
                       <h3 class="sh-section-title mb-4">
                         @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -359,7 +359,7 @@
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('tareas') {
-                    <div class="sh-card sh-card-hover p-5 min-w-0 h-full flex flex-col">
+                    <div class="sh-card p-5 min-w-0 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -393,7 +393,7 @@
                     </div>
                   }
                   @case ('examenes') {
-                    <div class="sh-card sh-card-hover p-5 min-w-0 h-full flex flex-col">
+                    <div class="sh-card p-5 min-w-0 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -426,7 +426,7 @@
                     </div>
                   }
                   @case ('metas') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
+                    <div class="sh-card p-5 flex flex-col min-w-0 h-full">
                       <h3 class="sh-section-title mb-4">
                         @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
                         Metas activas
@@ -471,7 +471,7 @@
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('ranking') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
+                    <div class="sh-card p-5 flex flex-col min-w-0 h-full">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -538,7 +538,7 @@
                     </div>
                   }
                   @case ('sesiones') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
+                    <div class="sh-card p-5 flex flex-col min-w-0 h-full">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -602,7 +602,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                       @if (data.recentNotes.length) {
                         @for (note of data!.recentNotes; track note.id) {
-                          <div class="sh-card sh-card-hover p-5 h-full flex flex-col">
+                          <div class="sh-card p-5 h-full flex flex-col">
                             <div class="flex items-center gap-2 mb-2.5">
                               <div class="w-2.5 h-2.5 rounded-full" [style.background]="note.subjectColor || '#0C5A60'"></div>
                               <span class="text-xs sh-muted">{{ note.subject }}</span>

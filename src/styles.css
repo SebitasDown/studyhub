@@ -99,15 +99,6 @@ html[data-density='spacious'] { font-size: 18px; }
   box-shadow: var(--sh-shadow);
 }
 
-.sh-card-hover {
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-}
-.sh-card-hover:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--sh-shadow-lg);
-  border-color: var(--sh-border-strong);
-}
-
 .sh-btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.625rem 1.25rem; border-radius: 0.75rem;
