@@ -157,7 +157,7 @@
                   <div class="flex items-start justify-between gap-2">
                     <h4 class="font-bold text-gray-800 text-sm leading-snug">{{ s.subjectName }}</h4>
                     <span class="text-sm font-black px-2.5 py-1 rounded-lg text-white shrink-0" [style.background]="getLevelColor(s.level)">
-                      {{ s.riskScore }}
+                      {{ s.riskScore }}<span class="text-[10px] font-semibold opacity-70">/100</span>
                     </span>
                   </div>
                   <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -197,7 +197,7 @@
                 <span class="text-[10px] font-bold text-gray-400 w-4 text-right">{{ chartMax() }}</span>
                 <div class="flex-1">
                   <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="w-full h-28">
-                    <polyline :points="chartPolyline()" fill="none" stroke="#0C5A60" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <polyline [attr.points]="chartPolyline()" fill="none" stroke="#0C5A60" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                     @for (d of chartDots(); track $index) {
                       <circle [attr.cx]="d.x" [attr.cy]="d.y" r="2.2" [style.fill]="getLevelColor(d.level)" stroke="white" stroke-width="0.8" />
                     }
