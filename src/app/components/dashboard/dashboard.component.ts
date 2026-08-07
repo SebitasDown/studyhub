@@ -10,7 +10,7 @@ import {
   lucideChevronRight, lucideTimer, lucideBrain,
 } from '@ng-icons/lucide';
 import { AuthService } from '../../services/auth.service';
-import { DashboardService, DashboardData } from '../../services/dashboard.service';
+import { DashboardService, DashboardData, LeaderboardData, LeaderboardEntry } from '../../services/dashboard.service';
 import { EventBusService } from '../../services/event-bus.service';
 import { CalendarService, CalendarEvent } from '../../services/calendar.service';
 import { NotificationsService } from '../../services/notifications.service';
@@ -51,6 +51,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private unsubscribers: (() => void)[] = [];
+  private midnightTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Notificaciones (panel flotante)
   notifPanelOpen = false;
@@ -70,10 +71,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   riskBarClass = 'bg-gray-200';
   upcomingExams: CalendarEvent[] = [];
   recentSessions: StudySessionRecord[] = [];
+  leaderboard: LeaderboardData | null = null;
+  leaderboardTab: 'streak' | 'hours' = 'streak';
+  leaderboardLoading = true;
 
   ngOnInit(): void {
     this.loadData();
     this.loadRecentSessions();
+    this.loadLeaderboard();
 
     if (isPlatformBrowser(this.platformId)) {
       this.notifService.getAll().subscribe();
@@ -102,12 +107,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.unsubscribers.push(
       this.events.on('study:session', () => this.loadRecentSessions())
     );
+
+    // Actualiza la fecha y los datos dependientes del día automáticamente a medianoche.
+    this.scheduleMidnightRefresh();
   }
 
   ngOnDestroy(): void {
+    if (this.midnightTimer) {
+      clearTimeout(this.midnightTimer);
+      this.midnightTimer = null;
+    }
     this.unsubscribers.forEach(unsub => unsub());
     this.closeNotifPanel();
     this.notifService.stopLive();
+  }
+
+  /**
+   * Programa un timeout para la próxima medianoche local. Al dispararse, actualiza
+   * la fecha mostrada y refresca los datos que dependen del día (clases de hoy,
+   * tareas, exámenes, ranking) sin recargar la página, y se reprograma para el día
+   * siguiente.
+   */
+  private scheduleMidnightRefresh(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const now = new Date();
+    const nextMidnight = new Date(now);
+    nextMidnight.setHours(24, 0, 0, 0); // próxima medianoche local
+    const delay = Math.max(1000, nextMidnight.getTime() - now.getTime() + 1000);
+
+    this.midnightTimer = setTimeout(() => {
+      this.today = new Date();
+      this.cdr.markForCheck();
+      // El día cambió: recarga lo que depende de la fecha.
+      this.loadData(true);
+      this.loadRecentSessions();
+      this.loadLeaderboard();
+      this.scheduleMidnightRefresh();
+    }, delay);
   }
 
   private loadData(forceRefresh = false): void {
@@ -182,6 +218,68 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.recentSessions = records.slice(0, 5);
       this.cdr.markForCheck();
     });
+  }
+
+  private loadLeaderboard(): void {
+    this.leaderboardLoading = true;
+    this.dashboard.getLeaderboard().subscribe({
+      next: (data) => {
+        this.leaderboard = data;
+        this.leaderboardLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.leaderboard = null;
+        this.leaderboardLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  switchLeaderboardTab(tab: 'streak' | 'hours'): void {
+    this.leaderboardTab = tab;
+  }
+
+  leaderboardEntries(): LeaderboardEntry[] {
+    if (!this.leaderboard) return [];
+    return this.leaderboardTab === 'streak' ? this.leaderboard.byStreak : this.leaderboard.byHours;
+  }
+
+  leaderboardMetric(entry: LeaderboardEntry): string {
+    if (this.leaderboardTab === 'streak') {
+      const days = entry.currentStreak ?? 0;
+      return `${days} ${days === 1 ? 'día' : 'días'}`;
+    }
+    const totalHours = ((entry.totalMinutes ?? 0) / 60).toFixed(1);
+    return `${totalHours} h`;
+  }
+
+  leaderboardSub(entry: LeaderboardEntry): string {
+    if (this.leaderboardTab === 'streak') {
+      return `Récord: ${entry.bestStreak ?? 0} días`;
+    }
+    const h = Math.floor((entry.totalMinutes ?? 0) / 60);
+    const m = (entry.totalMinutes ?? 0) % 60;
+    return h > 0 ? `${h} h ${m} min totales` : `${m} min totales`;
+  }
+
+  myRank(): number | null {
+    if (!this.leaderboard) return null;
+    return this.leaderboardTab === 'streak'
+      ? this.leaderboard.me.rankByStreak
+      : this.leaderboard.me.rankByHours;
+  }
+
+  private initials(name: string): string {
+    const parts = (name || '').trim().split(/\s+/);
+    return parts
+      .slice(0, 2)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join('') || '?';
+  }
+
+  avatarFor(entry: LeaderboardEntry): string | null {
+    return entry.foto || null;
   }
 
   techName(id: string): string {
