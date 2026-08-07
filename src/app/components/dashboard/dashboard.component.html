@@ -177,7 +177,7 @@
           class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mb-5">
           @for (id of widgetRow('stats'); track id) {
             @if (widgetIsVisible(id)) {
-              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0 h-full"
                 [class.xl:col-span-2]="id === 'stats'"
                 [class.cursor-grab]="customizing"
                 [class.ring-2]="customizing"
@@ -185,7 +185,7 @@
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('stats') {
-                    <div class="sh-card sh-card-hover p-4 sm:p-5">
+                    <div class="sh-card sh-card-hover p-4 sm:p-5 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -193,29 +193,29 @@
                         </h3>
                         <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full" style="background: var(--sh-primary-soft); color: var(--sh-primary);">Esta semana</span>
                       </div>
-                      <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
-                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                      <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 flex-1 auto-rows-fr">
+                        <div class="p-3.5 rounded-xl transition-all group flex flex-col justify-center" style="background: var(--sh-surface-2);">
                           <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #e6f4f2;">
                             <ng-icon name="lucideBookOpen" size="19" color="#0C5A60" />
                           </div>
                           <p class="text-2xl font-extrabold sh-display">{{ counters['subjects'] ?? 0 }}</p>
                           <p class="text-xs sh-muted mt-0.5">Materias activas</p>
                         </div>
-                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                        <div class="p-3.5 rounded-xl transition-all group flex flex-col justify-center" style="background: var(--sh-surface-2);">
                           <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #fff4e6;">
                             <ng-icon name="lucideClock" size="19" color="#d97706" />
                           </div>
                           <p class="text-2xl font-extrabold sh-display">{{ counters['pending'] ?? 0 }}</p>
                           <p class="text-xs sh-muted mt-0.5">Tareas pendientes</p>
                         </div>
-                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                        <div class="p-3.5 rounded-xl transition-all group flex flex-col justify-center" style="background: var(--sh-surface-2);">
                           <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #e7f6ec;">
                             <ng-icon name="lucideCheckCircle" size="19" color="#1e9f68" />
                           </div>
                           <p class="text-2xl font-extrabold sh-display">{{ counters['completed'] ?? 0 }}</p>
                           <p class="text-xs sh-muted mt-0.5">Tareas completadas</p>
                         </div>
-                        <div class="p-3.5 rounded-xl transition-all group" style="background: var(--sh-surface-2);">
+                        <div class="p-3.5 rounded-xl transition-all group flex flex-col justify-center" style="background: var(--sh-surface-2);">
                           <div class="sh-icon-tile mb-2.5 transition-transform group-hover:scale-110" style="background: #fdeaea;">
                             <ng-icon name="lucideFlame" size="19" color="#ef4444" />
                           </div>
@@ -232,7 +232,7 @@
                         <ng-icon name="lucideTrendingUp" size="16" color="var(--sh-primary)" />
                         Tu progreso
                       </h3>
-                      <div class="flex items-center gap-4">
+                      <div class="flex items-center gap-4 flex-1">
                         <div class="relative w-24 h-24 shrink-0">
                           <svg viewBox="0 0 100 100" class="w-24 h-24 -rotate-90">
                             <circle cx="50" cy="50" r="42" fill="none" stroke="var(--sh-border)" stroke-width="10" />
@@ -279,14 +279,14 @@
           class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)] gap-4 sm:gap-5 mb-5">
           @for (id of widgetRow('main'); track id) {
             @if (widgetIsVisible(id)) {
-              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0 h-full"
                 [class.cursor-grab]="customizing"
                 [class.ring-2]="customizing"
                 [class.ring-[#0C5A60]/40]="customizing"
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('clases') {
-                    <div class="sh-card sh-card-hover p-5 min-w-0">
+                    <div class="sh-card sh-card-hover p-5 min-w-0 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -295,7 +295,7 @@
                         </h3>
                         <a routerLink="/subjects" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver todas →</a>
                       </div>
-                      <div class="space-y-2.5">
+                      <div class="space-y-2.5 flex-1">
                         @if (data.upcomingClasses.length) {
                           @for (cls of data!.upcomingClasses; track $index) {
                             <div class="flex items-center gap-3 p-3 rounded-xl transition-all hover:translate-x-0.5" style="background: var(--sh-surface-2);">
@@ -308,7 +308,7 @@
                             </div>
                           }
                         } @else {
-                          <div class="py-8 text-center">
+                          <div class="flex flex-col items-center justify-center py-8 text-center h-full">
                             <p class="text-3xl mb-2">🎉</p>
                             <p class="text-sm sh-muted">No hay clases programadas para hoy</p>
                           </div>
@@ -317,7 +317,7 @@
                     </div>
                   }
                   @case ('riesgo') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
                       <h3 class="sh-section-title mb-4">
                         @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -352,14 +352,14 @@
           class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mb-5">
           @for (id of widgetRow('tasks'); track id) {
             @if (widgetIsVisible(id)) {
-              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0 h-full"
                 [class.cursor-grab]="customizing"
                 [class.ring-2]="customizing"
                 [class.ring-[#0C5A60]/40]="customizing"
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('tareas') {
-                    <div class="sh-card sh-card-hover p-5 min-w-0">
+                    <div class="sh-card sh-card-hover p-5 min-w-0 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -367,7 +367,7 @@
                         </h3>
                         <a routerLink="/subjects" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver todas →</a>
                       </div>
-                      <div class="space-y-2">
+                      <div class="space-y-2 flex-1">
                         @if (tasks.length) {
                           @for (task of tasks; track task.id) {
                             <button (click)="openTask(task)"
@@ -384,7 +384,7 @@
                             </button>
                           }
                         } @else {
-                          <div class="py-8 text-center">
+                          <div class="flex flex-col items-center justify-center py-8 text-center h-full">
                             <p class="text-3xl mb-2">🎉</p>
                             <p class="text-sm sh-muted">No hay tareas pendientes</p>
                           </div>
@@ -393,7 +393,7 @@
                     </div>
                   }
                   @case ('examenes') {
-                    <div class="sh-card sh-card-hover p-5 min-w-0">
+                    <div class="sh-card sh-card-hover p-5 min-w-0 h-full flex flex-col">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -402,7 +402,7 @@
                         </h3>
                         <a routerLink="/agenda" class="text-sm font-medium transition-colors" style="color: var(--sh-faint);">Ver agenda →</a>
                       </div>
-                      <div class="space-y-2">
+                      <div class="space-y-2 flex-1">
                         @if (upcomingExams.length) {
                           @for (exam of upcomingExams; track exam.id) {
                             <div class="flex items-center gap-3 p-3 rounded-xl transition-colors" style="background: var(--sh-surface-2);">
@@ -417,7 +417,7 @@
                             </div>
                           }
                         } @else {
-                          <div class="py-8 text-center">
+                          <div class="flex flex-col items-center justify-center py-8 text-center h-full">
                             <p class="text-3xl mb-2">🗓️</p>
                             <p class="text-sm sh-muted">No hay exámenes próximos</p>
                           </div>
@@ -426,7 +426,7 @@
                     </div>
                   }
                   @case ('metas') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
                       <h3 class="sh-section-title mb-4">
                         @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
                         Metas activas
@@ -464,14 +464,14 @@
           class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 mb-5">
           @for (id of widgetRow('social'); track id) {
             @if (widgetIsVisible(id)) {
-              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0"
+              <div cdkDrag [cdkDragDisabled]="!customizing" class="min-w-0 h-full"
                 [class.cursor-grab]="customizing"
                 [class.ring-2]="customizing"
                 [class.ring-[#0C5A60]/40]="customizing"
                 [class.rounded-2xl]="customizing">
                 @switch (id) {
                   @case ('ranking') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -493,7 +493,7 @@
                       </div>
 
                       @if (leaderboardLoading) {
-                        <div class="space-y-2">
+                        <div class="space-y-2 flex-1">
                           @for (i of [1, 2, 3, 4]; track i) { <div class="skeleton h-10 rounded-lg"></div> }
                         </div>
                       } @else if (leaderboard && leaderboardEntries().length) {
@@ -538,7 +538,7 @@
                     </div>
                   }
                   @case ('sesiones') {
-                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0">
+                    <div class="sh-card sh-card-hover p-5 flex flex-col min-w-0 h-full">
                       <div class="flex items-center justify-between mb-4">
                         <h3 class="sh-section-title">
                           @if (customizing) { <ng-icon name="lucideGripVertical" size="15" class="sh-faint" /> }
@@ -602,7 +602,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                       @if (data.recentNotes.length) {
                         @for (note of data!.recentNotes; track note.id) {
-                          <div class="sh-card sh-card-hover p-5">
+                          <div class="sh-card sh-card-hover p-5 h-full flex flex-col">
                             <div class="flex items-center gap-2 mb-2.5">
                               <div class="w-2.5 h-2.5 rounded-full" [style.background]="note.subjectColor || '#0C5A60'"></div>
                               <span class="text-xs sh-muted">{{ note.subject }}</span>
