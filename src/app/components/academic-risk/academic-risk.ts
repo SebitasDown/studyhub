@@ -44,11 +44,11 @@ export class AcademicRiskComponent implements OnInit {
   getRiskFactors(reasons: any): { label: string; score: number; max: number; pct: number; weight: string }[] {
     if (!reasons) return [];
     return [
-      { label: 'Knowledge Gaps', score: reasons.knowledgeGaps?.score ?? 0, max: reasons.knowledgeGaps?.max ?? 30, pct: this.getBarPercent(reasons.knowledgeGaps?.score ?? 0, reasons.knowledgeGaps?.max ?? 30), weight: '30%' },
+      { label: 'Brechas de conocimiento', score: reasons.knowledgeGaps?.score ?? 0, max: reasons.knowledgeGaps?.max ?? 30, pct: this.getBarPercent(reasons.knowledgeGaps?.score ?? 0, reasons.knowledgeGaps?.max ?? 30), weight: '30%' },
       { label: 'Tareas vencidas', score: reasons.overdueTasks?.score ?? 0, max: reasons.overdueTasks?.max ?? 25, pct: this.getBarPercent(reasons.overdueTasks?.score ?? 0, reasons.overdueTasks?.max ?? 25), weight: '25%' },
       { label: 'Confianza IA', score: reasons.confidenceIA?.score ?? 0, max: reasons.confidenceIA?.max ?? 20, pct: this.getBarPercent(reasons.confidenceIA?.score ?? 0, reasons.confidenceIA?.max ?? 20), weight: '20%' },
-      { label: 'Progreso roadmaps', score: reasons.roadmaps?.score ?? 0, max: reasons.roadmaps?.max ?? 15, pct: this.getBarPercent(reasons.roadmaps?.score ?? 0, reasons.roadmaps?.max ?? 15), weight: '15%' },
-      { label: 'Engagement', score: reasons.engagement?.score ?? 0, max: reasons.engagement?.max ?? 10, pct: this.getBarPercent(reasons.engagement?.score ?? 0, reasons.engagement?.max ?? 10), weight: '10%' },
+      { label: 'Progreso de rutas', score: reasons.roadmaps?.score ?? 0, max: reasons.roadmaps?.max ?? 15, pct: this.getBarPercent(reasons.roadmaps?.score ?? 0, reasons.roadmaps?.max ?? 15), weight: '15%' },
+      { label: 'Participación', score: reasons.engagement?.score ?? 0, max: reasons.engagement?.max ?? 10, pct: this.getBarPercent(reasons.engagement?.score ?? 0, reasons.engagement?.max ?? 10), weight: '10%' },
     ];
   }
 }

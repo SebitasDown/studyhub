@@ -15,7 +15,7 @@ export class FeaturesComponent {
     {
       icon: 'lucideBot',
       title: 'Profesor IA personalizado',
-      desc: 'Chat ilimitado con tutores por materia. Detecta tus gaps y se adapta a tu estilo.'
+      desc: 'Chat ilimitado con tutores por materia. Detecta tus brechas de conocimiento y se adapta a tu estilo.'
     },
     {
       icon: 'lucideTriangleAlert',
@@ -24,22 +24,22 @@ export class FeaturesComponent {
     },
     {
       icon: 'lucideFileText',
-      title: 'CV builder + analizador',
+      title: 'Creador de CV + analizador',
       desc: 'Construye tu CV, exporta a PDF y deja que la IA lo analice.'
     },
     {
       icon: 'lucideBriefcase',
-      title: 'Bolsa de empleo con match IA',
-      desc: 'Cada oferta tiene tu % de coincidencia y skills faltantes.'
+      title: 'Bolsa de empleo con coincidencia IA',
+      desc: 'Cada oferta tiene tu % de coincidencia y habilidades faltantes.'
     },
     {
       icon: 'lucideUsers',
       title: 'Grupos de estudio',
-      desc: 'Recomendaciones basadas en tus gaps, metas y materias.'
+      desc: 'Recomendaciones basadas en tus brechas de conocimiento, metas y materias.'
     },
     {
       icon: 'lucideSparkles',
-      title: 'Roadmaps generados por IA',
+      title: 'Rutas generadas por IA',
       desc: 'Camino paso a paso hacia tu rol soñado.'
     }
   ];

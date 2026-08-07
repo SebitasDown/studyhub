@@ -248,8 +248,9 @@ export class ProfesorIaComponent implements OnInit {
       },
     ).subscribe({
       next: (res) => {
+        const finalId = 'resp-' + Date.now();
         this.messages.update(arr => arr.map(m =>
-          m._id === streamId ? { ...m, _id: 'resp-' + Date.now() } : m
+          m._id === streamId ? { ...m, _id: finalId } : m
         ));
         this.streamingMsgId.set(null);
         if (!this.selectedConversationId() && res.conversationId) {
@@ -258,18 +259,24 @@ export class ProfesorIaComponent implements OnInit {
         this.sending.set(false);
         this.refreshConversations();
         setTimeout(() => this.scrollToBottom(true), 50);
+        // Reconciliar con la respuesta completa que el backend ya persistió, por si
+        // el stream se cortó a mitad (timeouts de Vercel, red, saltos de línea, etc.).
+        this.reconcileAssistantMessage(finalId, res.conversationId || this.selectedConversationId());
       },
       error: () => {
         this.streamingMsgId.set(null);
-        // Si ya llegó algo del stream, conservarlo; si no, reintentar con el endpoint normal
+        // Si ya llegó algo del stream, conservarlo y reconciliar; si no, reintentar
+        // con el endpoint normal.
         const streamed = this.messages().find(m => m._id === streamId)?.content;
         if (streamed) {
+          const partialId = 'resp-' + Date.now();
           this.messages.update(arr => arr.map(m =>
-            m._id === streamId ? { ...m, _id: 'resp-' + Date.now() } : m
+            m._id === streamId ? { ...m, _id: partialId } : m
           ));
           this.sending.set(false);
           this.refreshConversations();
           setTimeout(() => this.scrollToBottom(true), 50);
+          this.reconcileAssistantMessage(partialId, this.selectedConversationId());
           return;
         }
         this.messages.update(arr => arr.filter(m => m._id !== streamId));
@@ -299,6 +306,39 @@ export class ProfesorIaComponent implements OnInit {
             this.sending.set(false);
           },
         });
+      },
+    });
+  }
+
+  /**
+   * El backend persiste el mensaje completo del asistente al finalizar el stream.
+   * Si el stream se cortó (timeout, red, formato), esto reemplaza el mensaje local
+   * por la versión completa del servidor para que no haya que recargar la página.
+   */
+  private reconcileAssistantMessage(streamId: string, conversationId: string | null): void {
+    if (!conversationId) return;
+    this.ai.getConversation(conversationId, true).subscribe({
+      next: (res) => {
+        // Empareja por POSICIÓN (mismo índice entre los mensajes 'assistant' locales
+        // y los del servidor) para no pisar la respuesta de un mensaje posterior si
+        // el usuario ya envió otro mientras el GET está en vuelo.
+        const localIdx = this.messages()
+          .filter(m => m.role === 'assistant')
+          .findIndex(m => m._id === streamId);
+        if (localIdx < 0) return;
+        const serverAssistants = (res.messages || []).filter(m => m.role === 'assistant');
+        const real = serverAssistants[localIdx];
+        if (!real || !real.content) return;
+        const local = this.messages().find(m => m._id === streamId);
+        // Solo reemplaza si el servidor tiene más contenido (stream cortado).
+        if (!local || real.content.length <= local.content.length) return;
+        this.messages.update(arr => arr.map(m =>
+          m._id === streamId ? { ...m, content: real.content } : m
+        ));
+        setTimeout(() => this.scrollToBottom(true), 50);
+      },
+      error: () => {
+        /* no hay forma de recuperar; se deja lo que llegó */
       },
     });
   }

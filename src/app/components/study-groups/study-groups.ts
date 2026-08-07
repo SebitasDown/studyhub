@@ -88,9 +88,9 @@ export class StudyGroups implements OnInit {
     });
     const uniqueReasons = Array.from(reasons);
     if (uniqueReasons.length > 0) {
-      return `Basados en tus gaps y metas: ${uniqueReasons.slice(0, 2).join(', ')}.`;
+      return `Basados en tus brechas de conocimiento y metas: ${uniqueReasons.slice(0, 2).join(', ')}.`;
     }
-    return 'Recomendaciones IA basadas en tus gaps y materias.';
+    return 'Recomendaciones IA basadas en tus brechas de conocimiento y materias.';
   }
 
   showCreateModal = false;

@@ -64,6 +64,25 @@ export interface DashboardData {
   completionRate: number;
 }
 
+export interface LeaderboardEntry {
+  userId: number;
+  nombre: string;
+  apellido: string;
+  foto: string | null;
+  currentStreak?: number;
+  bestStreak?: number;
+  totalMinutes?: number;
+}
+
+export interface LeaderboardData {
+  byStreak: LeaderboardEntry[];
+  byHours: LeaderboardEntry[];
+  me: {
+    rankByStreak: number | null;
+    rankByHours: number | null;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
@@ -80,5 +99,9 @@ export class DashboardService {
 
   invalidateCache(): void {
     AppCache.invalidate(CACHE_KEY);
+  }
+
+  getLeaderboard(): Observable<LeaderboardData> {
+    return this.http.get<LeaderboardData>(`${'https://study-hub-backend-sigma.vercel.app'}/dashboard/leaderboard`);
   }
 }

@@ -345,7 +345,7 @@
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <ng-icon name="lucideSparkles" size="18" class="text-yellow-400" />
-              <span class="text-white font-semibold text-sm">Match IA</span>
+              <span class="text-white font-semibold text-sm">Coincidencia IA</span>
             </div>
             <span class="text-[10px] text-white/40 font-medium">Basado en perfil académico + CV</span>
           </div>
@@ -358,7 +358,7 @@
             <div class="flex items-center gap-6">
               <div class="text-center">
                 <div class="text-4xl font-bold" style="color: #fbbf24;">{{ match.matchScore }}%</div>
-                <div class="text-xs text-white/70 mt-1">Match</div>
+                <div class="text-xs text-white/70 mt-1">Coincidencia</div>
               </div>
               <div class="flex-1">
                 <div class="w-full h-3 rounded-full bg-white/20 overflow-hidden">
@@ -372,10 +372,10 @@
 
             <div class="grid grid-cols-2 gap-4 mt-4">
               <div>
-                <p class="text-xs text-white/70 font-medium mb-2">Skills que tienes</p>
+                <p class="text-xs text-white/70 font-medium mb-2">Habilidades que tienes</p>
                 <div class="flex flex-wrap gap-1.5">
                   @if (match.strengths.length === 0) {
-                    <span class="px-2.5 py-1 rounded text-xs" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">Sin skills registrados</span>
+                    <span class="px-2.5 py-1 rounded text-xs" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">Sin habilidades registradas</span>
                   }
                   @for (s of match.strengths; track s) {
                     <span class="px-2.5 py-1 rounded-full text-xs flex items-center gap-1" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">
@@ -386,7 +386,7 @@
                 </div>
               </div>
               <div>
-                <p class="text-xs text-white/70 font-medium mb-2">Skills faltantes</p>
+                <p class="text-xs text-white/70 font-medium mb-2">Habilidades faltantes</p>
                 <div class="flex flex-wrap gap-1.5">
                   @if (match.missingSkills.length === 0) {
                     <span class="px-2.5 py-1 rounded text-xs" style="background: rgba(5, 150, 105, 0.15); color: #34d399;">¡Completas!</span>
