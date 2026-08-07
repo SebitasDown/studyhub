@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
 import { GamificationService } from '../../services/gamification.service';
 import { EventBusService } from '../../services/event-bus.service';
+import { UiPreferencesService } from '../../services/ui-preferences.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -50,6 +51,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
   protected profileService = inject(ProfileService);
   protected gamificationService = inject(GamificationService);
+  protected uiPreferences = inject(UiPreferencesService);
   private events = inject(EventBusService);
   private platformId = inject(PLATFORM_ID);
   private unsubscribers: (() => void)[] = [];
