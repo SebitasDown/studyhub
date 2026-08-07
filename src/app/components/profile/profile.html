@@ -197,6 +197,71 @@
 
         @if (activeTab === 'ajustes') {
           <div class="space-y-8">
+
+            <!-- Sandbox de programación -->
+            <section class="rounded-2xl border p-5" style="border-color: var(--sh-border); background: linear-gradient(135deg, #f0fdfa, #ffffff);">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                  <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" style="background: #0C5A60;">🧪</div>
+                  <div>
+                    <h4 class="text-sm font-bold text-gray-800">Sandbox de programación</h4>
+                    <p class="text-xs text-gray-500 mt-1 max-w-md leading-relaxed">Activa el módulo <b>Laboratorio</b>: un editor para escribir y ejecutar código en Java, Python, JavaScript, HTML/CSS y SQL. Pensado para estudiantes de ingeniería y programación.</p>
+                  </div>
+                </div>
+                <button (click)="uiPreferences.setSandbox(!uiPreferences.preferences().sandboxEnabled)"
+                  class="relative w-12 h-6 rounded-full transition-colors cursor-pointer shrink-0"
+                  [class]="uiPreferences.preferences().sandboxEnabled ? 'bg-[#0C5A60]' : 'bg-gray-300'"
+                  role="switch"
+                  [attr.aria-checked]="uiPreferences.preferences().sandboxEnabled">
+                  <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+                    [style.left.px]="uiPreferences.preferences().sandboxEnabled ? 26 : 2"></span>
+                </button>
+              </div>
+              @if (uiPreferences.preferences().sandboxEnabled) {
+                <p class="text-[11px] font-semibold mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full" style="background: #e6f7f5; color: #0C5A60;">
+                  ✓ Laboratorio visible en el menú
+                </p>
+              }
+            </section>
+
+            <!-- Módulos visibles -->
+            <section>
+              <h4 class="text-sm font-bold text-gray-700 mb-1">Módulos del menú</h4>
+              <p class="text-xs text-gray-400 mb-4">Elige qué secciones quieres ver en el menú lateral. Las marcadas como no disponibles están desactivadas y no pueden activarse.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                @for (m of modules; track m.id) {
+                  <button (click)="m.forced ? null : uiPreferences.toggleModule(m.id)"
+                    [disabled]="m.forced"
+                    class="flex items-center gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer"
+                    [class]="m.forced
+                      ? 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed'
+                      : (uiPreferences.isModuleVisible(m.id)
+                          ? 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                          : 'bg-gray-50 border-gray-100')">
+                    <span class="text-lg shrink-0">{{ m.icon }}</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold" [class]="m.forced ? 'text-gray-400' : (uiPreferences.isModuleVisible(m.id) ? 'text-gray-800' : 'text-gray-400')">
+                        {{ m.name }}
+                      </p>
+                      <p class="text-[11px] text-gray-400 truncate">{{ m.description }}</p>
+                    </div>
+                    @if (m.forced) {
+                      <span class="text-xs shrink-0">🔒</span>
+                    } @else {
+                      <span class="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        [class]="uiPreferences.isModuleVisible(m.id) ? 'bg-[#0C5A60]' : 'bg-gray-300'">
+                        <span class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all"
+                          [style.left.px]="uiPreferences.isModuleVisible(m.id) ? 18 : 2"></span>
+                      </span>
+                    }
+                  </button>
+                }
+              </div>
+              <p class="text-[11px] text-gray-400 mt-3">Si ocultas el módulo Laboratorio y lo vuelves a necesitar, actívalo de nuevo aquí.</p>
+            </section>
+
+            <hr style="border-color: var(--sh-border);" />
+
             <div>
               <h3 class="font-bold text-gray-800">Diseño y preferencias</h3>
               <p class="text-sm text-gray-500 mt-1">Tus elecciones se guardan en este navegador y se aplican automáticamente al volver.</p>

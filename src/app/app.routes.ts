@@ -56,4 +56,9 @@ export const routes: Routes = [
   { path: 'notificaciones', component: NotificationsComponent, canActivate: [authGuard] },
   { path: 'estudio', component: StudyTimerComponent, canActivate: [authGuard] },
   { path: 'agenda', component: AgendaComponent, canActivate: [authGuard] },
+  {
+    path: 'laboratorio',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/laboratorio/laboratorio.component').then((m) => m.LaboratorioComponent),
+  },
 ];

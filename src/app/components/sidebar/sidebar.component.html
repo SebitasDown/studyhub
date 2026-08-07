@@ -13,6 +13,7 @@
 
   <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
     <!-- Dashboard -->
+    @if (uiPreferences.isModuleVisible('dashboard')) {
     <a routerLink="/dashboard"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'dashboard' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -22,8 +23,10 @@
       </svg>
       Panel
     </a>
+    }
 
     <!-- Materias -->
+    @if (uiPreferences.isModuleVisible('materias')) {
     <a routerLink="/subjects"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'subjects' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -32,8 +35,10 @@
       </svg>
       Materias
     </a>
+    }
 
     <!-- Estudio (Pomodoro) -->
+    @if (uiPreferences.isModuleVisible('estudio')) {
     <a routerLink="/estudio"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'estudio' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -42,8 +47,10 @@
       </svg>
       Estudio
     </a>
+    }
 
     <!-- Agenda -->
+    @if (uiPreferences.isModuleVisible('agenda')) {
     <a routerLink="/agenda"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'agenda' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -52,8 +59,10 @@
       </svg>
       Agenda
     </a>
+    }
 
     <!-- Profesor IA -->
+    @if (uiPreferences.isModuleVisible('profesor-ia')) {
     <a routerLink="/profesor-ia"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'profesor-ia' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -62,8 +71,23 @@
       </svg>
       Profesor IA
     </a>
+    }
+
+    <!-- Laboratorio / Sandbox -->
+    @if (uiPreferences.isModuleVisible('laboratorio')) {
+    <a routerLink="/laboratorio"
+      class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
+      [class]="activeRoute === 'laboratorio' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 shrink-0">
+        <path d="M10 2v7.31l-5.91 9.85A2 2 0 0 0 5.76 22h12.48a2 2 0 0 0 1.67-2.84L14 9.31V2"/>
+        <path d="M8.5 2h7"/><path d="M7 15h10"/>
+      </svg>
+      Laboratorio
+    </a>
+    }
 
     <!-- Mi CV -->
+    @if (uiPreferences.isModuleVisible('mi-cv')) {
     <a routerLink="/mi-cv"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'mi-cv' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -74,8 +98,10 @@
       </svg>
       Mi CV
     </a>
+    }
 
     <!-- Roadmaps -->
+    @if (uiPreferences.isModuleVisible('roadmaps')) {
     <a routerLink="/roadmaps"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'roadmaps' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -84,20 +110,12 @@
       </svg>
       Rutas
     </a>
+    }
 
-    <!-- Grupos -->
-    <a routerLink="/grupos"
-      class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
-      [class]="activeRoute === 'grupos' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 shrink-0">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      Grupos
-    </a>
+    <!-- Grupos: módulo desactivado forzosamente (no se muestra) -->
 
     <!-- Riesgo académico -->
+    @if (uiPreferences.isModuleVisible('riesgo')) {
     <a routerLink="/riesgo"
       class="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
       [class]="activeRoute === 'riesgo' ? 'bg-[#F4B960] text-[#021C22]' : 'text-gray-300 hover:text-white'">
@@ -107,6 +125,7 @@
       </svg>
       Riesgo académico
     </a>
+    }
 
     <!-- Perfil -->
     <a routerLink="/perfil"

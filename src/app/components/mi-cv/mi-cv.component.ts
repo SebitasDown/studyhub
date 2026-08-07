@@ -108,7 +108,8 @@ export class MiCvComponent implements OnInit {
     this.save();
   }
 
-  save(): void {
+  /** Guarda el CV y resuelve cuando el backend confirmó (o rechaza en error). */
+  save(): Promise<void> {
     this.saving.set(true);
     const raw = this.form();
     const body: Record<string, unknown> = {
@@ -132,25 +133,29 @@ export class MiCvComponent implements OnInit {
     const obs = existing
       ? this.resumeService.updateResume(body as unknown as Partial<Resume>)
       : this.resumeService.createResume(body as unknown as Partial<Resume>);
-    obs.subscribe({
-      next: (res) => {
-        this.saving.set(false);
-        if (res) {
-          // Keep form bound with updated values
-          this.form.update(f => ({
-            ...f,
-            experiences: res.experiences || [],
-            educations: res.educations || [],
-            projects: res.projects || [],
-            certificates: res.certificates || [],
-            languages: res.languages || [],
-          }));
-        }
-      },
-      error: (err) => {
-        console.error('Error al guardar CV', err);
-        this.saving.set(false);
-      },
+    return new Promise<void>((resolve, reject) => {
+      obs.subscribe({
+        next: (res) => {
+          this.saving.set(false);
+          if (res) {
+            // Mantener el form sincronizado con los valores devueltos.
+            this.form.update(f => ({
+              ...f,
+              experiences: res.experiences || [],
+              educations: res.educations || [],
+              projects: res.projects || [],
+              certificates: res.certificates || [],
+              languages: res.languages || [],
+            }));
+          }
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error al guardar CV', err);
+          this.saving.set(false);
+          reject(err);
+        },
+      });
     });
   }
 
@@ -291,23 +296,69 @@ export class MiCvComponent implements OnInit {
   }
 
   async downloadPdf(): Promise<void> {
-    const resume = this.resumeService.resume();
-    if (!resume || this.downloading()) return;
-
+    if (this.downloading()) return;
     this.downloading.set(true);
     try {
+      const hasContent = !!(this.form().titulo || this.form().resumen ||
+        this.form().experiences?.length || this.form().educations?.length ||
+        this.form().projects?.length || this.form().certificates?.length ||
+        this.form().languages?.length);
+      if (!hasContent) {
+        this.showToast('Agrega contenido a tu CV antes de descargar el PDF.', 'error');
+        return;
+      }
+
+      // 1) Guardar SIEMPRE antes de pedir el PDF para que el backend genere
+      //    el documento con la última versión del formulario.
+      await this.save();
+      const resume = this.resumeService.resume();
+      if (!resume) {
+        this.showToast('No se pudo guardar tu CV antes de generar el PDF.', 'error');
+        return;
+      }
+
+      // 2) Resolver el userId de forma robusta (resume, perfil o sesión local).
+      let userId = resume.userId;
+      if (!userId) {
+        const info = this.profileService.personalInfo();
+        userId = info?.id;
+      }
+      if (!userId) {
+        const raw = localStorage.getItem('user');
+        if (raw) {
+          try { userId = JSON.parse(raw)?.id; } catch { /* ignorar */ }
+        }
+      }
+      if (!userId) {
+        this.showToast('No se encontró tu usuario para generar el PDF.', 'error');
+        return;
+      }
+
       const token = localStorage.getItem('access_token') ?? '';
       const res = await fetch(
-        `${'https://study-hub-backend-sigma.vercel.app'}/resume/${resume.userId}/pdf`,
+        `${'https://study-hub-backend-sigma.vercel.app'}/resume/${userId}/pdf`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message ?? `Error ${res.status}`);
+        const contentType = res.headers.get('content-type') || '';
+        let message = `Error ${res.status}`;
+        if (contentType.includes('application/json')) {
+          try {
+            const err = await res.json();
+            message = err?.message || message;
+          } catch { /* cuerpo no parseable */ }
+        }
+        throw new Error(message);
       }
 
       const blob = await res.blob();
+      // El backend debe responder un PDF (algunos servidores usan octet-stream).
+      const isPdf = blob.type.includes('pdf') || blob.type.includes('octet-stream');
+      if (!isPdf && blob.size === 0) {
+        throw new Error('El servidor no devolvió un PDF válido.');
+      }
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -315,10 +366,11 @@ export class MiCvComponent implements OnInit {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      this.showToast('PDF generado correctamente', 'success');
     } catch (err) {
       console.error('Error al descargar PDF:', err);
-      this.showToast('No se pudo generar el PDF. Asegúrate de tener contenido en tu CV.', 'error');
+      this.showToast(err instanceof Error && err.message ? err.message : 'No se pudo generar el PDF. Intenta de nuevo.', 'error');
     } finally {
       this.downloading.set(false);
     }
