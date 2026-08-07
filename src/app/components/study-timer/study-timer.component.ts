@@ -3,19 +3,22 @@ import { CommonModule } from '@angular/common';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowRight,
+  lucideBell,
   lucideBookOpen,
   lucideBrain,
   lucideCheck,
   lucideClock,
+  lucideHistory,
   lucidePause,
   lucidePlay,
   lucidePlus,
   lucideRotateCcw,
   lucideTimer,
+  lucideTrash2,
   lucideZap,
 } from '@ng-icons/lucide';
 import { RouterLink } from '@angular/router';
-import { StudyTimerService } from '../../services/study-timer.service';
+import { StudyTimerService, StudySessionRecord } from '../../services/study-timer.service';
 import { SubjectsService, SubjectSummary } from '../../services/subjects.service';
 import { EventBusService } from '../../services/event-bus.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -47,15 +50,18 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
   providers: [
     provideIcons({
       lucideArrowRight,
+      lucideBell,
       lucideBookOpen,
       lucideBrain,
       lucideCheck,
       lucideClock,
+      lucideHistory,
       lucidePause,
       lucidePlay,
       lucidePlus,
       lucideRotateCcw,
       lucideTimer,
+      lucideTrash2,
       lucideZap,
     }),
   ],
@@ -70,6 +76,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   statsLoading = signal(true);
   subjects = signal<SubjectSummary[]>([]);
   subjectsLoading = signal(true);
+  sessions = signal<StudySessionRecord[]>([]);
 
   selectedSubject = signal<number | null>(null);
   selectedTechnique = signal('POMODORO_25_5');
@@ -90,6 +97,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
 
   private timerInterval: any;
   private toastTimeout: any;
+  private audioCtx: AudioContext | null = null;
   private elapsedBase = 0;
   private startedAt: number | null = null;
   private totalSeconds = 25 * 60;
@@ -98,6 +106,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     this.restoreTimer();
     this.loadStats();
     this.loadSubjects();
+    this.sessions.set(this.timerService.getHistory());
   }
 
   ngOnDestroy() {
@@ -195,6 +204,10 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     this.persistTimer();
     this.timerInterval = setInterval(() => this.tick(), 1000);
     this.tick();
+    // Aquí (gesto del usuario) se crea/desbloquea el AudioContext para
+    // cumplir con la política de autoplay y se pide permiso de notificación.
+    this.getAudioContext();
+    void this.requestNotificationPermission();
   }
 
   private pauseTimer() {
@@ -247,8 +260,11 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.isSaving.set(false);
           this.showToast(`¡Sesión completada! Ganaste ${res.xpEarned} XP 🎉`, 'success');
+          this.playCompletionSound();
+          this.showBrowserNotification(res.xpEarned);
           this.events.emit('gamification:updated');
           this.loadStats();
+          this.recordSession(res.xpEarned, durationMinutes);
           this.resetState();
         },
         error: () => {
@@ -325,6 +341,154 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
       this.tick();
     } catch {
       this.clearPersisted();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Session history (local)
+  // ---------------------------------------------------------------------------
+
+  private recordSession(xpEarned: number, durationMinutes: number) {
+    const record: StudySessionRecord = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      date: new Date().toISOString(),
+      durationMinutes,
+      technique: this.selectedTechnique(),
+      subjectId: this.selectedSubject(),
+      xpEarned,
+    };
+    this.sessions.set(this.timerService.addHistoryRecord(record));
+  }
+
+  clearHistory() {
+    if (!confirm('¿Borrar todo el historial de estudio? Esta acción no se puede deshacer.')) return;
+    this.timerService.clearHistory();
+    this.sessions.set([]);
+    this.showToast('Historial borrado.', 'success');
+  }
+
+  techniqueName(id: string): string {
+    return this.techniques.find((t) => t.id === id)?.name ?? 'Sesión de estudio';
+  }
+
+  techniqueColor(id: string): string {
+    return this.techniques.find((t) => t.id === id)?.color ?? '#64748b';
+  }
+
+  techniqueIcon(id: string): string {
+    return this.techniques.find((t) => t.id === id)?.icon ?? 'lucideClock';
+  }
+
+  subjectName(id: number | null): string {
+    if (id === null) return '';
+    return this.subjects().find((s) => s.id === id)?.nombre ?? '';
+  }
+
+  formatMinutes(min: number): string {
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m === 0 ? `${h} h` : `${h} h ${m} min`;
+  }
+
+  private dateLabel(iso: string): string {
+    const d = new Date(iso);
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diffDays = Math.round((startOfToday - startOfDay) / 86400000);
+    if (diffDays === 0) return 'Hoy';
+    if (diffDays === 1) return 'Ayer';
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+    if (d.getFullYear() !== today.getFullYear()) options.year = 'numeric';
+    return d.toLocaleDateString('es-ES', options);
+  }
+
+  timeLabel(iso: string): string {
+    return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  get groupedSessions(): { label: string; items: StudySessionRecord[] }[] {
+    const map = new Map<string, StudySessionRecord[]>();
+    for (const s of this.sessions()) {
+      const label = this.dateLabel(s.date);
+      if (!map.has(label)) map.set(label, []);
+      map.get(label)!.push(s);
+    }
+    return Array.from(map, ([label, items]) => ({ label, items }));
+  }
+
+  get totalSessions(): number {
+    return this.sessions().length;
+  }
+
+  get totalMinutes(): number {
+    return this.sessions().reduce((acc, s) => acc + s.durationMinutes, 0);
+  }
+
+  get totalXp(): number {
+    return this.sessions().reduce((acc, s) => acc + s.xpEarned, 0);
+  }
+
+  // ---------------------------------------------------------------------------
+  // End-of-session alerts: chime (Web Audio) + browser notification
+  // ---------------------------------------------------------------------------
+
+  private getAudioContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    const Ctor = window.AudioContext ?? (window as any).webkitAudioContext;
+    if (!Ctor) return null;
+    if (!this.audioCtx) this.audioCtx = new Ctor();
+    // El AudioContext se crea/reanuda dentro de un gesto del usuario
+    // (inicio de sesión) para cumplir con la política de autoplay.
+    if (this.audioCtx.state === 'suspended') void this.audioCtx.resume();
+    return this.audioCtx;
+  }
+
+  private playCompletionSound() {
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99]; // C5 · E5 · G5 (acorde mayor)
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + i * 0.18;
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 1.2);
+    });
+  }
+
+  private async requestNotificationPermission(): Promise<void> {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'default') return;
+    try {
+      await Notification.requestPermission();
+    } catch {
+      /* permiso no disponible o rechazado */
+    }
+  }
+
+  private showBrowserNotification(xp: number) {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    try {
+      const n = new Notification('¡Sesión de estudio completada! 🎉', {
+        body: `Terminaste tu sesión y ganaste ${xp} XP. ¡Sigue así! 💪`,
+        tag: 'study-session-complete',
+      });
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
+    } catch {
+      /* algunos navegadores requieren service worker para notificaciones */
     }
   }
 
