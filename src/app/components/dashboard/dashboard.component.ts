@@ -7,13 +7,14 @@ import {
   lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame,
   lucideAlarmClock, lucideCalendar, lucideMap, lucideUsers, lucideBriefcase,
   lucideHandshake, lucideZap, lucideFileText, lucideTrophy, lucideBell,
-  lucideChevronRight,
+  lucideChevronRight, lucideTimer, lucideBrain,
 } from '@ng-icons/lucide';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardData } from '../../services/dashboard.service';
 import { EventBusService } from '../../services/event-bus.service';
 import { CalendarService, CalendarEvent } from '../../services/calendar.service';
 import { NotificationsService } from '../../services/notifications.service';
+import { StudyTimerService, StudySessionRecord, STUDY_TECHNIQUES } from '../../services/study-timer.service';
 
 interface TaskItem {
   id: number;
@@ -33,7 +34,7 @@ interface TaskItem {
     lucideBookOpen, lucideClock, lucideCheckCircle, lucideFlame,
     lucideAlarmClock, lucideCalendar, lucideMap, lucideUsers, lucideBriefcase,
     lucideHandshake, lucideZap, lucideFileText, lucideTrophy, lucideBell,
-    lucideChevronRight,
+    lucideChevronRight, lucideTimer, lucideBrain,
   })],
   templateUrl: './dashboard.component.html',
   styles: [`:host { display: contents; }`],
@@ -46,6 +47,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private dashboard = inject(DashboardService);
   private events = inject(EventBusService);
   private calendar = inject(CalendarService);
+  private studyTimer = inject(StudyTimerService);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private unsubscribers: (() => void)[] = [];
@@ -67,9 +69,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   tasks: TaskItem[] = [];
   riskBarClass = 'bg-gray-200';
   upcomingExams: CalendarEvent[] = [];
+  recentSessions: StudySessionRecord[] = [];
 
   ngOnInit(): void {
     this.loadData();
+    this.loadRecentSessions();
 
     if (isPlatformBrowser(this.platformId)) {
       this.notifService.getAll().subscribe();
@@ -93,6 +97,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.events.on(type, () => this.loadData(true))
       );
     }
+
+    // Una sesión de estudio registrada refresca solo el historial local.
+    this.unsubscribers.push(
+      this.events.on('study:session', () => this.loadRecentSessions())
+    );
   }
 
   ngOnDestroy(): void {
@@ -165,6 +174,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const num = parseInt(days);
     if (num <= 3) return 'bg-amber-100 text-amber-700';
     return 'bg-gray-100 text-gray-500';
+  }
+
+  private loadRecentSessions(): void {
+    // getSessions ya hace fallback a la caché local en caso de error.
+    this.studyTimer.getSessions().subscribe((records) => {
+      this.recentSessions = records.slice(0, 5);
+      this.cdr.markForCheck();
+    });
+  }
+
+  techName(id: string): string {
+    return STUDY_TECHNIQUES.find((t) => t.id === id)?.name ?? 'Sesión de estudio';
+  }
+
+  techColor(id: string): string {
+    return STUDY_TECHNIQUES.find((t) => t.id === id)?.color ?? '#64748b';
+  }
+
+  techIcon(id: string): string {
+    return STUDY_TECHNIQUES.find((t) => t.id === id)?.icon ?? 'lucideClock';
+  }
+
+  fmtMinutes(min: number): string {
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m === 0 ? `${h} h` : `${h} h ${m} min`;
+  }
+
+  sessionTimeLabel(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ' · ' +
+      d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   }
 
   private computeRiskClass(res: DashboardData): string {
