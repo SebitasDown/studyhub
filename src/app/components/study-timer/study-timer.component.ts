@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowRight,
+  lucideBarChart3,
   lucideBell,
   lucideBookOpen,
   lucideBrain,
+  lucideCalendarDays,
   lucideCheck,
   lucideClock,
   lucideHistory,
@@ -18,19 +20,10 @@ import {
   lucideZap,
 } from '@ng-icons/lucide';
 import { RouterLink } from '@angular/router';
-import { StudyTimerService, StudySessionRecord } from '../../services/study-timer.service';
+import { StudyTimerService, StudySessionRecord, StudyTechnique, STUDY_TECHNIQUES } from '../../services/study-timer.service';
 import { SubjectsService, SubjectSummary } from '../../services/subjects.service';
 import { EventBusService } from '../../services/event-bus.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-
-interface Technique {
-  id: string;
-  name: string;
-  minutes: number;
-  color: string;
-  icon: string;
-  description: string;
-}
 
 interface PersistedTimer {
   startedAt: number;
@@ -50,9 +43,11 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
   providers: [
     provideIcons({
       lucideArrowRight,
+      lucideBarChart3,
       lucideBell,
       lucideBookOpen,
       lucideBrain,
+      lucideCalendarDays,
       lucideCheck,
       lucideClock,
       lucideHistory,
@@ -87,11 +82,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
 
   toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  readonly techniques: Technique[] = [
-    { id: 'POMODORO_25_5', name: 'Pomodoro 25/5', minutes: 25, color: '#F4B960', icon: 'lucideTimer', description: '25 min de foco + 5 de descanso' },
-    { id: 'POMODORO_50_10', name: 'Pomodoro 50/10', minutes: 50, color: '#0C5A60', icon: 'lucideClock', description: '50 min de foco + 10 de descanso' },
-    { id: 'DEEP_BLOCK_90', name: 'Bloque profundo', minutes: 90, color: '#7C3AED', icon: 'lucideBrain', description: '90 min para tareas que exigen concentración' },
-  ];
+  readonly techniques: StudyTechnique[] = STUDY_TECHNIQUES;
 
   readonly ringCircumference = RING_CIRCUMFERENCE;
 
@@ -106,7 +97,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     this.restoreTimer();
     this.loadStats();
     this.loadSubjects();
-    this.sessions.set(this.timerService.getHistory());
+    this.loadHistory();
   }
 
   ngOnDestroy() {
@@ -119,6 +110,11 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------
   // Data loading
   // ---------------------------------------------------------------------------
+
+  private loadHistory() {
+    // getSessions ya hace fallback a la caché local en caso de error.
+    this.timerService.getSessions().subscribe((records) => this.sessions.set(records));
+  }
 
   private loadStats() {
     this.timerService.getStats().subscribe({
@@ -144,7 +140,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   // Timer state (elapsed-time based, so stats are never inflated)
   // ---------------------------------------------------------------------------
 
-  get currentTech(): Technique {
+  get currentTech(): StudyTechnique {
     return this.techniques.find((t) => t.id === this.selectedTechnique())!;
   }
 
@@ -358,13 +354,18 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
       xpEarned,
     };
     this.sessions.set(this.timerService.addHistoryRecord(record));
+    this.events.emit('study:session');
   }
 
   clearHistory() {
     if (!confirm('¿Borrar todo el historial de estudio? Esta acción no se puede deshacer.')) return;
-    this.timerService.clearHistory();
-    this.sessions.set([]);
-    this.showToast('Historial borrado.', 'success');
+    this.timerService.clearHistory().subscribe({
+      next: () => {
+        this.sessions.set([]);
+        this.showToast('Historial borrado.', 'success');
+      },
+      error: () => this.showToast('No se pudo borrar el historial. Inténtalo de nuevo.', 'error'),
+    });
   }
 
   techniqueName(id: string): string {
@@ -416,6 +417,50 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
       map.get(label)!.push(s);
     }
     return Array.from(map, ([label, items]) => ({ label, items }));
+  }
+
+  get weekBars(): { label: string; minutes: number; pct: number; isToday: boolean }[] {
+    const byDay = new Map<string, number>();
+    for (const s of this.sessions()) {
+      const d = new Date(s.date);
+      if (isNaN(d.getTime())) continue;
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      byDay.set(key, (byDay.get(key) ?? 0) + s.durationMinutes);
+    }
+
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    const bars: { label: string; minutes: number; pct: number; isToday: boolean }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      bars.push({
+        label: d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', ''),
+        minutes: byDay.get(key) ?? 0,
+        pct: 0,
+        isToday: key === todayKey,
+      });
+    }
+    const max = Math.max(...bars.map((b) => b.minutes), 1);
+    for (const b of bars) {
+      b.pct = b.minutes > 0 ? Math.max(8, Math.round((b.minutes / max) * 100)) : 0;
+    }
+    return bars;
+  }
+
+  get weekStats(): { sessions: number; minutes: number; xp: number } {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    let sessions = 0;
+    let minutes = 0;
+    let xp = 0;
+    for (const s of this.sessions()) {
+      if (new Date(s.date).getTime() >= weekAgo) {
+        sessions++;
+        minutes += s.durationMinutes;
+        xp += s.xpEarned;
+      }
+    }
+    return { sessions, minutes, xp };
   }
 
   get totalSessions(): number {

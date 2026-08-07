@@ -212,7 +212,49 @@
             <p class="text-sm text-gray-400 max-w-sm">Aún no hay sesiones registradas. Completa tu primera sesión de estudio para ver tu historial.</p>
           </div>
         } @else {
-          <!-- Resumen -->
+          <!-- Gráfico semanal: minutos por día -->
+          @if (weekStats.sessions > 0) {
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
+              <ng-icon name="lucideBarChart3" size="13" />
+              Minutos por día
+            </p>
+            <div class="flex items-end gap-1.5 sm:gap-3 h-40">
+              @for (bar of weekBars; track bar.label) {
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end min-w-0">
+                  <span class="text-[10px] font-semibold leading-none"
+                        [class]="bar.minutes > 0 ? 'text-gray-600' : 'text-gray-300'">
+                    {{ bar.minutes > 0 ? bar.minutes : '' }}
+                  </span>
+                  <div class="w-full rounded-t-lg transition-all duration-500 min-h-[4px]"
+                       [style.height.%]="bar.pct"
+                       [style.background]="bar.isToday ? '#F4B960' : 'linear-gradient(180deg, #0e7490, #0C5A60)'"
+                       [class.opacity-40]="bar.minutes === 0"
+                       [attr.title]="bar.minutes > 0 ? bar.minutes + ' min el ' + bar.label : 'Sin sesiones'"></div>
+                  <span class="text-[10px] font-semibold text-gray-400 capitalize"
+                        [style.color]="bar.isToday ? '#0C5A60' : ''">{{ bar.label }}</span>
+                </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Resumen semanal -->
+          @if (weekStats.sessions > 0) {
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-2xl px-5 py-3.5 mb-4" style="background: #e6f7f5;">
+              <p class="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5" style="color: #0C5A60;">
+                <ng-icon name="lucideCalendarDays" size="13" />
+                Esta semana
+              </p>
+              <span class="text-sm font-semibold text-gray-700">{{ weekStats.sessions }} sesiones</span>
+              <span class="w-1 h-1 rounded-full bg-[#0C5A60]/30"></span>
+              <span class="text-sm font-semibold text-gray-700">{{ formatMinutes(weekStats.minutes) }}</span>
+              <span class="w-1 h-1 rounded-full bg-[#0C5A60]/30"></span>
+              <span class="text-sm font-bold" style="color: #0C5A60;">+{{ weekStats.xp }} XP</span>
+            </div>
+          }
+
+          <!-- Resumen general -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
               <p class="text-2xl font-bold text-gray-900">{{ totalSessions }}</p>

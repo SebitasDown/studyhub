@@ -7,6 +7,7 @@ export type AppEventType =
   | 'schedule:created' | 'schedule:deleted'
   | 'event:created' | 'event:updated' | 'event:deleted'
   | 'gamification:updated'
+  | 'study:session'
   | 'profile:updated'
   | 'goal:created' | 'goal:updated' | 'goal:deleted'
   | 'conversation:updated'

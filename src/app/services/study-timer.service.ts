@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, tap, map, catchError } from 'rxjs';
 
 export interface StudySessionRequest {
   subjectId?: number;
@@ -18,7 +18,7 @@ export interface StudyStatsResponse {
 }
 
 export interface StudySessionRecord {
-  id: string;
+  id: string | number;
   date: string; // ISO timestamp
   durationMinutes: number;
   technique: string;
@@ -26,8 +26,33 @@ export interface StudySessionRecord {
   xpEarned: number;
 }
 
+interface BackendSessionRow {
+  id: number;
+  completedAt: string;
+  durationMinutes: number;
+  technique: string;
+  xpEarned: number;
+  subjectId: number | null;
+}
+
+export interface StudyTechnique {
+  id: string;
+  name: string;
+  minutes: number;
+  color: string;
+  icon: string;
+  description: string;
+}
+
+export const STUDY_TECHNIQUES: StudyTechnique[] = [
+  { id: 'POMODORO_25_5', name: 'Pomodoro 25/5', minutes: 25, color: '#F4B960', icon: 'lucideTimer', description: '25 min de foco + 5 de descanso' },
+  { id: 'POMODORO_50_10', name: 'Pomodoro 50/10', minutes: 50, color: '#0C5A60', icon: 'lucideClock', description: '50 min de foco + 10 de descanso' },
+  { id: 'DEEP_BLOCK_90', name: 'Bloque profundo', minutes: 90, color: '#7C3AED', icon: 'lucideBrain', description: '90 min para tareas que exigen concentración' },
+];
+
 const HISTORY_KEY = 'studyhub_study_history';
-const HISTORY_LIMIT = 200;
+// Mismo límite que el backend (take: 100) para que la caché local y el servidor coincidan.
+const HISTORY_LIMIT = 100;
 
 @Injectable({
   providedIn: 'root'
@@ -46,10 +71,41 @@ export class StudyTimerService {
   }
 
   // ---------------------------------------------------------------------------
-  // Local history (the backend has no endpoint for past sessions)
+  // Session history (backend as source of truth, localStorage as offline cache)
   // ---------------------------------------------------------------------------
 
-  getHistory(): StudySessionRecord[] {
+  getSessions(): Observable<StudySessionRecord[]> {
+    return this.http.get<BackendSessionRow[]>(`${this.apiUrl}/sessions`).pipe(
+      map((rows) =>
+        rows.map((r) => ({
+          id: r.id,
+          date: r.completedAt,
+          durationMinutes: r.durationMinutes,
+          technique: r.technique,
+          subjectId: r.subjectId,
+          xpEarned: r.xpEarned,
+        }))
+      ),
+      tap((records) => this.persistLocalHistory(records)),
+      catchError(() => of(this.readLocalHistory()))
+    );
+  }
+
+  addHistoryRecord(record: StudySessionRecord): StudySessionRecord[] {
+    const history = this.readLocalHistory();
+    history.unshift(record);
+    const trimmed = history.slice(0, HISTORY_LIMIT);
+    this.persistLocalHistory(trimmed);
+    return trimmed;
+  }
+
+  clearHistory(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/sessions`).pipe(
+      tap(() => this.persistLocalHistory([]))
+    );
+  }
+
+  private readLocalHistory(): StudySessionRecord[] {
     if (typeof localStorage === 'undefined') return [];
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
@@ -70,23 +126,10 @@ export class StudyTimerService {
     }
   }
 
-  addHistoryRecord(record: StudySessionRecord): StudySessionRecord[] {
-    if (typeof localStorage === 'undefined') return this.getHistory();
-    try {
-      const history = this.getHistory();
-      history.unshift(record);
-      const trimmed = history.slice(0, HISTORY_LIMIT);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
-      return trimmed;
-    } catch {
-      return this.getHistory();
-    }
-  }
-
-  clearHistory(): void {
+  private persistLocalHistory(records: StudySessionRecord[]): void {
     if (typeof localStorage === 'undefined') return;
     try {
-      localStorage.removeItem(HISTORY_KEY);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(records.slice(0, HISTORY_LIMIT)));
     } catch {
       /* noop */
     }
