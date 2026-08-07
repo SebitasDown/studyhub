@@ -270,7 +270,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       : this.leaderboard.me.rankByHours;
   }
 
-  private initials(name: string | null | undefined): string {
+  initials(name: string | null | undefined): string {
     const parts = (name || '').trim().split(/\s+/);
     return parts
       .slice(0, 2)
