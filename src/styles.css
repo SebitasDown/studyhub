@@ -99,6 +99,14 @@ html[data-density='spacious'] { font-size: 18px; }
   box-shadow: var(--sh-shadow);
 }
 
+/* Sombra suave al hover para filas interactivas (sin elevación). */
+.sh-hover-shadow {
+  transition: box-shadow 0.22s ease, transform 0.22s ease;
+}
+.sh-hover-shadow:hover {
+  box-shadow: var(--sh-shadow-lg);
+}
+
 .sh-btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.625rem 1.25rem; border-radius: 0.75rem;
