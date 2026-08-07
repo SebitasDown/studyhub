@@ -360,9 +360,16 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   clearHistory() {
     if (!confirm('¿Borrar todo el historial de estudio? Esta acción no se puede deshacer.')) return;
     this.timerService.clearHistory().subscribe({
-      next: () => {
+      next: (res) => {
         this.sessions.set([]);
-        this.showToast('Historial borrado.', 'success');
+        this.showToast(
+          res.xpReverted > 0
+            ? `Historial borrado. Se revirtieron ${res.xpReverted} XP.`
+            : 'Historial borrado.',
+          'success'
+        );
+        // Refresca nivel/XP del sidebar y del dashboard.
+        this.events.emit('gamification:updated');
       },
       error: () => this.showToast('No se pudo borrar el historial. Inténtalo de nuevo.', 'error'),
     });
