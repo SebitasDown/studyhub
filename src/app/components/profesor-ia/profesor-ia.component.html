@@ -28,6 +28,10 @@
         <ng-icon name="lucideCrosshair" size="16" />
         Metas
       </button>
+      <button (click)="switchTab('quiz')" class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all" [class]="activeTab() === 'quiz' ? 'bg-white text-[#0f172a] shadow-sm' : 'text-[#475569] hover:text-[#0f172a]'">
+        <ng-icon name="lucideClipboardList" size="16" />
+        Quiz
+      </button>
       </div>
     </div>
 
@@ -297,6 +301,200 @@
         </div>
       }
       </div>
+    }
+
+    <!-- ════════════ TAB: QUIZ ════════════ -->
+    @if (activeTab() === 'quiz') {
+      <div class="flex-1 min-h-0 overflow-y-auto">
+        <!-- Generar quiz -->
+        <div class="bg-white border border-[#e2e8f0] rounded-xl p-5 sm:p-6 mt-4 shadow-sm">
+          <div class="flex items-center gap-2 mb-1">
+            <ng-icon name="lucideSparkles" size="18" style="color: #0f766e;" />
+            <h3 class="text-sm font-bold text-[#0f172a]">Generar un quiz de práctica</h3>
+          </div>
+          <p class="text-xs text-[#64748b] mb-4 leading-relaxed">Elige un tema que no domines o déjalo vacío para que la IA use tus brechas de conocimiento y los temas recientes de tus conversaciones.</p>
+
+          @if (knowledgeGaps().length > 0) {
+            <div class="flex flex-wrap gap-2 mb-3">
+              @for (gap of knowledgeGaps(); track gap._id) {
+                <button (click)="toggleGapForQuiz(gap.topic)" class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer" [style.background]="selectedGapForQuiz() === gap.topic ? '#0f766e' : '#fff'" [style.borderColor]="selectedGapForQuiz() === gap.topic ? '#0f766e' : '#e2e8f0'" [style.color]="selectedGapForQuiz() === gap.topic ? '#fff' : '#475569'">
+                  {{ gap.topic }}
+                </button>
+              }
+            </div>
+          }
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input [ngModel]="quizTopicInput()" (ngModelChange)="quizTopicInput.set($event)" type="text" placeholder="O escribe un tema: funciones lineales, integrales..." class="flex-1 border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#0f766e] placeholder-[#94a3b8]" />
+            <select [ngModel]="quizDifficulty()" (ngModelChange)="quizDifficulty.set($event)" class="sm:w-44 border border-[#e2e8f0] rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#0f766e] bg-white text-[#475569] cursor-pointer">
+              <option value="BEGINNER">Principiante</option>
+              <option value="INTERMEDIATE">Intermedio</option>
+              <option value="ADVANCED">Avanzado</option>
+            </select>
+            <button (click)="generateQuiz()" [disabled]="generatingQuiz()" class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer" style="background: #0f766e;">
+              @if (generatingQuiz()) {
+                <ng-icon name="lucideLoader" size="16" class="animate-spin" />
+                Generando...
+              } @else {
+                <ng-icon name="lucideSparkles" size="16" />
+                Generar quiz
+              }
+            </button>
+          </div>
+          @if (quizError()) {
+            <p class="text-xs text-red-500 mt-3">{{ quizError() }}</p>
+          }
+        </div>
+
+        <!-- Mis quizzes -->
+        <div class="mt-6">
+          <h3 class="text-sm font-bold text-[#0f172a] mb-3">Mis quizzes</h3>
+          @if (loadingQuizzes()) {
+            <div class="flex justify-center py-10">
+              <ng-icon name="lucideLoader" size="20" class="animate-spin text-[#0f766e]" />
+            </div>
+          } @else if (quizzes().length === 0) {
+            <p class="text-sm text-[#94a3b8] text-center py-10 bg-white border border-[#e2e8f0] rounded-xl">Aún no tienes quizzes. Genera el primero con el botón de arriba.</p>
+          } @else {
+            <div class="flex flex-col gap-3">
+              @for (quiz of quizzes(); track quiz.id) {
+                <div class="bg-white border border-[#e2e8f0] rounded-xl px-4 sm:px-5 py-4 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-semibold text-[#0f172a] truncate">{{ quiz.title }}</h4>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-[#94a3b8]">
+                      <span>{{ quiz.subject }}</span>
+                      @if (quiz.difficulty) {
+                        <span class="px-2 py-0.5 rounded-full font-semibold" style="background: #f1f5f9; color: #475569;">{{ quiz.difficulty === 'BEGINNER' ? 'Principiante' : quiz.difficulty === 'ADVANCED' ? 'Avanzado' : 'Intermedio' }}</span>
+                      }
+                      @if (quiz.completed && quiz.resultTotal) {
+                        <span class="font-semibold" style="color: #0f766e;">✓ {{ quiz.resultCorrect }}/{{ quiz.resultTotal }} ({{ quizPercent(quiz.resultScore) }}%)</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <button (click)="openQuiz(quiz)" class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer" [style.background]="quiz.completed ? '#f1f5f9' : '#0f766e'" [style.color]="quiz.completed ? '#475569' : '#fff'">
+                      <ng-icon name="lucideRefreshCw" size="14" />
+                      {{ quiz.completed ? 'Repetir' : 'Intentar' }}
+                    </button>
+                    <button (click)="deleteQuiz(quiz.id)" class="text-[#94a3b8] hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer p-2" title="Eliminar quiz">
+                      <ng-icon name="lucideTrash2" size="16" />
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Modal reproductor de quiz -->
+      @if (activeQuiz()) {
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90dvh] shadow-xl overflow-hidden flex flex-col">
+            <div class="p-5 sm:p-6 border-b border-[#f1f5f9] flex items-center justify-between">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold text-[#94a3b8] uppercase tracking-widest mb-0.5">Quiz</p>
+                <h3 class="text-base font-bold text-[#0f172a] truncate">{{ activeQuiz()?.title }}</h3>
+              </div>
+              <button (click)="closeQuiz()" class="text-[#94a3b8] hover:text-[#0f172a] transition-colors bg-transparent border-none cursor-pointer p-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <div class="p-5 sm:p-6 flex-1 overflow-y-auto">
+              @if (!quizDone()) {
+                @let q = currentQuizQuestion;
+                @if (q) {
+                  <!-- Progreso -->
+                  <div class="flex items-center gap-2 mb-5">
+                    <div class="flex-1 h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-300" [style.width.%]="((quizQIndex() + 1) / quizQuestions.length) * 100" style="background: #0f766e;"></div>
+                    </div>
+                    <span class="text-xs font-bold text-[#475569] whitespace-nowrap">{{ quizQIndex() + 1 }}/{{ quizQuestions.length }}</span>
+                  </div>
+
+                  <!-- Pregunta con markdown + LaTeX -->
+                  <div class="text-base font-semibold text-[#0f172a] mb-5 leading-relaxed quiz-q" [innerHTML]="q.question | markdown"></div>
+
+                  <!-- Opciones -->
+                  <div class="space-y-2.5">
+                    @for (opt of q.choices; track $index; let oi = $index) {
+                      <button (click)="selectQuizOption(oi)" [disabled]="quizAnswered()" class="w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all cursor-pointer disabled:cursor-default quiz-opt" [class]="quizAnswered()
+                               ? (oi === quizCorrectIndex
+                                  ? 'border-green-500 bg-green-50 text-green-800'
+                                  : (quizSelected() === oi ? 'border-red-400 bg-red-50 text-red-700' : 'border-[#e2e8f0] text-[#64748b]'))
+                               : 'border-[#e2e8f0] text-[#334155] hover:border-[#0f766e] hover:bg-[#f0fdfa]'">
+                        <span class="inline-flex items-start gap-2.5">
+                          <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 mt-0.5" [class]="quizAnswered() && oi === quizCorrectIndex ? 'border-green-500 bg-green-500 text-white' : (quizAnswered() && quizSelected() === oi ? 'border-red-400 bg-red-400 text-white' : 'border-[#cbd5e1] text-[#64748b]')">
+                            {{ quizOptionLetter(oi) }}
+                          </span>
+                          <span [innerHTML]="opt | markdown"></span>
+                        </span>
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Explicación -->
+                  @if (quizAnswered()) {
+                    <div class="mt-4 p-4 rounded-xl" [class]="quizSelected() === quizCorrectIndex ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                      <div class="flex items-center gap-2">
+                        <ng-icon name="lucideCheckCircle2" size="16" [style.color]="quizSelected() === quizCorrectIndex ? '#16a34a' : '#dc2626'" />
+                        <p class="text-sm font-bold" [style.color]="quizSelected() === quizCorrectIndex ? '#16a34a' : '#dc2626'">
+                          {{ quizSelected() === quizCorrectIndex ? '¡Correcto!' : 'Incorrecto' }}
+                        </p>
+                      </div>
+                      @if (currentQuizQuestion?.explanation) {
+                        <div class="flex items-start gap-2 mt-2">
+                          <ng-icon name="lucideLightbulb" size="14" style="color: #d97706;" class="mt-0.5 flex-shrink-0" />
+                          <div class="text-sm text-[#475569] leading-relaxed quiz-q" [innerHTML]="(currentQuizQuestion?.explanation || '') | markdown"></div>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              } @else {
+                <!-- Resultado -->
+                <div class="py-6 text-center">
+                  <div class="flex justify-center">
+                    <ng-icon name="lucideTrophy" size="48" [style.color]="quizCorrectCount() === quizQuestions.length ? '#d97706' : (quizCorrectCount() > 0 ? '#0f766e' : '#94a3b8')" />
+                  </div>
+                  <h3 class="text-xl font-bold text-[#0f172a] mt-3">
+                    {{ quizCorrectCount() === quizQuestions.length ? '¡Perfecto! 🎉' : (quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 70 ? '¡Buen trabajo!' : 'Sigue practicando') }}
+                  </h3>
+                  <p class="text-sm text-[#64748b] mt-2">Acertaste <span class="font-bold text-[#0f172a]">{{ quizCorrectCount() }}</span> de {{ quizQuestions.length }} preguntas.</p>
+                  <div class="mt-4 mx-auto max-w-xs">
+                    <div class="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-500" [style.width.%]="quizPercent(quizCorrectCount() / (quizQuestions.length || 1))" [style.background]="quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 70 ? '#1e9f68' : (quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 40 ? '#d97706' : '#dc2626')"></div>
+                    </div>
+                    <p class="text-xs font-bold mt-1.5" [style.color]="quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 70 ? '#1e9f68' : (quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) >= 40 ? '#d97706' : '#dc2626')">
+                      {{ quizPercent(quizCorrectCount() / (quizQuestions.length || 1)) }}%
+                    </p>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Footer -->
+            <div class="p-5 border-t border-[#f1f5f9] flex items-center justify-end gap-3 bg-[#fafafa]">
+              @if (!quizDone()) {
+                <button (click)="closeQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-[#64748b] bg-white border border-[#e2e8f0] hover:bg-[#f8fafc] transition-colors cursor-pointer">Salir</button>
+                @if (quizAnswered()) {
+                  <button (click)="nextQuizQuestion()" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:brightness-110 cursor-pointer" style="background: #0f766e;">
+                    {{ quizQIndex() >= quizQuestions.length - 1 ? 'Ver resultado' : 'Siguiente' }}
+                    <ng-icon name="lucideChevronRight" size="16" class="align-middle" />
+                  </button>
+                }
+              } @else {
+                <button (click)="closeQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-[#64748b] bg-white border border-[#e2e8f0] hover:bg-[#f8fafc] transition-colors cursor-pointer">Cerrar</button>
+                <button (click)="retakeQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-[#64748b] bg-white border border-[#e2e8f0] hover:bg-[#f8fafc] transition-colors cursor-pointer">Repetir</button>
+                <button (click)="finishQuiz()" [disabled]="savingQuizResult()" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:brightness-110 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed" style="background: #0f766e;">
+                  @if (savingQuizResult()) { Guardando... } @else { Guardar resultado }
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
     }
     </div>
   </main>

@@ -10,11 +10,14 @@ import {
   lucideCalendar, lucideGraduationCap, lucideCalculator, lucideCode,
   lucideLanguages, lucidePen, lucideBot, lucideLoader,
   lucideChevronLeft, lucideChevronRight,
+  lucideClipboardList, lucideSparkles, lucideRefreshCw, lucideTrophy,
+  lucideCheckCircle2, lucideXCircle, lucideLightbulb,
 } from '@ng-icons/lucide';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import {
   AiService, TeacherProfile, Conversation, Message, KnowledgeGap, LearningGoal,
+  GeneratedResource, QuizQuestion,
 } from '../../services/ai.service';
 
 @Component({
@@ -27,6 +30,8 @@ import {
     lucideCalendar, lucideGraduationCap, lucideCalculator, lucideCode,
     lucideLanguages, lucidePen, lucideBot, lucideLoader,
     lucideChevronLeft, lucideChevronRight,
+    lucideClipboardList, lucideSparkles, lucideRefreshCw, lucideTrophy,
+    lucideCheckCircle2, lucideXCircle, lucideLightbulb,
   })],
   templateUrl: './profesor-ia.component.html',
   styles: [`:host { display: block; height: 100dvh; min-height: 0; overflow: hidden; }
@@ -37,6 +42,13 @@ import {
     .chat-msg strong { font-weight: 700; }
     .chat-msg em { font-style: italic; }
     .chat-msg br { display: block; content: ''; margin: 0.25em 0; }
+    .quiz-q p { margin: 0 0 0.5em 0; }
+    .quiz-q p:last-child { margin-bottom: 0; }
+    .quiz-q strong { font-weight: 700; }
+    .quiz-q em { font-style: italic; }
+    .quiz-q ul, .quiz-q ol { margin: 0.25em 0; padding-left: 1.5em; }
+    .quiz-q .katex { font-size: 1.05em; }
+    .quiz-opt .katex { font-size: 1.05em; }
     .streaming-caret { background: #0f766e; animation: caret-blink 1s step-end infinite; vertical-align: text-bottom; }
     @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
   `],
@@ -47,7 +59,7 @@ export class ProfesorIaComponent implements OnInit {
   protected ai = inject(AiService);
   private platformId = inject(PLATFORM_ID);
 
-  activeTab = signal<'chat' | 'gaps' | 'metas'>('chat');
+  activeTab = signal<'chat' | 'gaps' | 'metas' | 'quiz'>('chat');
 
   teacherProfiles = signal<TeacherProfile[]>([]);
   selectedTeacher = signal<TeacherProfile | null>(null);
@@ -78,6 +90,23 @@ export class ProfesorIaComponent implements OnInit {
   showNewGoalForm = signal(false);
   creatingGoal = signal(false);
 
+  // ---- Quiz ----
+  quizzes = signal<GeneratedResource[]>([]);
+  loadingQuizzes = signal(true);
+  generatingQuiz = signal(false);
+  quizTopicInput = signal('');
+  selectedGapForQuiz = signal<string | null>(null);
+  quizDifficulty = signal<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'>('INTERMEDIATE');
+  quizError = signal<string | null>(null);
+
+  activeQuiz = signal<GeneratedResource | null>(null);
+  quizQIndex = signal(0);
+  quizSelected = signal<number | null>(null);
+  quizAnswered = signal(false);
+  quizCorrectCount = signal(0);
+  quizDone = signal(false);
+  savingQuizResult = signal(false);
+
   showNewTeacherForm = signal(false);
   newTeacherProfile = signal<{ name: string; description: string; subjects: string; systemPrompt: string; teachingStyle: string; difficultyLevel: string }>({
     name: '', description: '', subjects: '', systemPrompt: '', teachingStyle: 'balanced', difficultyLevel: 'intermediate',
@@ -97,9 +126,10 @@ export class ProfesorIaComponent implements OnInit {
     this.loadChatData();
     this.loadGaps();
     this.loadGoals();
+    this.loadQuizzes();
   }
 
-  switchTab(tab: 'chat' | 'gaps' | 'metas') {
+  switchTab(tab: 'chat' | 'gaps' | 'metas' | 'quiz') {
     this.activeTab.set(tab);
   }
 
@@ -474,5 +504,148 @@ export class ProfesorIaComponent implements OnInit {
         this.goals.update(arr => arr.filter(g => g._id !== id));
       },
     });
+  }
+
+  // ---- Quiz ----
+  private loadQuizzes(): void {
+    this.loadingQuizzes.set(true);
+    this.ai.getResources('QUIZ', true).subscribe({
+      next: (res) => {
+        this.quizzes.set(res.resources || []);
+        this.loadingQuizzes.set(false);
+      },
+      error: () => {
+        this.loadingQuizzes.set(false);
+      },
+    });
+  }
+
+  toggleGapForQuiz(topic: string): void {
+    this.selectedGapForQuiz.set(this.selectedGapForQuiz() === topic ? null : topic);
+    if (this.selectedGapForQuiz()) this.quizTopicInput.set('');
+  }
+
+  generateQuiz(): void {
+    if (this.generatingQuiz()) return;
+    this.quizError.set(null);
+    const topic = this.quizTopicInput().trim() || this.selectedGapForQuiz() || undefined;
+    this.generatingQuiz.set(true);
+    this.ai.generateQuiz({ topic, difficulty: this.quizDifficulty() }).subscribe({
+      next: (res) => {
+        this.generatingQuiz.set(false);
+        this.quizTopicInput.set('');
+        this.selectedGapForQuiz.set(null);
+        this.quizzes.update(arr => [res.resource, ...arr.filter(q => q.id !== res.resource.id)]);
+        this.openQuiz(res.resource);
+      },
+      error: (err) => {
+        this.generatingQuiz.set(false);
+        this.quizError.set('No se pudo generar el quiz. Inténtalo de nuevo.');
+        console.error('[generateQuiz] error:', err);
+      },
+    });
+  }
+
+  get quizQuestions(): QuizQuestion[] {
+    return this.activeQuiz()?.content?.quiz || [];
+  }
+
+  get currentQuizQuestion(): QuizQuestion | null {
+    return this.quizQuestions[this.quizQIndex()] ?? null;
+  }
+
+  get quizCorrectIndex(): number | null {
+    const q = this.currentQuizQuestion;
+    if (!q) return null;
+    const idx = (q.choices || []).findIndex(c => c === q.answer);
+    return idx >= 0 ? idx : null;
+  }
+
+  quizOptionLetter(i: number): string {
+    return String.fromCharCode(65 + i);
+  }
+
+  openQuiz(quiz: GeneratedResource): void {
+    if (!quiz?.content?.quiz?.length) return;
+    this.activeQuiz.set(quiz);
+    this.quizQIndex.set(0);
+    this.quizSelected.set(null);
+    this.quizAnswered.set(false);
+    this.quizCorrectCount.set(0);
+    this.quizDone.set(false);
+    this.savingQuizResult.set(false);
+  }
+
+  selectQuizOption(i: number): void {
+    if (this.quizAnswered()) return;
+    this.quizSelected.set(i);
+    this.quizAnswered.set(true);
+    if (i === this.quizCorrectIndex) {
+      this.quizCorrectCount.update(c => c + 1);
+    }
+  }
+
+  nextQuizQuestion(): void {
+    if (this.quizQIndex() >= this.quizQuestions.length - 1) {
+      this.quizDone.set(true);
+    } else {
+      this.quizQIndex.update(i => i + 1);
+      this.quizSelected.set(null);
+      this.quizAnswered.set(false);
+    }
+  }
+
+  retakeQuiz(): void {
+    const quiz = this.activeQuiz();
+    if (quiz) this.openQuiz(quiz);
+  }
+
+  closeQuiz(): void {
+    this.activeQuiz.set(null);
+  }
+
+  finishQuiz(): void {
+    const quiz = this.activeQuiz();
+    if (!quiz || this.savingQuizResult()) return;
+    this.savingQuizResult.set(true);
+    const total = this.quizQuestions.length;
+    const score = total ? this.quizCorrectCount() / total : 0;
+    this.ai.completeResource(quiz.id, {
+      resultScore: score,
+      resultCorrect: this.quizCorrectCount(),
+      resultTotal: total,
+    }).subscribe({
+      next: () => {
+        this.quizzes.update(arr => arr.map(q =>
+          q.id === quiz.id ? {
+            ...q,
+            completed: true,
+            completedAt: new Date().toISOString(),
+            resultScore: score,
+            resultCorrect: this.quizCorrectCount(),
+            resultTotal: total,
+          } : q
+        ));
+        this.savingQuizResult.set(false);
+        this.activeQuiz.set(null);
+      },
+      error: () => {
+        this.savingQuizResult.set(false);
+        this.activeQuiz.set(null);
+      },
+    });
+  }
+
+  deleteQuiz(id: string): void {
+    this.ai.deleteResource(id).subscribe({
+      next: () => {
+        this.quizzes.update(arr => arr.filter(q => q.id !== id));
+      },
+    });
+  }
+
+  quizPercent(score: number | null): number {
+    if (score == null) return 0;
+    return Math.round(score * 100);
   }
 }

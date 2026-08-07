@@ -77,9 +77,27 @@ export interface GeneratedResource {
   generatedFrom: string | null;
   completed: boolean;
   completedAt: string | null;
+  resultScore: number | null;
+  resultCorrect: number | null;
+  resultTotal: number | null;
   trigger: string | null;
   createdAt: string;
   content?: any;
+}
+
+export interface QuizQuestion {
+  question: string;
+  choices: string[];
+  answer: string;
+  explanation?: string;
+  difficulty?: string;
+}
+
+export interface QuizContent {
+  type: string;
+  topic: string;
+  subject: string;
+  quiz: QuizQuestion[];
 }
 
 const API = 'https://study-hub-backend-sigma.vercel.app'!;
@@ -398,6 +416,12 @@ export class AiService {
     }
     return this.http.get(`${API}/ai/dashboard`).pipe(
       tap(data => AppCache.set('ai_dashboard', data))
+    );
+  }
+
+  generateQuiz(data: { topic?: string; difficulty?: string; count?: number }): Observable<{ resource: GeneratedResource }> {
+    return this.http.post<{ resource: GeneratedResource }>(`${API}/ai/resources/quiz`, data).pipe(
+      tap(() => AppCache.invalidatePrefix('ai_resources'))
     );
   }
 
