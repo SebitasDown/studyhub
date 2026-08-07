@@ -2,6 +2,13 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 
+export interface PracticeQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+}
+
 export interface RoadmapStep {
   id: number;
   roadmapId: number;
@@ -12,6 +19,8 @@ export interface RoadmapStep {
   skillCategory?: string;
   estimatedHours?: number;
   completed: boolean;
+  level: number;
+  practice?: PracticeQuestion[];
 }
 
 export interface Roadmap {
@@ -23,12 +32,19 @@ export interface Roadmap {
   difficulty?: string;
   estimatedHours?: number;
   generatedByAi: boolean;
+  topic?: string;
+  totalLevels: number;
+  currentLevel: number;
+  levelsMeta?: { title?: string; description?: string }[];
   steps: RoadmapStep[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface GenerateRoadmapDto {
+  topic?: string;
+  goal?: string;
+  regenerate?: boolean;
   jobId?: number;
   targetRole?: string;
   missingSkills?: string[];

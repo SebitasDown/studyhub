@@ -1,16 +1,35 @@
 @let r = rm;
 @if (r) {
-  <div class="max-w-4xl mx-auto">
-    <button (click)="backToList()" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors mb-6 cursor-pointer">
-      <ng-icon name="lucideArrowLeft" size="18" />
-      Volver
-    </button>
+  <div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+      <button (click)="backToList()" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
+        <ng-icon name="lucideArrowLeft" size="18" />
+        Volver
+      </button>
+      @if (r.topic) {
+        <button (click)="regenerate()" [disabled]="roadmapService.generating()"
+          class="flex items-center gap-2 text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+          style="background: #0C5A60;">
+          @if (roadmapService.generating()) {
+            <ng-icon name="lucideWand2" size="16" class="animate-spin" />
+          } @else {
+            <ng-icon name="lucideWand2" size="16" />
+          }
+          Regenerar ruta
+        </button>
+      }
+    </div>
 
     <!-- Header -->
-    <div class="rounded-2xl overflow-hidden mb-10 shadow-lg" style="background: linear-gradient(135deg, #0C5A60 0%, #0a4a4f 40%, #083e42 100%);">
+    <div class="rounded-2xl overflow-hidden mb-8 shadow-lg" style="background: linear-gradient(135deg, #0C5A60 0%, #0a4a4f 40%, #083e42 100%);">
       <div class="p-8 text-white relative">
         <div class="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5" style="background: white; transform: translate(30%, -50%);"></div>
-        <p class="text-sm font-semibold opacity-70 tracking-widest uppercase mb-3">Roadmap</p>
+        <div class="flex items-center gap-2 mb-3">
+          <p class="text-sm font-semibold opacity-70 tracking-widest uppercase">Tu ruta de aprendizaje</p>
+          @if (r.topic) {
+            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full" style="background: #F4B960; color: #021C22;">{{ r.topic }}</span>
+          }
+        </div>
         <h1 class="text-3xl font-bold tracking-tight">{{ r.title }}</h1>
         <p class="text-base mt-3 opacity-80 max-w-2xl leading-relaxed">{{ r.description }}</p>
         <div class="flex items-center gap-4 mt-8">
@@ -22,51 +41,209 @@
       </div>
     </div>
 
-    <!-- Steps list -->
-    @for (step of r.steps; track step.id; let i = $index) {
-      <div (click)="toggleStep(step)"
-        class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex items-start gap-5 transition-all hover:shadow-md cursor-pointer mb-5">
-        <!-- Number circle -->
-        @if (step.completed) {
-          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background: #1E9F68; box-shadow: 0 0 0 3px rgba(30,159,104,0.12);">
-            <ng-icon name="lucideCheck" size="16" class="text-white" />
-          </div>
-        } @else {
-          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 text-sm font-bold text-gray-500" style="border: 2px solid #d1d5db;">
-            {{ step.order || i + 1 }}
-          </div>
-        }
-
-        <!-- Content -->
-        <div class="flex-1 min-w-0">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h3 class="text-base font-bold text-gray-900">{{ step.title }}</h3>
-              @if (step.description) {
-                <p class="text-sm text-gray-500 mt-1 leading-relaxed">{{ step.description }}</p>
+    <!-- Mapa de niveles (estilo Duolingo) -->
+    <div class="space-y-6">
+      @for (lvl of levels; track lvl.level; let i = $index) {
+        <div class="rounded-2xl border shadow-sm overflow-hidden transition-all"
+             [class]="lvl.unlocked ? 'bg-white border-gray-200' : 'bg-gray-50/80 border-gray-100'">
+          <!-- Cabecera del nivel -->
+          <div class="px-6 py-5 flex items-start gap-4">
+            <!-- Estado del nivel -->
+            @if (lvl.unlocked) {
+              @if (levelDone(lvl.level)) {
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #1E9F68; box-shadow: 0 4px 12px rgba(30,159,104,0.3);">
+                  <ng-icon name="lucideCheck" size="22" class="text-white" />
+                </div>
+              } @else {
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg font-extrabold text-white" style="background: linear-gradient(135deg, #F4B960, #F9A826); color: #021C22; box-shadow: 0 4px 12px rgba(249,168,38,0.3);">
+                  {{ lvl.level }}
+                </div>
               }
-            </div>
-            @if (step.estimatedHours) {
-              <div class="flex items-center gap-1 text-xs font-semibold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0">
-                <ng-icon name="lucideClock" size="13" />
-                {{ step.estimatedHours }}h
+            } @else {
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gray-200 text-gray-400">
+                <ng-icon name="lucideLock" size="20" />
               </div>
             }
+
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-3">
+                <h2 class="font-bold text-gray-900" [class.opacity-50]="!lvl.unlocked">{{ lvl.title }}</h2>
+                @if (lvl.unlocked && lvl.lessons.length) {
+                  <span class="text-xs font-bold text-gray-500 whitespace-nowrap bg-gray-50 px-2.5 py-1 rounded-full">{{ lvl.completedCount }}/{{ lvl.lessons.length }}</span>
+                }
+              </div>
+              @if (lvl.description) {
+                <p class="text-sm text-gray-500 mt-1 leading-relaxed" [class.opacity-60]="!lvl.unlocked">{{ lvl.description }}</p>
+              }
+              @if (!lvl.unlocked) {
+                <p class="text-xs font-semibold text-gray-400 mt-1.5 flex items-center gap-1.5">
+                  <ng-icon name="lucideLock" size="12" />
+                  Completa el nivel anterior para desbloquear
+                </p>
+              }
+              @if (lvl.unlocked && lvl.lessons.length) {
+                <div class="w-full h-1.5 rounded-full bg-gray-100 mt-3 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500" [style.width.%]="(lvl.completedCount / lvl.lessons.length) * 100" style="background: #0C7C7C;"></div>
+                </div>
+              }
+            </div>
           </div>
 
-          @if (step.skill) {
-            <div class="flex items-center gap-2 mt-3">
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-md inline-flex items-center gap-1" style="background: #f0fdfa; color: #0C5A60;">
-                <ng-icon name="lucideExternalLink" size="11" />
-                {{ step.skill }}
-              </span>
-              @if (step.skillCategory) {
-                <span class="text-xs text-gray-400">{{ step.skillCategory }}</span>
-              }
+          <!-- Lecciones del nivel -->
+          @if (lvl.lessons.length) {
+            <div class="px-4 pb-4 pt-0.5">
+              <div class="space-y-2">
+                @for (lesson of lvl.lessons; track lesson.id) {
+                  <button (click)="lvl.unlocked && openLesson(lesson)"
+                          [disabled]="!lvl.unlocked"
+                          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer disabled:cursor-not-allowed"
+                          [class]="lesson.completed
+                                   ? 'bg-[#e6f7f5] border-[#ccefe8]'
+                                   : lvl.unlocked
+                                     ? 'bg-white border-gray-200 hover:border-[#F4B960] hover:shadow-sm'
+                                     : 'bg-white/60 border-gray-100 opacity-60'">
+                    <span class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                          [class]="lesson.completed ? 'text-white' : 'text-gray-400'"
+                          [style.background]="lesson.completed ? '#1E9F68' : (lvl.unlocked ? '#f3f4f6' : '#e5e7eb')">
+                      @if (lesson.completed) {
+                        <ng-icon name="lucideCheck" size="15" class="text-white" />
+                      } @else if (lvl.unlocked) {
+                        <ng-icon name="lucidePlay" size="14" />
+                      } @else {
+                        <ng-icon name="lucideLock" size="13" />
+                      }
+                    </span>
+                    <span class="flex-1 min-w-0 text-left">
+                      <span class="block text-sm font-semibold text-gray-900 truncate">{{ lesson.title }}</span>
+                      @if (lesson.skill) {
+                        <span class="block text-[11px] font-medium text-gray-400">{{ lesson.skill }}</span>
+                      }
+                    </span>
+                    @if (lesson.estimatedHours) {
+                      <span class="text-[11px] font-semibold text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                        <ng-icon name="lucideClock" size="11" /> {{ lesson.estimatedHours }}h
+                      </span>
+                    }
+                    @if (lvl.unlocked && !lesson.completed && lesson.practice?.length) {
+                      <span class="text-xs font-bold px-3 py-1.5 rounded-lg text-white whitespace-nowrap" style="background: #0C5A60;">Practicar</span>
+                    }
+                  </button>
+                }
+              </div>
             </div>
           }
         </div>
+      }
+    </div>
+
+    @if (levels.length && levels.every((l) => levelDone(l.level))) {
+      <div class="mt-8 rounded-2xl p-8 text-center" style="background: linear-gradient(135deg, #F4B960, #F9A826);">
+        <ng-icon name="lucideAward" size="40" color="#021C22" />
+        <h3 class="text-xl font-extrabold mt-3" style="color: #021C22;">¡Ruta completada!</h3>
+        <p class="text-sm font-medium mt-1" style="color: #021C22;">Completaste todos los niveles. ¡Sigue practicando para no perder el ritmo!</p>
       </div>
     }
   </div>
+
+  <!-- Modal Quiz -->
+  @if (activeLesson) {
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90dvh] shadow-xl overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Lección</p>
+            <h3 class="text-lg font-bold text-gray-900 truncate">{{ activeLesson.title }}</h3>
+          </div>
+          <button (click)="closeQuiz()" class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+            <ng-icon name="lucideX" size="20" />
+          </button>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto">
+          @if (!quizDone()) {
+            @let q = currentQuestion;
+            @if (q) {
+              <!-- Progreso -->
+              <div class="flex items-center gap-2 mb-5">
+                <div class="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-300" [style.width.%]="((qIndex() + 1) / (activeLesson.practice?.length || 1)) * 100" style="background: #0C5A60;"></div>
+                </div>
+                <span class="text-xs font-bold text-gray-500 whitespace-nowrap">{{ qIndex() + 1 }}/{{ activeLesson.practice?.length }}</span>
+              </div>
+
+              <p class="text-base font-semibold text-gray-900 mb-5">{{ q.question }}</p>
+
+              <div class="space-y-2.5">
+                @for (opt of q.options; track $index; let oi = $index) {
+                  <button (click)="selectOption(oi)"
+                          [disabled]="answered()"
+                          class="w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all cursor-pointer disabled:cursor-default"
+                          [class]="answered()
+                                   ? (oi === q.correctIndex
+                                      ? 'border-green-500 bg-green-50 text-green-800'
+                                      : (selected() === oi ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 text-gray-500'))
+                                   : 'border-gray-200 text-gray-700 hover:border-[#0C5A60] hover:bg-teal-50'">
+                    <span class="inline-flex items-center gap-2.5">
+                      <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0"
+                            [class]="answered() && oi === q.correctIndex ? 'border-green-500 bg-green-500 text-white' : (answered() && selected() === oi ? 'border-red-400 bg-red-400 text-white' : 'border-gray-300')">
+                        {{ optionLetter(oi) }}
+                      </span>
+                      {{ opt }}
+                    </span>
+                  </button>
+                }
+              </div>
+
+              @if (answered()) {
+                <div class="mt-4 p-4 rounded-xl"
+                     [class]="selected() === currentQuestion?.correctIndex ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                  <p class="text-sm font-bold" [class.text-green-700]="selected() === currentQuestion?.correctIndex" [class.text-red-700]="selected() !== currentQuestion?.correctIndex">
+                    {{ selected() === currentQuestion?.correctIndex ? '¡Correcto! 🎉' : 'Incorrecto' }}
+                  </p>
+                  @if (q.explanation) {
+                    <p class="text-sm text-gray-600 mt-1">{{ q.explanation }}</p>
+                  }
+                </div>
+              }
+            }
+          } @else {
+            <!-- Resultado -->
+            <div class="py-6 text-center">
+              <p class="text-5xl mb-3">{{ correctCount() === (activeLesson.practice?.length || 0) ? '🏆' : (correctCount() > 0 ? '👏' : '💪') }}</p>
+              <h3 class="text-xl font-bold text-gray-900">
+                {{ correctCount() === (activeLesson.practice?.length || 0) ? '¡Perfecto!' : 'Lección terminada' }}
+              </h3>
+              <p class="text-sm text-gray-500 mt-2">Acertaste {{ correctCount() }} de {{ activeLesson.practice?.length }} preguntas.</p>
+            </div>
+          }
+        </div>
+
+        <div class="p-5 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50/50">
+          @if (!quizDone()) {
+            <button (click)="closeQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+              Salir
+            </button>
+            @if (answered()) {
+              <button (click)="nextQuestion()"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:brightness-110 cursor-pointer"
+                style="background: #0C5A60;">
+                {{ qIndex() >= (activeLesson.practice?.length || 1) - 1 ? 'Ver resultado' : 'Siguiente' }}
+                <ng-icon name="lucideChevronRight" size="16" class="align-middle" />
+              </button>
+            }
+          } @else {
+            <button (click)="closeQuiz()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+              Más tarde
+            </button>
+            <button (click)="finishLesson()"
+              class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:brightness-110 cursor-pointer"
+              style="background: #1E9F68;">
+              <ng-icon name="lucideCheck" size="16" class="align-middle" />
+              Completar lección
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 }

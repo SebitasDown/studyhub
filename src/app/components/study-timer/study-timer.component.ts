@@ -358,7 +358,6 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   }
 
   clearHistory() {
-    if (!confirm('¿Borrar todo el historial de estudio? Esta acción no se puede deshacer.')) return;
     this.timerService.clearHistory().subscribe({
       next: (res) => {
         this.sessions.set([]);
