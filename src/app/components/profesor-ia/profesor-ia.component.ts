@@ -131,6 +131,11 @@ export class ProfesorIaComponent implements OnInit {
 
   switchTab(tab: 'chat' | 'gaps' | 'metas' | 'quiz') {
     this.activeTab.set(tab);
+    // Los quizzes generados vía el chat (flujo adaptativo) no se verían hasta
+    // recargar; se refresca la lista al entrar a la pestaña Quiz.
+    if (tab === 'quiz' && !this.generatingQuiz()) {
+      this.loadQuizzes();
+    }
   }
 
   private loadChatData(): void {
@@ -508,7 +513,7 @@ export class ProfesorIaComponent implements OnInit {
 
   // ---- Quiz ----
   private loadQuizzes(): void {
-    this.loadingQuizzes.set(true);
+    if (this.quizzes().length === 0) this.loadingQuizzes.set(true);
     this.ai.getResources('QUIZ', true).subscribe({
       next: (res) => {
         this.quizzes.set(res.resources || []);
@@ -557,7 +562,9 @@ export class ProfesorIaComponent implements OnInit {
   get quizCorrectIndex(): number | null {
     const q = this.currentQuizQuestion;
     if (!q) return null;
-    const idx = (q.choices || []).findIndex(c => c === q.answer);
+    // Normaliza con trim para tolerar espacios extra que pueda devolver la IA.
+    const answer = (q.answer || '').trim();
+    const idx = (q.choices || []).findIndex(c => (c || '').trim() === answer);
     return idx >= 0 ? idx : null;
   }
 
@@ -566,7 +573,23 @@ export class ProfesorIaComponent implements OnInit {
   }
 
   openQuiz(quiz: GeneratedResource): void {
-    if (!quiz?.content?.quiz?.length) return;
+    if (quiz?.content?.quiz?.length) {
+      this.startQuiz(quiz);
+      return;
+    }
+    // Los quizzes del listado vienen sin `content` (el endpoint de lista no lo
+    // incluye): se trae el recurso completo antes de abrir el reproductor.
+    this.ai.getResource(quiz.id).subscribe({
+      next: (res) => {
+        if (res.resource?.content?.quiz?.length) this.startQuiz(res.resource);
+      },
+      error: () => {
+        /* sin contenido no se puede abrir; se deja la lista como está */
+      },
+    });
+  }
+
+  private startQuiz(quiz: GeneratedResource): void {
     this.activeQuiz.set(quiz);
     this.quizQIndex.set(0);
     this.quizSelected.set(null);
