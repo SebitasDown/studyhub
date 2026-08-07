@@ -51,13 +51,14 @@ export interface UiPreferences {
   visibleModules: Record<string, boolean>;
 }
 
-const STORAGE_KEY = 'studyhub_ui_preferences';
+// v2: todos los módulos visibles por defecto (solo forzados-off ocultos).
+const STORAGE_KEY = 'studyhub_ui_preferences_v2';
 const API = 'https://study-hub-backend-sigma.vercel.app';
 const DEFAULT_PREFERENCES: UiPreferences = {
   theme: 'classic',
   density: 'comfortable',
   navigation: 'expanded',
-  sandboxEnabled: false,
+  sandboxEnabled: true,
   visibleModules: {
     dashboard: true,
     materias: true,
@@ -85,8 +86,6 @@ export class UiPreferencesService {
   private moduleCatalog = new Map<string, number>();
   /** Estado activo conocido del backend (slug → activo). */
   private backendModuleStates = new Map<string, boolean>();
-  /** Módulos que el usuario tocó mientras había una sync en vuelo. */
-  private dirtyModules = new Set<string>();
   private synced = false;
 
   constructor() {
@@ -131,7 +130,6 @@ export class UiPreferencesService {
     if (this.isModuleForcedOff(id)) return;
     const current = this.preferences().visibleModules[id] !== false;
     const next = !current;
-    this.dirtyModules.add(id);
     this.update({
       visibleModules: { ...this.preferences().visibleModules, [id]: next },
     });
@@ -149,18 +147,14 @@ export class UiPreferencesService {
   }
 
   /**
-   * Sincroniza los módulos visibles con el backend (tabla user_modules).
-   * - Carga el catálogo de módulos y los activos del usuario.
-   * - Si el usuario aún no tiene módulos, inicializa con los por defecto.
-   * - Los módulos forzados-off siempre quedan desactivados.
+   * Sincroniza módulos con el backend (tabla user_modules).
+   * - Todo queda visible por defecto; el backend no oculta módulos.
+   * - Se usa para persistir toggles del usuario y desactivar los forzados-off.
    * Los errores de red/API se ignoran: se mantiene la preferencia local.
    */
   async syncModules(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
     if (!localStorage.getItem('access_token')) return;
-
-    // Marcas de toggles del usuario que no deben sobrescribirse.
-    const userTouched = new Set(this.dirtyModules);
 
     try {
       const all = await firstValueFrom(this.http.get<any[]>(`${API}/modules`));
@@ -182,13 +176,9 @@ export class UiPreferencesService {
         this.backendModuleStates.set(slug, activeSlugs.has(slug));
       }
 
+      // Todo activado por defecto: conservamos las preferencias locales y solo
+      // aseguramos que los forzados-off nunca se muestren ni se activen.
       const visible = { ...DEFAULT_PREFERENCES.visibleModules, ...this.preferences().visibleModules };
-      for (const [id, slug] of Object.entries(FRONTEND_TO_BACKEND_SLUG)) {
-        // No sobrescribir los toggles que el usuario hizo durante la sync.
-        if (userTouched.has(id)) continue;
-        visible[id] = activeSlugs.has(slug);
-      }
-      // Los forzados-off nunca se muestran ni se activan.
       for (const id of FORCED_OFF_MODULES) {
         visible[id] = false;
         // Si el backend los tenía activos, desactivarlos.
