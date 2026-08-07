@@ -1,18 +1,61 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
   <div>
     <h1 class="text-3xl font-bold text-gray-900">Roadmaps</h1>
-    <p class="text-gray-500 text-sm mt-1">Hojas de ruta personalizadas generadas por IA para alcanzar tu rol soñado.</p>
+    <p class="text-gray-500 text-sm mt-1">Cuéntanos qué quieres aprender y la IA creará tu ruta por niveles, tipo Duolingo.</p>
   </div>
-  <button (click)="generateRoadmap()" [disabled]="roadmapService.generating()"
-    class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60 cursor-pointer"
-    style="background: #0C5A60;">
-    @if (roadmapService.generating()) {
-      <ng-icon name="lucideLoader" size="18" class="animate-spin" />
-    } @else {
-      <ng-icon name="lucideSparkles" size="18" />
+</div>
+
+<!-- Generador por tema -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-8">
+  <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
+    <ng-icon name="lucideWand2" size="13" />
+    Crear ruta de aprendizaje
+  </p>
+
+  <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-start">
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1.5">¿Qué quieres aprender? *</label>
+      <input type="text" [ngModel]="topic()" (ngModelChange)="topic.set($event); topicError.set('')"
+        placeholder="Ej. Inglés, Cálculo, Programación..."
+        class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F4B960] focus:border-transparent transition-all" />
+      @if (topicError()) {
+        <p class="text-xs text-red-500 font-semibold mt-1.5">{{ topicError() }}</p>
+      }
+    </div>
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1.5">Objetivo (opcional)</label>
+      <input type="text" [ngModel]="goal()" (ngModelChange)="goal.set($event)"
+        placeholder="Ej. para conversar en viajes"
+        class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#F4B960] focus:border-transparent transition-all" />
+    </div>
+    <div class="sm:pt-6">
+      <button (click)="generateRoadmap()" [disabled]="roadmapService.generating()"
+        class="flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60 cursor-pointer"
+        style="background: #0C5A60;">
+        @if (roadmapService.generating()) {
+          <ng-icon name="lucideLoader" size="18" class="animate-spin" />
+        } @else {
+          <ng-icon name="lucideSparkles" size="18" />
+        }
+        Crear con IA
+      </button>
+    </div>
+  </div>
+
+  <!-- Sugerencias -->
+  <div class="flex flex-wrap items-center gap-2 mt-4">
+    <span class="text-xs font-semibold text-gray-400">Ideas:</span>
+    @for (s of suggestions; track s) {
+      <button (click)="pickSuggestion(s)"
+        class="px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer"
+        [class]="topic() === s
+                 ? 'text-white border-transparent shadow-md'
+                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:shadow-sm'"
+        [style]="topic() === s ? 'background-color: #0C5A60;' : ''">
+        {{ s }}
+      </button>
     }
-    Generar con IA
-  </button>
+  </div>
 </div>
 
 @if (roadmapService.loading()) {
@@ -20,20 +63,10 @@
     <ng-icon name="lucideLoader" size="32" class="text-gray-400 animate-spin" />
   </div>
 } @else if (roadmapService.roadmaps().length === 0) {
-  <div class="flex flex-col items-center justify-center py-20">
+  <div class="flex flex-col items-center justify-center py-16">
     <ng-icon name="lucideRocket" size="48" class="text-gray-300 mb-4" />
-    <p class="text-gray-500 text-sm font-medium">Aún no tienes roadmaps generados</p>
-    <p class="text-gray-400 text-xs mt-1">Genera tu primer roadmap con IA para empezar a aprender.</p>
-    <button (click)="generateRoadmap()" [disabled]="roadmapService.generating()"
-      class="mt-6 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60 cursor-pointer"
-      style="background: #0C5A60;">
-      @if (roadmapService.generating()) {
-        <ng-icon name="lucideLoader" size="18" class="animate-spin" />
-      } @else {
-        <ng-icon name="lucideSparkles" size="18" />
-      }
-      Generar mi primer roadmap
-    </button>
+    <p class="text-gray-500 text-sm font-medium">Aún no tienes rutas de aprendizaje</p>
+    <p class="text-gray-400 text-xs mt-1 text-center max-w-sm">Escribe arriba qué quieres aprender (ej. Inglés) y la IA creará tu ruta con niveles y práctica.</p>
   </div>
 } @else {
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -53,6 +86,18 @@
             @if (rm.description) {
               <p class="text-sm text-gray-500 mt-1.5 leading-relaxed line-clamp-2">{{ rm.description }}</p>
             }
+            <div class="flex flex-wrap items-center gap-2 mt-3">
+              @if (rm.topic) {
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full" style="background: #e6f7f5; color: #0C5A60;">{{ rm.topic }}</span>
+              }
+              <span class="text-[11px] font-semibold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                <ng-icon name="lucideLayers" size="11" />
+                {{ rm.totalLevels || 1 }} niveles
+              </span>
+              @if (rm.difficulty) {
+                <span class="text-[11px] font-semibold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full">{{ rm.difficulty }}</span>
+              }
+            </div>
           </div>
         </div>
 
@@ -62,7 +107,7 @@
                <div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
                  <div class="h-full rounded-full transition-all" [style.width.%]="progressPercent(rm.steps)" style="background: #0C7C7C;"></div>
                </div>
-               <span class="text-sm font-semibold text-gray-500 whitespace-nowrap">{{ completedCount(rm.steps) }}/{{ rm.steps.length }} pasos</span>
+               <span class="text-sm font-semibold text-gray-500 whitespace-nowrap">{{ completedCount(rm.steps) }}/{{ rm.steps.length }} lecciones</span>
              </div>
              <p class="text-xs font-medium text-gray-400 mt-1.5">{{ progressPercent(rm.steps) }}% completado</p>
    </div>
