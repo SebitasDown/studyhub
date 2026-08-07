@@ -99,8 +99,8 @@ export class StudyTimerService {
     return trimmed;
   }
 
-  clearHistory(): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/sessions`).pipe(
+  clearHistory(): Observable<{ success: boolean; xpReverted: number }> {
+    return this.http.delete<{ success: boolean; xpReverted: number }>(`${this.apiUrl}/sessions`).pipe(
       tap(() => this.persistLocalHistory([]))
     );
   }
