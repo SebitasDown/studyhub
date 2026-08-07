@@ -7,7 +7,12 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
       <div>
         <p class="text-[11px] font-bold uppercase tracking-[0.2em] mb-1" style="color: var(--sh-primary);">Laboratorio · Sandbox</p>
-        <h1 class="text-3xl font-bold tracking-tight" style="color: #061E24;">🧪 Practica, no solo leas</h1>
+        <div class="flex items-center gap-2.5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7" style="color: var(--sh-primary);">
+            <path d="M9 3h6"></path><path d="M10 3v6L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"></path><path d="M7 15h10"></path>
+          </svg>
+          <h1 class="text-3xl font-bold tracking-tight" style="color: #061E24;">Practica, no solo leas</h1>
+        </div>
         <p class="text-sm text-gray-500 mt-1">Escribe código, ejecútalo, prueba casos de entrada y guarda tus soluciones.</p>
       </div>
       <div class="flex items-center gap-2.5">
@@ -27,8 +32,9 @@
     </div>
 
     @if (savedFlash) {
-      <div class="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm animate-bounce">
-        ✓ Ejercicio guardado
+      <div class="fixed top-6 right-6 z-50 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg font-semibold text-sm animate-bounce flex items-center gap-2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        Ejercicio guardado
       </div>
     }
 
@@ -41,7 +47,7 @@
             ? 'border-transparent text-white shadow-md'
             : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:shadow-sm'"
           [style]="language() === l.id ? 'background:' + l.color : ''">
-          <span>{{ l.icon }}</span>
+          <app-lang-icon [lang]="l.id" />
           {{ l.label }}
         </button>
       }
@@ -63,7 +69,12 @@
             <button (click)="openSave()"
               class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer hover:brightness-105"
               style="background: var(--sh-primary-soft); color: var(--sh-primary);">
-              💾 Guardar
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Guardar
             </button>
             <button (click)="run()" [disabled]="running()"
               class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white transition-all cursor-pointer hover:brightness-110 disabled:opacity-60"
@@ -74,7 +85,10 @@
                 </svg>
                 Ejecutando...
               } @else {
-                ▶ Ejecutar
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5">
+                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                </svg>
+                Ejecutar
               }
             </button>
           </div>
@@ -92,13 +106,16 @@
 
         <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap" style="background: #f8faf9; border-top: 1px solid var(--sh-border);">
           <p class="text-xs text-gray-500 flex items-center gap-1.5">
-            <span class="text-base">{{ langInfo(language()).icon }}</span>
+            <app-lang-icon [lang]="language()" [branded]="true" />
             {{ langInfo(language()).hint }}
           </p>
           <button (click)="runTests()" [disabled]="running()"
             class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border transition-colors cursor-pointer hover:bg-gray-50 disabled:opacity-60"
             style="border-color: var(--sh-border-strong); color: #0C5A60;">
-            🧪 Probar casos
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+              <path d="M9 3h6"></path><path d="M10 3v6L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"></path><path d="M7 15h10"></path>
+            </svg>
+            Probar casos
           </button>
         </div>
       </div>
@@ -106,10 +123,31 @@
       <!-- Panel derecho -->
       <div class="sh-card overflow-hidden flex flex-col">
         <div class="flex p-1.5 gap-1" style="background: var(--sh-hover); border-bottom: 1px solid var(--sh-border);">
-          @for (tab of [['run','▶ Salida'],['tests','🧪 Casos'],['saved','💾 Guardados'],['progress','📊 Progreso']]; track tab[0]) {
+          @for (tab of [['run','Salida'],['tests','Casos'],['saved','Guardados'],['progress','Progreso']]; track tab[0]) {
             <button (click)="setPanel(tab[0])"
-              class="flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer"
+              class="flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
               [class]="activePanel() === tab[0] ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+              @switch (tab[0]) {
+                @case ('run') {
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                }
+                @case ('tests') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                    <path d="M9 3h6"></path><path d="M10 3v6L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"></path><path d="M7 15h10"></path>
+                  </svg>
+                }
+                @case ('saved') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                }
+                @case ('progress') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
+                    <line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line>
+                  </svg>
+                }
+              }
               {{ tab[1] }}
             </button>
           }
@@ -135,7 +173,7 @@
                   @if (running()) {
                     <pre class="p-4 text-sm text-gray-300 font-mono whitespace-pre-wrap min-h-[90px]"><span class="animate-pulse">▍</span></pre>
                   } @else if (language() === 'html') {
-                    <pre class="p-4 text-sm text-emerald-400 font-mono whitespace-pre-wrap">✓ Vista previa renderizada arriba</pre>
+                    <pre class="p-4 text-sm text-emerald-400 font-mono whitespace-pre-wrap flex items-center gap-1.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>Vista previa renderizada arriba</pre>
                   } @else if (sandbox.lastResult()) {
                     @if (sandbox.lastResult()!.compileError) {
                       <pre class="p-4 text-sm text-red-400 font-mono whitespace-pre-wrap" style="min-height: 90px;">{{ sandbox.lastResult()!.compileError }}</pre>
@@ -145,7 +183,7 @@
                       <pre class="p-4 text-sm text-green-300 font-mono whitespace-pre-wrap" style="min-height: 90px;">{{ sandbox.lastResult()!.output || '(sin salida)' }}</pre>
                     }
                   } @else {
-                    <pre class="p-4 text-sm text-gray-500 font-mono whitespace-pre-wrap" style="min-height: 90px;">Presiona ▶ Ejecutar para ver el resultado aquí.</pre>
+                    <pre class="p-4 text-sm text-gray-500 font-mono whitespace-pre-wrap" style="min-height: 90px;">Presiona Ejecutar para ver el resultado aquí.</pre>
                   }
                 </div>
               </div>
@@ -168,12 +206,19 @@
                     <input type="text" [(ngModel)]="t.label" class="flex-1 text-xs font-bold bg-transparent outline-none" placeholder="Nombre del caso" />
                     <div class="flex items-center gap-2">
                       @if (testPassed(t.id) !== null) {
-                        <span class="text-[11px] font-black px-2 py-0.5 rounded-full"
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
                           [class]="testPassed(t.id) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                          {{ testPassed(t.id) ? '✓ PASÓ' : '✗ FALLÓ' }}
+                          @if (testPassed(t.id)) {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          } @else {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          }
+                          {{ testPassed(t.id) ? 'PASÓ' : 'FALLÓ' }}
                         </span>
                       }
-                      <button (click)="removeTestCase(t.id)" class="text-gray-300 hover:text-red-500 transition-colors cursor-pointer">✕</button>
+                      <button (click)="removeTestCase(t.id)" title="Quitar caso" class="text-gray-300 hover:text-red-500 transition-colors cursor-pointer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
                     </div>
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -196,7 +241,9 @@
 
               @if (exerciseTests().length === 0) {
                 <div class="py-8 text-center">
-                  <p class="text-3xl mb-2">🧪</p>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-9 h-9 mx-auto mb-2 text-gray-300">
+                    <path d="M9 3h6"></path><path d="M10 3v6L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"></path><path d="M7 15h10"></path>
+                  </svg>
                   <p class="text-sm text-gray-400">Sin casos. Agrega uno para verificar tu código automáticamente.</p>
                 </div>
               } @else {
@@ -204,10 +251,13 @@
                   <button (click)="runTests()" [disabled]="running()"
                     class="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all cursor-pointer hover:brightness-110 disabled:opacity-60"
                     style="background: #0C5A60;">
-                    @if (running()) { Probando... } @else { 🧪 Ejecutar todos los casos }
+                    @if (running()) { Probando... } @else { Ejecutar todos los casos }
                   </button>
                   @if (allTestsPassed && hasTestResults()) {
-                    <p class="text-center text-xs font-bold text-green-600 mt-2">🎉 ¡Todos los casos pasaron!</p>
+                    <p class="text-center text-xs font-bold text-green-600 mt-2 flex items-center justify-center gap-1.5">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      ¡Todos los casos pasaron!
+                    </p>
                   }
                 </div>
               }
@@ -218,7 +268,10 @@
           @if (activePanel() === 'saved') {
             @if (sandbox.exercises().length === 0) {
               <div class="py-10 text-center">
-                <p class="text-3xl mb-2">💾</p>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-9 h-9 mx-auto mb-2 text-gray-300">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
                 <p class="text-sm text-gray-400">Aún no has guardado ejercicios.</p>
                 <button (click)="openSave()" class="mt-3 text-xs font-bold cursor-pointer" style="color: var(--sh-primary);">Guardar el actual →</button>
               </div>
@@ -228,7 +281,7 @@
                   <div class="rounded-xl border border-gray-200 p-3.5 hover:shadow-sm transition-shadow">
                     <div class="flex items-center justify-between gap-2 mb-1.5">
                       <div class="flex items-center gap-2 min-w-0">
-                        <span>{{ langInfo(ex.language).icon }}</span>
+                        <app-lang-icon [lang]="ex.language" [branded]="true" />
                         <p class="text-sm font-bold truncate" style="color: var(--sh-text);">{{ ex.title }}</p>
                       </div>
                       <div class="flex items-center gap-1 shrink-0">
@@ -236,8 +289,16 @@
                         @if (attemptsFor(ex.id).length > 0) {
                           <button (click)="openCompare(ex.id)" class="px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Comparar</button>
                         }
-                        <button (click)="editExercise(ex.id)" class="p-1 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">✏️</button>
-                        <button (click)="deleteExercise(ex.id)" class="p-1 text-gray-300 hover:text-red-500 transition-colors cursor-pointer">🗑️</button>
+                        <button (click)="editExercise(ex.id)" title="Editar" class="p-1 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                          </svg>
+                        </button>
+                        <button (click)="deleteExercise(ex.id)" title="Eliminar" class="p-1 text-gray-300 hover:text-red-500 transition-colors cursor-pointer">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                            <path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          </svg>
+                        </button>
                       </div>
                     </div>
                     @if (ex.description) {
@@ -281,14 +342,18 @@
                   <div class="space-y-2">
                     @for (a of sandbox.attempts(); track a.id) {
                       <div class="flex items-center gap-2.5 p-2.5 rounded-xl" style="background: var(--sh-surface-2);">
-                        <span class="text-base">{{ langInfo(a.language).icon }}</span>
+                        <app-lang-icon [lang]="a.language" [branded]="true" />
                         <div class="flex-1 min-w-0">
                           <p class="text-xs font-semibold truncate" style="color: var(--sh-text);">{{ a.code.split('\n')[0]?.slice(0, 40) || 'Intento' }}</p>
                           <p class="text-[10px] text-gray-400">{{ fmtDate(a.createdAt) }} · {{ a.testedCases }} casos, {{ a.passedCases }} ok</p>
                         </div>
-                        <span class="text-[11px] font-black px-2 py-0.5 rounded-full"
+                        <span class="text-[11px] font-black px-1.5 py-0.5 rounded-full flex items-center"
                           [class]="a.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                          {{ a.passed ? '✓' : '✗' }}
+                          @if (a.passed) {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          } @else {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          }
                         </span>
                       </div>
                     }
@@ -311,7 +376,9 @@
     <div class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
       <div class="p-5 border-b border-gray-100 flex items-center justify-between">
         <h3 class="text-lg font-bold" style="color: #061E24;">{{ editingId ? 'Editar ejercicio' : 'Guardar ejercicio' }}</h3>
-        <button (click)="closeSave()" class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer text-xl leading-none">✕</button>
+        <button (click)="closeSave()" title="Cerrar" class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer p-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="p-5 space-y-4">
         <div>
@@ -325,7 +392,7 @@
             class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#F4B960] focus:border-transparent" />
         </div>
         <div class="flex items-center gap-2 text-xs text-gray-500">
-          <span>{{ langInfo(language()).icon }}</span>
+          <app-lang-icon [lang]="language()" [branded]="true" />
           <span>Se guardará con el código y los casos actuales de {{ langInfo(language()).label }}.</span>
         </div>
       </div>
@@ -350,16 +417,23 @@
           <h3 class="text-lg font-bold" style="color: #061E24;">Comparar intentos</h3>
           <p class="text-xs text-gray-400 mt-0.5">{{ sandbox.exercises().find(e => e.id === comparingId)?.title }} · {{ attemptsFor(comparingId).length }} intentos</p>
         </div>
-        <button (click)="closeCompare()" class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer text-xl leading-none">✕</button>
+        <button (click)="closeCompare()" title="Cerrar" class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer p-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="flex-1 overflow-y-auto p-5 space-y-3">
         @for (a of attemptsFor(comparingId); track a.id) {
           <div class="rounded-xl border p-4" [class]="a.passed ? 'border-green-200' : 'border-red-200'">
             <div class="flex items-center justify-between mb-2">
               <p class="text-xs font-bold text-gray-500">{{ fmtDate(a.createdAt) }}</p>
-              <span class="text-[11px] font-black px-2 py-0.5 rounded-full"
+              <span class="text-[11px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"
                 [class]="a.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                {{ a.passed ? '✓ Pasó' : '✗ Falló' }} · {{ a.passedCases }}/{{ a.testedCases }} casos
+                @if (a.passed) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="w-3 h-3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                }
+                {{ a.passed ? 'Pasó' : 'Falló' }} · {{ a.passedCases }}/{{ a.testedCases }} casos
               </span>
             </div>
             <pre class="text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto p-3 rounded-lg" style="background: #0d1117; color: #c9d1d9;">{{ a.code }}</pre>

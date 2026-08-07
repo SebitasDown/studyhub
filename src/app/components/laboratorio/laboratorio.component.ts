@@ -5,13 +5,14 @@ import { CommonModule } from '@angular/common';
 import {
   SandboxService, SandboxLanguage, SandboxExercise, SandboxTest, SANDBOX_LANGUAGES,
 } from '../../services/sandbox.service';
+import { LangIconComponent } from './lang-icon.component';
 
 type Panel = 'run' | 'tests' | 'saved' | 'progress';
 
 @Component({
   selector: 'app-laboratorio',
   standalone: true,
-  imports: [SidebarComponent, FormsModule, CommonModule],
+  imports: [SidebarComponent, FormsModule, CommonModule, LangIconComponent],
   templateUrl: './laboratorio.component.html',
   styles: [`:host { display: contents; }`],
 })
