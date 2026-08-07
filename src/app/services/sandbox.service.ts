@@ -56,7 +56,6 @@ export interface SandboxStats {
 export interface SandboxLanguageInfo {
   id: SandboxLanguage;
   label: string;
-  icon: string;
   color: string;
   /** Compilador/ejecutor de Wandbox (null para HTML que se ejecuta en el navegador). */
   wandboxCompiler: string | null;
@@ -71,7 +70,6 @@ export const SANDBOX_LANGUAGES: SandboxLanguageInfo[] = [
   {
     id: 'python',
     label: 'Python',
-    icon: '🐍',
     color: '#3572A5',
     wandboxCompiler: 'cpython-3.10.15',
     fileName: 'main.py',
@@ -81,17 +79,15 @@ export const SANDBOX_LANGUAGES: SandboxLanguageInfo[] = [
   {
     id: 'java',
     label: 'Java',
-    icon: '☕',
     color: '#B07219',
     wandboxCompiler: 'openjdk-jdk-21+35',
-    fileName: 'Main.java',
-    template: 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("¡Hola, StudyHub!");\n    }\n}\n',
-    hint: 'La clase principal debe llamarse Main. Usa Scanner(System.in) para entrada.',
+    fileName: 'prog.java',
+    template: 'public class prog {\n    public static void main(String[] args) {\n        System.out.println("¡Hola, StudyHub!");\n    }\n}\n',
+    hint: 'La clase principal debe llamarse prog (así lo espera el ejecutor). Usa Scanner(System.in) para entrada.',
   },
   {
     id: 'javascript',
     label: 'JavaScript',
-    icon: '🌐',
     color: '#F7DF1E',
     wandboxCompiler: 'nodejs-20.17.0',
     fileName: 'main.js',
@@ -101,7 +97,6 @@ export const SANDBOX_LANGUAGES: SandboxLanguageInfo[] = [
   {
     id: 'html',
     label: 'HTML/CSS/JS',
-    icon: '🧩',
     color: '#E34F26',
     wandboxCompiler: null,
     fileName: 'index.html',
@@ -111,7 +106,6 @@ export const SANDBOX_LANGUAGES: SandboxLanguageInfo[] = [
   {
     id: 'sql',
     label: 'SQL',
-    icon: '🗄️',
     color: '#003B57',
     wandboxCompiler: 'sqlite-3.46.1',
     fileName: 'main.sql',
@@ -168,18 +162,14 @@ export class SandboxService {
         return result;
       }
 
+      // Nota: para Java, Wandbox guarda el archivo como prog.java, por lo que la
+      // clase principal debe llamarse prog (no Main). Se envía en 'code' directo.
+      // Además, normalizamos los ejercicios viejos que usaban "class Main".
       const body: Record<string, unknown> = {
         compiler: info.wandboxCompiler,
         stdin,
+        code: language === 'java' ? code.replace(/\bclass\s+Main\b/g, 'class prog') : code,
       };
-      if (language === 'java') {
-        // Wandbox compila prog.java y espera la clase principal; Main.java necesita
-        // el nombre del archivo, así que se envía como archivo adicional.
-        body['code'] = '';
-        body['file'] = [{ file: info.fileName, code }];
-      } else {
-        body['code'] = code;
-      }
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 60_000);
