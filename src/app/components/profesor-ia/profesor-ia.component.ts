@@ -1,6 +1,6 @@
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { Component, ElementRef, OnInit, ViewChild, inject, PLATFORM_ID, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { MarkdownPipe } from '../../pipes/markdown.pipe';
@@ -57,6 +57,7 @@ export class ProfesorIaComponent implements OnInit {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('teacherChips') teacherChips!: ElementRef<HTMLDivElement>;
   protected ai = inject(AiService);
+  private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
 
   activeTab = signal<'chat' | 'gaps' | 'metas' | 'quiz'>('chat');
@@ -123,6 +124,11 @@ export class ProfesorIaComponent implements OnInit {
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+    // Deep link: /profesor-ia?tab=gaps|metas|quiz (usado por enlaces del Riesgo académico)
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'gaps' || tab === 'metas' || tab === 'quiz') {
+      this.activeTab.set(tab);
+    }
     this.loadChatData();
     this.loadGaps();
     this.loadGoals();

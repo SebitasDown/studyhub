@@ -4,18 +4,34 @@
   <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-10">
     <div class="max-w-5xl mx-auto">
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4 sm:mb-6">
         <div>
           <h1 class="text-3xl font-bold mb-1" style="color: #061E24;">Riesgo académico</h1>
           <p class="text-sm text-gray-500">Predicción temprana con intervención automática cuando el puntaje supera 80.</p>
         </div>
         <button (click)="recalculate()" [disabled]="riskService.recalculating()"
-          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
           style="background: #0C5A60;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4" [class.animate-spin]="riskService.recalculating()">
             <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
           {{ riskService.recalculating() ? 'Calculando...' : 'Recalcular' }}
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex w-max gap-1 p-1 rounded-full mb-6" style="background: #EEF2EF;">
+        <button (click)="switchTab('resumen')" class="px-4 sm:px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all cursor-pointer"
+                [class]="activeTab() === 'resumen' ? 'bg-white text-[#061E24] shadow-sm' : 'text-[#5c6b66] hover:text-[#061E24]'">
+          Resumen
+        </button>
+        <button (click)="switchTab('materias')" class="px-4 sm:px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all cursor-pointer"
+                [class]="activeTab() === 'materias' ? 'bg-white text-[#061E24] shadow-sm' : 'text-[#5c6b66] hover:text-[#061E24]'">
+          Por materia
+        </button>
+        <button (click)="switchTab('historial')" class="px-4 sm:px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all cursor-pointer"
+                [class]="activeTab() === 'historial' ? 'bg-white text-[#061E24] shadow-sm' : 'text-[#5c6b66] hover:text-[#061E24]'">
+          Historial
         </button>
       </div>
 
@@ -26,85 +42,200 @@
       } @else if (riskService.latest()) {
         @let risk = riskService.latest();
 
-        <!-- Score + Breakdown -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <!-- Score Card -->
-          <div class="rounded-2xl p-8 flex flex-col items-start justify-between min-h-[200px]"
-               [style.background]="getLevelColor(risk.level)">
-            <div class="flex items-center justify-between w-full">
-              <span class="text-white/80 text-sm font-semibold tracking-wide uppercase">Puntaje actual</span>
-              <svg viewBox="0 0 24 24" fill="white" class="w-5 h-5 opacity-70"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        <!-- ════════════ TAB: RESUMEN ════════════ -->
+        @if (activeTab() === 'resumen') {
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Score card con tendencia -->
+            <div class="rounded-2xl p-8 flex flex-col items-start justify-between min-h-[220px] relative overflow-hidden"
+                 [style.background]="getLevelColor(risk.level)">
+              <div class="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10" style="background: white; transform: translate(35%, -35%);"></div>
+              <div class="flex items-center justify-between w-full relative">
+                <span class="text-white/80 text-sm font-semibold tracking-wide uppercase">Puntaje actual</span>
+                <svg viewBox="0 0 24 24" fill="white" class="w-5 h-5 opacity-70"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              </div>
+              <div class="relative">
+                <p class="text-white font-black leading-none" style="font-size: 4rem;">{{ risk.score }}</p>
+                <p class="text-white/60 text-sm font-medium">/100</p>
+              </div>
+              <div class="relative flex items-center gap-3">
+                <span class="text-white font-bold text-xl tracking-widest">{{ levelLabel(risk.level) }}</span>
+                @let t = trend();
+                @if (t) {
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-full" [style.background]="'rgba(255,255,255,0.18)'">
+                    @if (t.up === true) { ▲ +{{ t.delta }} vs anterior }
+                    @else if (t.up === false) { ▼ {{ t.delta }} vs anterior }
+                    @else { — sin cambios }
+                  </span>
+                }
+              </div>
             </div>
-            <div>
-              <p class="text-white font-black leading-none" style="font-size: 4rem;">{{ risk.score }}</p>
-              <p class="text-white/60 text-sm font-medium">/100</p>
+
+            <!-- Factores accionables -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h3 class="font-bold text-gray-800 mb-1">Factores de riesgo</h3>
+              <p class="text-xs text-gray-400 mb-5">Cada factor con su propio nivel de alerta y acceso directo a la solución.</p>
+              <div class="space-y-4">
+                @for (f of getRiskFactors(risk.reasons); track f.key) {
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-semibold text-gray-600">{{ f.label }} <span class="text-gray-400">({{ f.weight }})</span></span>
+                      <span class="text-xs font-bold" [style.color]="factorColor(f.pct)">{{ f.score }}/{{ f.max }}</span>
+                    </div>
+                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-700" [style.width.%]="f.pct" [style.background]="factorColor(f.pct)"></div>
+                    </div>
+                    <div class="flex items-center justify-between mt-1.5">
+                      <span class="text-[11px] text-gray-400">{{ f.detail }}</span>
+                      <button (click)="goTo(f.link, f.query)"
+                        class="text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors cursor-pointer hover:bg-[#f0f5f3]"
+                        style="color: #0C5A60;">
+                        Resolver →
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
-            <span class="text-white font-bold text-xl tracking-widest">{{ risk.level }}</span>
           </div>
 
-          <!-- Breakdown -->
-          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h3 class="font-bold text-gray-800 mb-5">Desglose ponderado</h3>
-            <div class="space-y-4">
-              @for (f of getRiskFactors(risk.reasons); track f.label) {
-                <div>
-                  <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-xs font-semibold text-gray-600">{{ f.label }} <span class="text-gray-400">({{ f.weight }})</span></span>
-                    <span class="text-xs font-bold" style="color: #0C5A60;">{{ f.score }}</span>
-                  </div>
-                  <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all duration-700"
-                         [style.width.%]="f.pct"
-                         [style.background]="getLevelColor(risk.level)"></div>
-                  </div>
-                </div>
-              }
+          <!-- Recomendaciones IA -->
+          @if (risk.recommendations?.length) {
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mt-6">
+              <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-yellow-500"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Recomendaciones IA
+              </h3>
+              <ul class="space-y-2">
+                @for (rec of risk.recommendations; track $index) {
+                  <li class="flex items-start gap-2.5 text-sm text-gray-600">
+                    <span class="text-green-500 font-bold mt-0.5">•</span>
+                    {{ rec }}
+                  </li>
+                }
+              </ul>
             </div>
-          </div>
-        </div>
+          }
 
-        <!-- AI Recommendations -->
-        @if (risk.recommendations?.length) {
-          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-            <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-yellow-500"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              Recomendaciones IA
-            </h3>
-            <ul class="space-y-2">
-              @for (rec of risk.recommendations; track $index) {
-                <li class="flex items-start gap-2.5 text-sm text-gray-600">
-                  <span class="text-green-500 font-bold mt-0.5">•</span>
-                  {{ rec }}
-                </li>
+          <!-- Plan de recuperación IA (riesgo alto) -->
+          @if (risk.score >= 80 && intervention()) {
+            <div class="mt-6 rounded-2xl p-6 border-2" style="background: #FEF2F2; border-color: #FECACA;">
+              <div class="flex items-center gap-2 mb-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-red-500">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <h3 class="font-bold text-gray-800">Plan de recuperación IA activado</h3>
+              </div>
+              @if (intervention()?.plan) {
+                <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line mb-3">{{ intervention()?.plan }}</p>
               }
-            </ul>
-          </div>
+              @if (intervention()?.tips) {
+                <div class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ intervention()?.tips }}</div>
+              }
+              <button (click)="goTo(['/profesor-ia'])"
+                class="mt-4 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110 cursor-pointer"
+                style="background: #0C5A60;">
+                Ir al Profesor IA
+              </button>
+            </div>
+          }
         }
 
-        <!-- History -->
-        @if (riskService.history().length > 0) {
-          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h3 class="font-bold text-gray-800 mb-4">Historial</h3>
-            <div class="space-y-3">
-              @for (h of riskService.history(); track h.id) {
-                <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shrink-0"
-                       [style.background]="getLevelColor(h.level)">
-                    {{ h.score }}
+        <!-- ════════════ TAB: POR MATERIA ════════════ -->
+        @if (activeTab() === 'materias') {
+          @if (riskService.loadingSubjects()) {
+            <div class="flex justify-center py-16">
+              <div class="w-8 h-8 border-4 border-[#F4B960] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          } @else if (riskService.subjects().length === 0) {
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+              <p class="text-gray-400 font-medium">Aún no tienes materias para analizar.</p>
+            </div>
+          } @else {
+            <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));">
+              @for (s of riskService.subjects(); track s.subjectId) {
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 transition-all hover:shadow-md hover:-translate-y-0.5">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4 class="font-bold text-gray-800 text-sm leading-snug">{{ s.subjectName }}</h4>
+                    <span class="text-sm font-black px-2.5 py-1 rounded-lg text-white shrink-0" [style.background]="getLevelColor(s.level)">
+                      {{ s.riskScore }}
+                    </span>
                   </div>
-                  <div class="flex-1">
-                    <p class="font-bold text-sm" [style.color]="getLevelColor(h.level)">{{ h.level }}</p>
-                    <p class="text-xs text-gray-400">{{ h.createdAt | date:'d/M/yy, HH:mm' }}</p>
+                  <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-700" [style.width.%]="s.riskScore" [style.background]="getLevelColor(s.level)"></div>
                   </div>
+                  <span class="text-[11px] font-bold uppercase tracking-wide" [style.color]="getLevelColor(s.level)">
+                    {{ levelLabel(s.level) }}
+                  </span>
+                  @if (s.reasons?.length) {
+                    <ul class="space-y-1">
+                      @for (r of s.reasons.slice(0, 2); track $index) {
+                        <li class="flex items-start gap-1.5 text-[11px] text-gray-500">
+                          <span class="text-[#0C5A60] font-bold mt-0.5">•</span>
+                          {{ r }}
+                        </li>
+                      }
+                    </ul>
+                  }
+                  <button (click)="openSubject(s)"
+                    class="mt-auto text-xs font-semibold px-3 py-2 rounded-lg border transition-colors cursor-pointer hover:bg-[#f0f5f3]"
+                    style="border-color: #0C5A60; color: #0C5A60;">
+                    Ver materia →
+                  </button>
                 </div>
               }
             </div>
-          </div>
+          }
+        }
+
+        <!-- ════════════ TAB: HISTORIAL ════════════ -->
+        @if (activeTab() === 'historial') {
+          @if (riskService.history().length >= 2) {
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+              <h3 class="font-bold text-gray-800 mb-1">Evolución del puntaje</h3>
+              <p class="text-xs text-gray-400 mb-4">Últimos {{ riskService.history().length }} análisis.</p>
+              <div class="flex items-center gap-3">
+                <span class="text-[10px] font-bold text-gray-400 w-4 text-right">{{ chartMax() }}</span>
+                <div class="flex-1">
+                  <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="w-full h-28">
+                    <polyline :points="chartPolyline()" fill="none" stroke="#0C5A60" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    @for (d of chartDots(); track $index) {
+                      <circle [attr.cx]="d.x" [attr.cy]="d.y" r="2.2" [style.fill]="getLevelColor(d.level)" stroke="white" stroke-width="0.8" />
+                    }
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold text-gray-400 w-4">{{ chartMin() }}</span>
+              </div>
+            </div>
+          }
+
+          @if (riskService.history().length > 0) {
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h3 class="font-bold text-gray-800 mb-4">Historial</h3>
+              <div class="space-y-3">
+                @for (h of riskService.history(); track h.id) {
+                  <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black shrink-0"
+                         [style.background]="getLevelColor(h.level)">
+                      {{ h.score }}
+                    </div>
+                    <div class="flex-1">
+                      <p class="font-bold text-sm" [style.color]="getLevelColor(h.level)">{{ levelLabel(h.level) }}</p>
+                      <p class="text-xs text-gray-400">{{ h.createdAt | date:'d/M/yy, HH:mm' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
+              <p class="text-gray-400 font-medium">Aún no hay historial. Recalcula el riesgo para registrar tu primer análisis.</p>
+            </div>
+          }
         }
       } @else {
         <div class="py-20 text-center">
           <p class="text-gray-400 font-medium mb-4">Aún no tienes análisis de riesgo.</p>
-          <button (click)="recalculate()" class="px-6 py-3 rounded-xl font-semibold text-white" style="background: #0C5A60;">
+          <button (click)="recalculate()" class="px-6 py-3 rounded-xl font-semibold text-white cursor-pointer" style="background: #0C5A60;">
             Calcular ahora
           </button>
         </div>

@@ -9,7 +9,9 @@ export class AcademicRiskService {
   private http = inject(HttpClient);
   latest = signal<any>(null);
   history = signal<any[]>([]);
+  subjects = signal<any[]>([]);
   loading = signal(false);
+  loadingSubjects = signal(false);
   recalculating = signal(false);
 
   getLatest(): Observable<any> {
@@ -29,6 +31,13 @@ export class AcademicRiskService {
     this.recalculating.set(true);
     return this.http.post<any>(`${API}/risk/recalculate`, {}).pipe(
       tap({ next: r => { this.latest.set(r); this.recalculating.set(false); this.getHistory().subscribe(); }, error: () => this.recalculating.set(false) })
+    );
+  }
+
+  getSubjectsRisk(): Observable<any[]> {
+    this.loadingSubjects.set(true);
+    return this.http.get<any[]>(`${API}/risk/subjects`).pipe(
+      tap({ next: s => { this.subjects.set(s || []); this.loadingSubjects.set(false); }, error: () => this.loadingSubjects.set(false) })
     );
   }
 }
