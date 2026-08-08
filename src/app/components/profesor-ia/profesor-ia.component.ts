@@ -49,6 +49,9 @@ import {
     .quiz-q ul, .quiz-q ol { margin: 0.25em 0; padding-left: 1.5em; }
     .quiz-q .katex { font-size: 1.05em; }
     .quiz-opt .katex { font-size: 1.05em; }
+    .quiz-opt { line-height: 1.55; }
+    .quiz-opt p { margin: 0; }
+    .quiz-opt-text { min-width: 0; }
     .streaming-caret { background: #0f766e; animation: caret-blink 1s step-end infinite; vertical-align: text-bottom; }
     @keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
   `],
