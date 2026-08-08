@@ -427,11 +427,11 @@
                                   ? 'border-green-500 bg-green-50 text-green-800'
                                   : (quizSelected() === oi ? 'border-red-400 bg-red-50 text-red-700' : 'border-[#e2e8f0] text-[#64748b]'))
                                : 'border-[#e2e8f0] text-[#334155] hover:border-[#0f766e] hover:bg-[#f0fdfa]'">
-                        <span class="inline-flex items-start gap-2.5">
+                        <span class="flex items-start gap-2.5">
                           <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 mt-0.5" [class]="quizAnswered() && oi === quizCorrectIndex ? 'border-green-500 bg-green-500 text-white' : (quizAnswered() && quizSelected() === oi ? 'border-red-400 bg-red-400 text-white' : 'border-[#cbd5e1] text-[#64748b]')">
                             {{ quizOptionLetter(oi) }}
                           </span>
-                          <span [innerHTML]="opt | markdown"></span>
+                          <span class="quiz-opt-text min-w-0 flex-1 break-words" [innerHTML]="opt | markdown:true"></span>
                         </span>
                       </button>
                     }
@@ -449,7 +449,7 @@
                       @if (currentQuizQuestion?.explanation) {
                         <div class="flex items-start gap-2 mt-2">
                           <ng-icon name="lucideLightbulb" size="14" style="color: #d97706;" class="mt-0.5 flex-shrink-0" />
-                          <div class="text-sm text-[#475569] leading-relaxed quiz-q" [innerHTML]="(currentQuizQuestion?.explanation || '') | markdown"></div>
+                          <div class="text-sm text-[#475569] leading-relaxed quiz-q" [innerHTML]="(currentQuizQuestion?.explanation || '') | markdown:true"></div>
                         </div>
                       }
                     </div>

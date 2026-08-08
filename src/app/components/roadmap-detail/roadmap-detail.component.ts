@@ -13,6 +13,7 @@ import {
   lucideChevronRight,
 } from '@ng-icons/lucide';
 import { RoadmapService, RoadmapStep } from '../../services/roadmap.service';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 interface LevelView {
   level: number;
@@ -26,7 +27,7 @@ interface LevelView {
 @Component({
   selector: 'app-roadmap-detail',
   standalone: true,
-  imports: [NgIconComponent],
+  imports: [NgIconComponent, MarkdownPipe],
   providers: [
     provideIcons({
       lucideArrowLeft,

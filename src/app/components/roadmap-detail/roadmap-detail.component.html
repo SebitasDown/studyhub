@@ -171,24 +171,24 @@
                 <span class="text-xs font-bold text-gray-500 whitespace-nowrap">{{ qIndex() + 1 }}/{{ activeLesson.practice?.length }}</span>
               </div>
 
-              <p class="text-base font-semibold text-gray-900 mb-5">{{ q.question }}</p>
+              <div class="text-base font-semibold text-gray-900 mb-5 leading-relaxed quiz-q" [innerHTML]="q.question | markdown:true"></div>
 
               <div class="space-y-2.5">
                 @for (opt of q.options; track $index; let oi = $index) {
                   <button (click)="selectOption(oi)"
                           [disabled]="answered()"
-                          class="w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all cursor-pointer disabled:cursor-default"
+                          class="w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all cursor-pointer disabled:cursor-default quiz-opt"
                           [class]="answered()
                                    ? (oi === q.correctIndex
                                       ? 'border-green-500 bg-green-50 text-green-800'
                                       : (selected() === oi ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 text-gray-500'))
                                    : 'border-gray-200 text-gray-700 hover:border-[#0C5A60] hover:bg-teal-50'">
-                    <span class="inline-flex items-center gap-2.5">
-                      <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0"
+                    <span class="flex items-start gap-2.5">
+                      <span class="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
                             [class]="answered() && oi === q.correctIndex ? 'border-green-500 bg-green-500 text-white' : (answered() && selected() === oi ? 'border-red-400 bg-red-400 text-white' : 'border-gray-300')">
                         {{ optionLetter(oi) }}
                       </span>
-                      {{ opt }}
+                      <span class="quiz-opt-text min-w-0 flex-1 break-words" [innerHTML]="opt | markdown:true"></span>
                     </span>
                   </button>
                 }
@@ -206,7 +206,7 @@
                     {{ selected() === currentQuestion?.correctIndex ? '¡Correcto!' : 'Incorrecto' }}
                   </p>
                   @if (q.explanation) {
-                    <p class="text-sm text-gray-600 mt-1">{{ q.explanation }}</p>
+                    <div class="text-sm text-gray-600 mt-1 leading-relaxed quiz-q" [innerHTML]="q.explanation | markdown:true"></div>
                   }
                 </div>
               }
