@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideCheckCircle, lucideCircle, lucideTrash2, lucidePlus,
   lucideCalendar, lucideLoader, lucideX, lucideChevronRight, lucidePencil,
+  lucideChevronDown, lucideChevronUp,
 } from '@ng-icons/lucide';
 import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.service';
 
@@ -16,6 +17,7 @@ import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.serv
   providers: [provideIcons({
     lucideCheckCircle, lucideCircle, lucideTrash2, lucidePlus,
     lucideCalendar, lucideLoader, lucideX, lucideChevronRight, lucidePencil,
+    lucideChevronDown, lucideChevronUp,
   })],
   template: `
     <div>
@@ -57,7 +59,7 @@ import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.serv
         </div>
       } @else {
         <div class="flex flex-col gap-2 mt-5">
-          @for (task of tasks(); track task.id) {
+          @for (task of pendingTasks(); track task.id) {
             <div class="flex items-center gap-3 bg-white border border-[#e2e8f0] rounded-xl px-5 py-3.5 shadow-sm transition-all hover:shadow-md">
               <button (click)="toggleTask(task.id)" class="flex-shrink-0 text-[#94a3b8] hover:text-[#0f766e] transition-colors bg-transparent border-none cursor-pointer p-0.5">
                 @if (task.status === 'COMPLETED') {
@@ -107,6 +109,48 @@ import { SubjectsService, Task, TaskHelpers } from '../../services/subjects.serv
           }
           @if (tasks().length === 0) {
             <p class="text-sm text-[#94a3b8] text-center py-10">No hay tareas. ¡Crea la primera!</p>
+          } @else if (pendingTasks().length === 0) {
+            <p class="text-sm text-[#94a3b8] text-center py-6">No quedan tareas pendientes</p>
+          }
+
+          @if (completedTasks().length > 0) {
+            <div class="flex flex-col gap-2 mt-5 pt-4 border-t border-[#e2e8f0]">
+              <button (click)="showCompleted.set(!showCompleted())"
+                class="flex items-center gap-2 text-sm font-semibold text-[#64748b] hover:text-[#0f172a] transition-colors bg-transparent border-none cursor-pointer p-2 -ml-2 self-start">
+                <ng-icon name="lucideCheckCircle" size="16" color="#22c55e" />
+                Completadas ({{ completedTasks().length }})
+                <ng-icon [name]="showCompleted() ? 'lucideChevronUp' : 'lucideChevronDown'" size="15" color="#94a3b8" />
+              </button>
+              @if (showCompleted()) {
+                <div class="flex flex-col gap-2">
+                  @for (task of completedTasks(); track task.id) {
+                    <div class="flex items-center gap-3 bg-white/60 border border-[#e2e8f0] rounded-xl px-5 py-3.5">
+                      <button (click)="toggleTask(task.id)" class="flex-shrink-0 text-[#94a3b8] hover:text-[#0f766e] transition-colors bg-transparent border-none cursor-pointer p-0.5">
+                        <ng-icon name="lucideCheckCircle" size="20" color="#22c55e" />
+                      </button>
+                      <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-[#94a3b8] line-through truncate">{{ task.title }}</div>
+                        @if (task.dueDate) {
+                          <div class="text-xs text-[#94a3b8] flex items-center gap-1 mt-0.5">
+                            <ng-icon name="lucideCalendar" size="11" />
+                            {{ task.dueDate | date:'d MMM' }}
+                          </div>
+                        }
+                      </div>
+                      <span class="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
+                        [style.background]="priorityBg(task.priority)"
+                        [style.color]="priorityColor(task.priority)">
+                        {{ priorityLabel(task.priority) }}
+                      </span>
+                      <button (click)="deleteTask(task.id)" title="Eliminar tarea"
+                        class="text-[#94a3b8] hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer p-0.5 flex-shrink-0">
+                        <ng-icon name="lucideTrash2" size="15" />
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           }
         </div>
       }
@@ -126,6 +170,10 @@ export class SubjectTasksComponent implements OnInit {
 
   tasks = signal<Task[]>([]);
   loading = signal(true);
+  showCompleted = signal(false);
+
+  readonly pendingTasks = computed(() => (this.tasks() || []).filter((t) => t.status !== 'COMPLETED'));
+  readonly completedTasks = computed(() => (this.tasks() || []).filter((t) => t.status === 'COMPLETED'));
 
   showForm = signal(false);
   creating = signal(false);
