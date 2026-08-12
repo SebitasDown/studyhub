@@ -72,6 +72,8 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   subjects = signal<SubjectSummary[]>([]);
   subjectsLoading = signal(true);
   sessions = signal<StudySessionRecord[]>([]);
+  // Sesiones de la semana (independientes del filtro): alimentan el gráfico semanal.
+  weekSessions = signal<StudySessionRecord[]>([]);
   historyPeriod = signal<'day' | 'week' | 'month' | 'all'>('all');
   historyTotal = signal(0);
   historyPage = signal(1);
@@ -110,6 +112,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     this.loadStats();
     this.loadSubjects();
     this.loadHistory();
+    this.loadWeekSessions();
   }
 
   ngOnDestroy() {
@@ -133,6 +136,14 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
         this.historyLoading.set(false);
       },
       error: () => this.historyLoading.set(false),
+    });
+  }
+
+  /** Carga las sesiones de la semana (sin filtro) para el gráfico, una sola vez. */
+  private loadWeekSessions(): void {
+    this.timerService.getSessions('week', 1, 50).subscribe({
+      next: (pg) => this.weekSessions.set(pg.records),
+      error: () => this.weekSessions.set([]),
     });
   }
 
@@ -400,8 +411,9 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     };
     this.timerService.addHistoryRecord(record);
     this.events.emit('study:session');
-    // Recarga desde el backend para sincronizar total/página del periodo actual.
+    // Recarga desde el backend para sincronizar total/página del periodo actual y el gráfico.
     this.loadHistory(1);
+    this.loadWeekSessions();
   }
 
   clearHistory() {
@@ -474,7 +486,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
 
   get weekBars(): { label: string; minutes: number; pct: number; isToday: boolean }[] {
     const byDay = new Map<string, number>();
-    for (const s of this.sessions()) {
+    for (const s of this.weekSessions()) {
       const d = new Date(s.date);
       if (isNaN(d.getTime())) continue;
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -506,7 +518,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
     let sessions = 0;
     let minutes = 0;
     let xp = 0;
-    for (const s of this.sessions()) {
+    for (const s of this.weekSessions()) {
       if (new Date(s.date).getTime() >= weekAgo) {
         sessions++;
         minutes += s.durationMinutes;
