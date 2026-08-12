@@ -35,6 +35,20 @@ interface BackendSessionRow {
   subjectId: number | null;
 }
 
+/** Respuesta paginada del backend: { sessions, total, page, limit }. */
+export interface StudySessionPageResponse {
+  sessions: BackendSessionRow[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface StudySessionPage {
+  records: StudySessionRecord[];
+  total: number;
+  page: number;
+}
+
 export interface StudyTechnique {
   id: string;
   name: string;
@@ -72,23 +86,36 @@ export class StudyTimerService {
 
   // ---------------------------------------------------------------------------
   // Session history (backend as source of truth, localStorage as offline cache)
+  // Filtrable por periodo (day/week/month/all) y paginado.
   // ---------------------------------------------------------------------------
 
-  getSessions(): Observable<StudySessionRecord[]> {
-    return this.http.get<BackendSessionRow[]>(`${this.apiUrl}/sessions`).pipe(
-      map((rows) =>
-        rows.map((r) => ({
-          id: r.id,
-          date: r.completedAt,
-          durationMinutes: r.durationMinutes,
-          technique: r.technique,
-          subjectId: r.subjectId,
-          xpEarned: r.xpEarned,
-        }))
-      ),
-      tap((records) => this.persistLocalHistory(records)),
-      catchError(() => of(this.readLocalHistory()))
+  getSessions(period: string = 'all', page: number = 1, limit: number = 20): Observable<StudySessionPage> {
+    const params: any = { period, page: String(page), limit: String(limit) };
+    return this.http.get<any>(`${this.apiUrl}/sessions`, { params }).pipe(
+      map((res) => this.parseSessionPage(res)),
+      tap((pg) => {
+        if (page === 1) this.persistLocalHistory(pg.records);
+      }),
+      catchError(() => of({ records: this.readLocalHistory(), total: this.readLocalHistory().length, page: 1 }))
     );
+  }
+
+  /** Acepta { sessions, total, page, limit } (nuevo) o un array plano (backend desplegado). */
+  private parseSessionPage(res: any): StudySessionPage {
+    const rows: BackendSessionRow[] = Array.isArray(res) ? res : res?.sessions ?? [];
+    const records = rows.map((r) => ({
+      id: r.id,
+      date: r.completedAt,
+      durationMinutes: r.durationMinutes,
+      technique: r.technique,
+      subjectId: r.subjectId,
+      xpEarned: r.xpEarned,
+    }));
+    return {
+      records,
+      total: Array.isArray(res) ? records.length : (res?.total ?? records.length),
+      page: Array.isArray(res) ? 1 : (res?.page ?? 1),
+    };
   }
 
   addHistoryRecord(record: StudySessionRecord): StudySessionRecord[] {

@@ -72,6 +72,18 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   subjects = signal<SubjectSummary[]>([]);
   subjectsLoading = signal(true);
   sessions = signal<StudySessionRecord[]>([]);
+  historyPeriod = signal<'day' | 'week' | 'month' | 'all'>('all');
+  historyTotal = signal(0);
+  historyPage = signal(1);
+  historyLoading = signal(false);
+  historyLoadingMore = signal(false);
+
+  readonly historyPeriods: { id: 'day' | 'week' | 'month' | 'all'; label: string }[] = [
+    { id: 'day', label: 'Hoy' },
+    { id: 'week', label: 'Semana' },
+    { id: 'month', label: 'Mes' },
+    { id: 'all', label: 'Todo' },
+  ];
 
   selectedSubject = signal<number | null>(null);
   selectedTechnique = signal('POMODORO_25_5');
@@ -111,9 +123,42 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   // Data loading
   // ---------------------------------------------------------------------------
 
-  private loadHistory() {
-    // getSessions ya hace fallback a la caché local en caso de error.
-    this.timerService.getSessions().subscribe((records) => this.sessions.set(records));
+  private loadHistory(page: number = 1) {
+    this.historyLoading.set(true);
+    this.timerService.getSessions(this.historyPeriod(), page).subscribe({
+      next: (pg) => {
+        this.sessions.set(pg.records);
+        this.historyTotal.set(pg.total);
+        this.historyPage.set(pg.page);
+        this.historyLoading.set(false);
+      },
+      error: () => this.historyLoading.set(false),
+    });
+  }
+
+  selectPeriod(period: 'day' | 'week' | 'month' | 'all'): void {
+    if (this.historyPeriod() === period) return;
+    this.historyPeriod.set(period);
+    this.loadHistory(1);
+  }
+
+  loadMoreHistory(): void {
+    if (this.historyLoadingMore()) return;
+    const nextPage = this.historyPage() + 1;
+    if (this.sessions().length >= this.historyTotal()) return;
+    this.historyLoadingMore.set(true);
+    this.timerService.getSessions(this.historyPeriod(), nextPage).subscribe({
+      next: (pg) => {
+        // Evita duplicados si el usuario repite el scroll mientras carga.
+        const existing = new Set(this.sessions().map((s) => s.id));
+        const fresh = pg.records.filter((r) => !existing.has(r.id));
+        this.sessions.set([...this.sessions(), ...fresh]);
+        this.historyTotal.set(pg.total);
+        this.historyPage.set(pg.page);
+        this.historyLoadingMore.set(false);
+      },
+      error: () => this.historyLoadingMore.set(false),
+    });
   }
 
   private loadStats() {
@@ -353,8 +398,10 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
       subjectId: this.selectedSubject(),
       xpEarned,
     };
-    this.sessions.set(this.timerService.addHistoryRecord(record));
+    this.timerService.addHistoryRecord(record);
     this.events.emit('study:session');
+    // Recarga desde el backend para sincronizar total/página del periodo actual.
+    this.loadHistory(1);
   }
 
   clearHistory() {
@@ -470,7 +517,7 @@ export class StudyTimerComponent implements OnInit, OnDestroy {
   }
 
   get totalSessions(): number {
-    return this.sessions().length;
+    return this.historyTotal();
   }
 
   get totalMinutes(): number {

@@ -237,8 +237,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private loadRecentSessions(): void {
     // getSessions ya hace fallback a la caché local en caso de error.
-    this.studyTimer.getSessions().subscribe((records) => {
-      this.allSessions = records || [];
+    this.studyTimer.getSessions().subscribe((pg) => {
+      this.allSessions = pg.records || [];
       this.recentSessions = this.allSessions.slice(0, 5);
       this.cdr.markForCheck();
     });

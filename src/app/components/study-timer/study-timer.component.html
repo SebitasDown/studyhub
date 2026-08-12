@@ -191,20 +191,36 @@
 
       <!-- Historial -->
       <div class="mt-10">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <p class="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
             <ng-icon name="lucideHistory" size="13" />
             Historial de sesiones
-            <span class="text-gray-300 font-medium normal-case">· todo el tiempo</span>
           </p>
-          @if (sessions().length > 0) {
-            <button (click)="clearHistory()"
-                    class="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer">
-              <ng-icon name="lucideTrash2" size="12" />
-              Limpiar
-            </button>
-          }
+          <div class="flex items-center gap-1.5">
+            @for (p of historyPeriods; track p.id) {
+              <button (click)="selectPeriod(p.id)"
+                      class="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer border"
+                      [class]="historyPeriod() === p.id
+                        ? 'border-transparent text-white'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'"
+                      [style.background]="historyPeriod() === p.id ? 'linear-gradient(135deg, #0e7490, #0369a1)' : 'transparent'">
+                {{ p.label }}
+              </button>
+            }
+            @if (sessions().length > 0) {
+              <button (click)="clearHistory()" title="Limpiar historial"
+                      class="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer ml-1">
+                <ng-icon name="lucideTrash2" size="12" />
+              </button>
+            }
+          </div>
         </div>
+        @if (historyLoading()) {
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex items-center justify-center">
+            <div class="w-6 h-6 rounded-full border-2 border-gray-200 border-t-transparent animate-spin"
+                 style="border-top-color: #0C5A60;"></div>
+          </div>
+        }
 
         @if (sessions().length === 0) {
           <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-8 flex flex-col items-center gap-3 text-center">
@@ -302,6 +318,21 @@
                   }
                 </div>
               </div>
+            }
+
+            <!-- Paginación -->
+            @if (sessions().length < historyTotal()) {
+              <button (click)="loadMoreHistory()" [disabled]="historyLoadingMore()"
+                      class="w-full mt-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-wait cursor-pointer">
+                @if (historyLoadingMore()) {
+                  <span class="inline-flex items-center gap-2">
+                    <span class="w-4 h-4 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" style="border-top-color: #0C5A60;"></span>
+                    Cargando…
+                  </span>
+                } @else {
+                  Cargar más ({{ sessions().length }}/{{ historyTotal() }})
+                }
+              </button>
             }
           </div>
         }
