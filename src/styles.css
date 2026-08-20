@@ -315,3 +315,15 @@ html[data-theme='midnight'] [style*='background: #fafbfa'] { background: var(--s
 .chat-msg th, .chat-msg td { border: 1px solid rgba(0, 0, 0, 0.1); padding: 0.5rem; text-align: left; }
 .chat-msg th { background: rgba(0, 0, 0, 0.05); font-weight: 600; }
 .chat-msg hr { border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1); margin: 1.5rem 0; }
+
+/* Tablas en explicaciones de quiz y modales */
+.quiz-q table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.85em; }
+.quiz-q th, .quiz-q td { border: 1px solid #e2e8f0; padding: 0.4rem 0.6rem; text-align: left; }
+.quiz-q th { background: #f1f5f9; font-weight: 600; color: #334155; }
+.quiz-q td { color: #475569; }
+.quiz-q tr:nth-child(even) { background: #f8fafc; }
+
+/* KaTeX display mode centrado */
+.quiz-q .katex-display { margin: 0.75rem 0; text-align: center; overflow-x: auto; }
+.quiz-q .katex { font-size: 1em; }
+.chat-msg .katex { font-size: 1em; }
