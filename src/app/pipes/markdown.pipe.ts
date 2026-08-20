@@ -54,7 +54,8 @@ export class MarkdownPipe implements PipeTransform {
     let processedValue = autoMath ? this.normalizeNakedLatex(value) : value;
 
     // 1. Pre-process math blocks (katex)
-    processedValue = processedValue.replace(/\$\$(.*?)\$\$|\\\[(.*?)\\\]/gs, (match, p1, p2) => {
+    //    Handle both \[ \] and \\[ \\] (backend double-escapes)
+    processedValue = processedValue.replace(/\$\$(.*?)\$\$|\\?\[(.*?)\\?\]/gs, (match, p1, p2) => {
       try {
         return this.katex.renderToString(p1 || p2, { displayMode: true, throwOnError: false });
       } catch (e) {
@@ -62,7 +63,8 @@ export class MarkdownPipe implements PipeTransform {
       }
     });
 
-    processedValue = processedValue.replace(/\$(.*?)\$|\\\((.*?)\\\)/g, (match, p1, p2) => {
+    //    Handle both \( \) and \\( \\) (backend double-escapes), and $...$
+    processedValue = processedValue.replace(/\$(.*?)\$|\\?\((.*?)\\?\)/g, (match, p1, p2) => {
       try {
         return this.katex.renderToString(p1 || p2, { displayMode: false, throwOnError: false });
       } catch (e) {
