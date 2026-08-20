@@ -455,4 +455,8 @@ export class AiService {
       tap(() => AppCache.invalidatePrefix('ai_resources'))
     );
   }
+
+  explainAnswer(data: { question: string; choices: string[]; correctAnswer: string; topic?: string; isCorrect?: boolean }): Observable<{ explanation: string }> {
+    return this.http.post<{ explanation: string }>(`${API}/ai/explain-answer`, data);
+  }
 }

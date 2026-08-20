@@ -110,6 +110,9 @@ export class ProfesorIaComponent implements OnInit {
   quizCorrectCount = signal(0);
   quizDone = signal(false);
   savingQuizResult = signal(false);
+  quizExplaining = signal(false);
+  quizExplainText = signal('');
+  showQuizExplainModal = signal(false);
 
   showNewTeacherForm = signal(false);
   newTeacherProfile = signal<{ name: string; description: string; subjects: string; systemPrompt: string; teachingStyle: string; difficultyLevel: string }>({
@@ -634,6 +637,32 @@ export class ProfesorIaComponent implements OnInit {
 
   closeQuiz(): void {
     this.activeQuiz.set(null);
+  }
+
+  explainQuizAnswer(): void {
+    const q = this.currentQuizQuestion;
+    if (!q || this.quizExplaining()) return;
+    this.quizExplaining.set(true);
+    this.quizExplainText.set('');
+    const choices = q.choices || [];
+    this.ai.explainAnswer({
+      question: q.question,
+      choices,
+      correctAnswer: q.answer || '',
+      topic: this.activeQuiz()?.content?.topic || this.activeQuiz()?.subject || '',
+      isCorrect: this.quizSelected() === this.quizCorrectIndex,
+    }).subscribe({
+      next: (res) => {
+        this.quizExplainText.set(res.explanation || 'Sin explicación disponible.');
+        this.quizExplaining.set(false);
+        this.showQuizExplainModal.set(true);
+      },
+      error: () => {
+        this.quizExplainText.set('No se pudo generar la explicación.');
+        this.quizExplaining.set(false);
+        this.showQuizExplainModal.set(true);
+      },
+    });
   }
 
   finishQuiz(): void {
