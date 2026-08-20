@@ -519,14 +519,14 @@
   <!-- Modal explicación IA -->
   @if (showQuizExplainModal()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" (click)="showQuizExplainModal.set(false)">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6" (click)="$event.stopPropagation()">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #eef2ff;">
             <ng-icon name="lucideInfo" size="20" style="color: #4f46e5;" />
           </div>
           <h3 class="text-lg font-bold text-[#0f172a]">Explicación IA</h3>
         </div>
-        <div class="text-sm text-[#475569] leading-relaxed quiz-q mb-5" [innerHTML]="quizExplainText() | markdown:true"></div>
+        <div class="text-sm text-[#475569] leading-relaxed quiz-q mb-5 overflow-y-auto flex-1 min-h-0 pr-1" style="max-height: 60vh;" [innerHTML]="quizExplainText() | markdown:true"></div>
         <div class="flex justify-end">
           <button (click)="showQuizExplainModal.set(false)" class="px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer" style="background: #4f46e5; color: white;">Entendido</button>
         </div>
