@@ -11,7 +11,7 @@ import {
   lucideLanguages, lucidePen, lucideBot, lucideLoader,
   lucideChevronLeft, lucideChevronRight,
   lucideClipboardList, lucideSparkles, lucideRefreshCw, lucideTrophy,
-  lucideCheckCircle2, lucideXCircle, lucideLightbulb,
+  lucideCheckCircle2, lucideXCircle, lucideLightbulb, lucideInfo,
 } from '@ng-icons/lucide';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -31,7 +31,7 @@ import {
     lucideLanguages, lucidePen, lucideBot, lucideLoader,
     lucideChevronLeft, lucideChevronRight,
     lucideClipboardList, lucideSparkles, lucideRefreshCw, lucideTrophy,
-    lucideCheckCircle2, lucideXCircle, lucideLightbulb,
+    lucideCheckCircle2, lucideXCircle, lucideLightbulb, lucideInfo,
   })],
   templateUrl: './profesor-ia.component.html',
   styles: [`:host { display: block; height: 100dvh; min-height: 0; overflow: hidden; }
@@ -658,7 +658,8 @@ export class ProfesorIaComponent implements OnInit {
         this.showQuizExplainModal.set(true);
       },
       error: () => {
-        this.quizExplainText.set('No se pudo generar la explicación.');
+        const fallback = q.explanation || `La respuesta correcta es: **${q.answer || 'N/A'}**. La explicación detallada estará disponible cuando el backend se actualice.`;
+        this.quizExplainText.set(fallback);
         this.quizExplaining.set(false);
         this.showQuizExplainModal.set(true);
       },
