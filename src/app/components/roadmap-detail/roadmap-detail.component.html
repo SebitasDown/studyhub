@@ -171,7 +171,7 @@
                 <span class="text-xs font-bold text-gray-500 whitespace-nowrap">{{ qIndex() + 1 }}/{{ activeLesson.practice?.length }}</span>
               </div>
 
-              <div class="text-base font-semibold text-gray-900 mb-5 leading-relaxed quiz-q" [innerHTML]="q.question | markdown:true"></div>
+              <div class="text-base font-semibold text-gray-900 mb-5 leading-relaxed quiz-q" style="word-break: break-word; overflow-wrap: anywhere;" [innerHTML]="q.question | markdown:true"></div>
 
               <div class="space-y-2.5">
                 @for (opt of q.options; track $index; let oi = $index) {
@@ -206,7 +206,7 @@
                     {{ selected() === currentQuestion?.correctIndex ? '¡Correcto!' : 'Incorrecto' }}
                   </p>
                   @if (q.explanation) {
-                    <div class="text-sm text-gray-600 mt-1 leading-relaxed quiz-q" [innerHTML]="q.explanation | markdown:true"></div>
+                    <div class="text-sm text-gray-600 mt-1 leading-relaxed quiz-q min-w-0" style="word-break: break-word; overflow-wrap: anywhere; overflow-x: hidden;" [innerHTML]="q.explanation | markdown:true"></div>
                   }
                 </div>
               }

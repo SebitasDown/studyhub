@@ -55,7 +55,7 @@ export class MarkdownPipe implements PipeTransform {
 
     // 1. Pre-process math blocks (katex)
     //    Handle both \[ \] and \\[ \\] (backend double-escapes)
-    processedValue = processedValue.replace(/\$\$(.*?)\$\$|\\?\[(.*?)\\?\]/gs, (match, p1, p2) => {
+    processedValue = processedValue.replace(/\$\$([\s\S]*?)\$\$|\\\[([\s\S]*?)\\\]/g, (match, p1, p2) => {
       try {
         return this.katex.renderToString(p1 || p2, { displayMode: true, throwOnError: false });
       } catch (e) {
@@ -63,8 +63,8 @@ export class MarkdownPipe implements PipeTransform {
       }
     });
 
-    //    Handle both \( \) and \\( \\) (backend double-escapes), and $...$
-    processedValue = processedValue.replace(/\$(.*?)\$|\\?\((.*?)\\?\)/g, (match, p1, p2) => {
+    //    Handle $...$ inline, \( \) and \\( \\) (backend double-escapes)
+    processedValue = processedValue.replace(/\$([^$\n]+?)\$|\\\(([^)]+?)\\\)/g, (match, p1, p2) => {
       try {
         return this.katex.renderToString(p1 || p2, { displayMode: false, throwOnError: false });
       } catch (e) {
@@ -79,10 +79,19 @@ export class MarkdownPipe implements PipeTransform {
       ? (this.marked.parseInline(processedValue, { async: false }) as string)
       : (this.marked.parse(processedValue, { async: false }) as string);
 
-    // 3. Purify HTML
+    // 3. Purify HTML — allow KaTeX output (spans) + standard HTML + MathML
     const cleanHtml = this.dompurify.sanitize(html, {
-      ADD_TAGS: ['math', 'semantics', 'mrow', 'mi', 'mn', 'mo', 'mspace', 'msqrt', 'mfrac', 'mroot', 'mstyle', 'merror', 'mpadded', 'mphantom', 'mfenced', 'msubsup', 'msup', 'msub', 'mmultiscripts', 'mover', 'munder', 'munderover', 'annotation', 'table', 'tbody', 'thead', 'tr', 'th', 'td'],
-      ADD_ATTR: ['display', 'xmlns', 'class', 'style', 'aria-hidden']
+      ADD_TAGS: [
+        // KaTeX generated HTML
+        'span', 'div',
+        // MathML
+        'math', 'semantics', 'mrow', 'mi', 'mn', 'mo', 'mspace', 'msqrt', 'mfrac', 'mroot', 'mstyle', 'merror', 'mpadded', 'mphantom', 'mfenced', 'msubsup', 'msup', 'msub', 'mmultiscripts', 'mover', 'munder', 'munderover', 'annotation',
+        // Tables
+        'table', 'tbody', 'thead', 'tr', 'th', 'td',
+        // Standard HTML
+        'p', 'br', 'hr', 'ul', 'ol', 'li', 'pre', 'code', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'a', 'img',
+      ],
+      ADD_ATTR: ['display', 'xmlns', 'class', 'style', 'aria-hidden', 'href', 'target', 'rel', 'src', 'alt', 'width', 'height', 'colspan', 'rowspan'],
     });
 
     this.cachedHtml = this.sanitizer.bypassSecurityTrustHtml(cleanHtml);

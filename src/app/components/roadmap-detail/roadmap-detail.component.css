@@ -3,8 +3,11 @@
 }
 
 /* ── Quiz: renderizado de markdown + LaTeX (mismo tratamiento que Profesor IA) ── */
-.quiz-q p { margin: 0; }
+.quiz-q { word-break: break-word; overflow-wrap: anywhere; overflow-x: hidden; }
+.quiz-q p { margin: 0 0 0.5em 0; }
+.quiz-q p:last-child { margin-bottom: 0; }
 .quiz-q .katex { font-size: 1.05em; }
+.quiz-q .katex-html span { word-break: normal; overflow-wrap: normal; }
 .quiz-opt { line-height: 1.55; }
 .quiz-opt p { margin: 0; }
 .quiz-opt .katex { font-size: 1.05em; }
